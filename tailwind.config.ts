@@ -16,6 +16,10 @@ const config: Config = {
         sans: ["var(--font-geist-sans)"],
         mono: ["var(--font-geist-mono)"],
       },
+      screens: {
+        lg2: "870px",
+        xs: "560px"
+      }
     },
   },
   plugins: [],

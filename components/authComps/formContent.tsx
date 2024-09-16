@@ -7,12 +7,14 @@ interface FormContentProps {
   isSignUp: boolean;
   headingText: string;
   submitBtnValue: string;
+  isLoading: boolean;
 }
 
 const FormContent: React.FC<FormContentProps> = ({
   isSignUp,
   headingText,
   submitBtnValue,
+  isLoading,
 }) => {
   return (
     <>
@@ -47,26 +49,34 @@ const FormContent: React.FC<FormContentProps> = ({
         />
       </div>
 
-      <input
+      <button
         type="submit"
-        value={submitBtnValue}
-        className="btn solid w-[150px] bg-blue-600 hover:bg-blue-500 border-none outline-none h-[49px] rounded-md text-white uppercase font-semibold my-2.5 cursor-pointer transition duration-500 "
-      />
+        className="btn solid w-[150px] flex justify-center items-center active:scale-90 disabled:scale-90 disabled:bg-[#373f4e] disabled:hover:bg-[#373f4e] disabled:cursor-not-allowed text-center bg-blue-600 hover:bg-blue-500 border-none outline-none h-[49px] rounded-md text-white uppercase font-semibold my-2.5 cursor-pointer transition duration-300 "
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
+        ) : (
+          submitBtnValue
+        )}
+      </button>
 
       <SocialSignIn />
 
       <div className="text-center w-full mt-6">
         <p className="text-[0.85rem] text-gray-400">
-          By signing up, you agree to our 
-          <a href="/privacy-policy" className="text-blue-500 ml-1 hover:underline underline-offset-2 py-1">
-
+          By signing up, you agree to our
+          <a
+            href="/privacy-policy"
+            className="text-blue-500 ml-1 hover:underline underline-offset-2 py-1"
+          >
             Privacy Policy
-
-          </a>
-          {" "}
-          and 
-          <a href="/terms-of-service" className="text-blue-500 ml-1 hover:underline underline-offset-2 py-1">
-
+          </a>{" "}
+          and
+          <a
+            href="/terms-of-service"
+            className="text-blue-500 ml-1 hover:underline underline-offset-2 py-1"
+          >
             Terms of Service
           </a>
           .

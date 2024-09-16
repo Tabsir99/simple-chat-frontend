@@ -8,6 +8,7 @@ const interFont = Inter({
   preload: true,
   subsets: ["latin"],
   display: "swap",
+  fallback: ["sans-serif"]
 });
 
 export const metadata: Metadata = {
@@ -23,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={interFont.className}>
-        <main className="bg-[hsl(250,24%,9%)] flex justify-center items-center min-h-screen">{children}</main>
+        <main className="bg-[hsl(250,24%,9%)] h-screen overflow-hidden">{children}</main>
       </body>
     </html>
   );

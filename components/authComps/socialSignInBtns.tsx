@@ -11,7 +11,7 @@ export default function SocialSignIn() {
         {/* Facebook Button */}
         <a
           href="#"
-          className="flex items-center w-44 justify-center py-3 bg-gray-800 bg-opacity-40 border-2 border-gray-800 text-white rounded-md shadow-md transition-all duration-300 hover:bg-gray-800"
+          className="flex items-center w-40 justify-center py-3 bg-gray-800 bg-opacity-40 border-2 border-gray-800 text-white rounded-md shadow-md transition-all duration-300 hover:bg-gray-800"
         >
           <FacebookIcon className="mr-2" /> 
           <span> Facebook</span>
@@ -20,7 +20,7 @@ export default function SocialSignIn() {
         {/* Google Button */}
         <a
           href="#"
-          className="flex items-center w-44 justify-center py-3 bg-gray-800 bg-opacity-40  border-2 border-gray-800 text-white rounded-md shadow-md transition-all duration-300 hover:bg-gray-800"
+          className="flex items-center w-40 justify-center py-3 bg-gray-800 bg-opacity-40  border-2 border-gray-800 text-white rounded-md shadow-md transition-all duration-300 hover:bg-gray-800"
         >
           <GoogleIcon className="mr-2" /> 
           <span> Google</span>

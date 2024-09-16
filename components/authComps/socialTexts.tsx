@@ -3,10 +3,11 @@
 import { Dispatch, SetStateAction } from "react";
 
 interface SocialTextsProps{
-  setShowSignUp: Dispatch<SetStateAction<boolean>>
+  setShowSignUp: Dispatch<SetStateAction<boolean>>,
+  showVerification: boolean
 }
 
-const SocialTexts: React.FC<SocialTextsProps> = ({ setShowSignUp }) => {
+const SocialTexts: React.FC<SocialTextsProps> = ({ setShowSignUp, showVerification }) => {
   return (
     <div className="panels-container absolute h-full w-full top-0 left-0 grid grid-cols-2 max-lg2:grid-cols-[1fr] max-lg2:grid-rows-[1fr,2fr,1fr]">
       <div className="panel left-panel flex flex-col items-end justify-around text-center z-[6] pointer-events-auto pr-[12%] pt-12 pb-8 pl-[17%] max-lg2:flex-row max-lg2:justify-around max-lg2:items-center max-lg2:py-[2.5rem] max-lg2:px-[8%] max-lg2:col-[1/2] max-lg2:row-[1/2] ">
@@ -18,11 +19,12 @@ const SocialTexts: React.FC<SocialTextsProps> = ({ setShowSignUp }) => {
             Jump right in! Start chatting with people. Simple Chat keeps it... well, simple.
           </p>
           <button
-            className="btn m-0 border-2 active:scale-90 border-gray-400 hover:bg-gray-500 hover:bg-opacity-40 rounded-md transition duration-300 bg-transparent w-[130px] h-[41px] font-semibold text-[0.8rem]"
+            className="btn m-0 border-2 active:scale-90 disabled:cursor-not-allowed border-gray-400 hover:bg-gray-500 hover:bg-opacity-40 rounded-md transition duration-300 bg-transparent w-[130px] h-[41px] font-semibold text-[0.8rem]"
             id="sign-up-btn"
             onClick={() => {
               setShowSignUp(true)
             }}
+            disabled={showVerification}
           >
             Sign Up
           </button>
@@ -39,11 +41,12 @@ const SocialTexts: React.FC<SocialTextsProps> = ({ setShowSignUp }) => {
             Welcome back! Hop back in and catch up on your chats. We&apos;ve been waiting for you.
           </p>
           <button
-            className="btn active:scale-90 m-0 border-2 border-gray-400 hover:bg-gray-500 hover:bg-opacity-40 rounded-md transition duration-300 bg-transparent w-[130px] h-[41px] font-semibold text-[0.8rem]"
+            className="btn active:scale-90 disabled:cursor-not-allowed m-0 border-2 border-gray-400 hover:bg-gray-500 hover:bg-opacity-40 rounded-md transition duration-300 bg-transparent w-[130px] h-[41px] font-semibold text-[0.8rem]"
             id="sign-in-btn"
             onClick={() => {
               setShowSignUp(false)
             }}
+            disabled={showVerification}
           >
             Sign In
           </button>

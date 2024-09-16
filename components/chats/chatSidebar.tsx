@@ -16,7 +16,7 @@ export default function ChatSidebar() {
 
 
   return (
-    <aside className="w-16 h-screen bg-gray-800 bg-opacity-90 text-white flex flex-col items-center overflow-y-auto overflow-x-hidden p-4">
+    <aside className="w-16 h-screen bg-[#222a30] text-white flex flex-col items-center overflow-y-auto overflow-x-hidden p-4">
       {/* Profile Section */}
       <div className="mb-4 w-8 h-8 rounded-full border cursor-pointer">
         

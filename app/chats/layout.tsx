@@ -1,5 +1,6 @@
 import ChatSidebar from "@/components/chats/chatSidebar";
 import Search from "@mui/icons-material/Search";
+import Link from "next/link";
 
 export default function ChatLayout({
   children,
@@ -35,11 +36,11 @@ export default function ChatLayout({
 
   return (
     <>
-      <div className="h-full bg-[#121212] w-screen text-gray-100 flex">
+      <div className="h-full bg-[#1b1b1b] w-screen text-gray-100 flex">
         <ChatSidebar />
-        <div className="chat-list px-4 space-y-4 bg-[#1d232a] bg-opacity-90">
-          <h1 className="text-2xl font-bold "> Chats </h1>
-          <div className="relative mb-6 bg-gray-700 bg-opacity-50 overflow-hidden rounded-full flex items-center px-3">
+        <div className="chat-list px-4 space-y-4 bg-[#1c222a] bg-opacity-90">
+          <h1 className="text-2xl font-bold pt-3"> Chats </h1>
+          <div className="relative mb-6 bg-gray-700 bg-opacity-50 overflow-hidden rounded-md flex items-center px-3">
             <Search />
             <input
               type="text"
@@ -48,8 +49,9 @@ export default function ChatLayout({
             />
           </div>
           {chats.map((chat) => (
-            <div
+            <Link
               key={chat.id}
+              href='chats/chat1'
               className={`flex items-center  w-80 py-3 hover:cursor-pointer px-4 bg-[#252a32] rounded-lg transition-all duration-300 ease-in-out hover:bg-[#272e38] `}
             >
               <div className="avatar w-12 h-12 bg-[#434343] rounded-full mr-4 relative">
@@ -73,7 +75,7 @@ export default function ChatLayout({
                   {chat.newMessageCount}{" "}
                 </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
         <section className="bg-[#292f36] w-full">

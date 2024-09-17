@@ -1,13 +1,10 @@
 import { LogOut, Camera, Edit, Mail, UserPlus } from "lucide-react";
-import UserPublicProfile from "@/components/profiles/publicprfoile";
 
-export default function UserProfile() {
+export default function PrivateProfile() {
   const personal = false;
   return (
     <>
-      {!personal ? (
-        <UserPublicProfile />
-      ) : (
+      
         <div className="h-screen bg-gray-900 text-white p-8 overflow-y-scroll">
           <div className="max-w-4xl mx-auto">
             {/* Header */}
@@ -89,7 +86,6 @@ export default function UserProfile() {
             </div>
           </div>
         </div>
-      )}
     </>
   );
 }

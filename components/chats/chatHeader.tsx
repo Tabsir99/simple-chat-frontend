@@ -1,9 +1,11 @@
 "use client";
 import { useState, MouseEvent, useEffect, useRef } from "react";
-import { MoreVertical, Search, User, Image, Archive, Ban } from "lucide-react";
+import { MoreVertical, Search, User, Image, Ban, Heart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MediaModal from "./mediaModal";
+
+
 
 const options = [
   {
@@ -11,7 +13,7 @@ const options = [
     icon: <User className="text-gray-400" size={18} />,
   },
   { item: "Media", icon: <Image className="text-gray-400" size={18} /> },
-  { item: "Archive", icon: <Archive className="text-gray-400" size={18} /> },
+  { item: "Favorite", icon: <Heart className="text-gray-400" size={18} /> },
   { item: "Block", icon: <Ban className="text-gray-400" size={18} /> },
 ];
 

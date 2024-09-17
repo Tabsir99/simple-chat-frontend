@@ -7,9 +7,8 @@ import {
   Settings, 
   Search, 
   Logout, 
-  Notifications, 
   HelpOutline, 
-  Person2
+  
 } from '@mui/icons-material';
 
 export default function ChatSidebar() {
@@ -30,9 +29,6 @@ export default function ChatSidebar() {
           </li>
           <li className="flex items-center justify-center p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
             <Group className="text-white text-[1px]" fontSize='small' titleAccess='Groups' />
-          </li>
-          <li className="flex items-center justify-center p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
-            <Notifications className="text-white text-[1px]" fontSize='small' titleAccess='Notifications' />
           </li>
           <li className="flex items-center justify-center p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
             <Search className="text-white text-[1px]" fontSize='small' titleAccess='Search People' />

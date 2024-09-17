@@ -2,7 +2,7 @@ import ChatSidebar from "@/components/chats/chatSidebar";
 import Search from "@mui/icons-material/Search";
 import Link from "next/link";
 
-export default function ChatLayout({
+export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -51,7 +51,7 @@ export default function ChatLayout({
           {chats.map((chat) => (
             <Link
               key={chat.id}
-              href='chats/chat1'
+              href='/chats/chat1'
               className={`flex items-center  w-80 py-3 hover:cursor-pointer px-4 bg-[#252a32] rounded-lg transition-all duration-300 ease-in-out hover:bg-[#272e38] `}
             >
               <div className="avatar w-12 h-12 bg-[#434343] rounded-full mr-4 relative">

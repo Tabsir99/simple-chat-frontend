@@ -1,28 +1,23 @@
 "use client";
 import { useState, MouseEvent, useEffect, useRef } from "react";
-import { MoreVert } from "@mui/icons-material";
-import Search from "@mui/icons-material/Search";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import PhotoIcon from "@mui/icons-material/Photo";
-import BlockIcon from "@mui/icons-material/Block";
+import { MoreVertical, Search, User, Image, Archive, Ban } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Archive from "@mui/icons-material/Archive";
 import MediaModal from "./mediaModal";
 
 const options = [
   {
     item: "Profile",
-    icon: <AccountCircleIcon className=" text-gray-400" fontSize="small" />,
+    icon: <User className="text-gray-400" size={18} />,
   },
-  { item: "Media", icon: <PhotoIcon className=" text-gray-400" fontSize="small" /> },
-  { item: "Archive", icon: <Archive className=" text-gray-400" fontSize="small" /> },
-  { item: "Block", icon: <BlockIcon className=" text-gray-400" fontSize="small" /> },
+  { item: "Media", icon: <Image className="text-gray-400" size={18} /> },
+  { item: "Archive", icon: <Archive className="text-gray-400" size={18} /> },
+  { item: "Block", icon: <Ban className="text-gray-400" size={18} /> },
 ];
 
 export default function ChatHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false); // Track media modal
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter()
 
@@ -43,7 +38,7 @@ export default function ChatHeader() {
       return router.push("/profile/profile1");
     }
     if (option === "Media") {
-      toggleMediaModal(); // Open the media modal when "Media" is clicked
+      toggleMediaModal();
     }
     console.log(`${option} clicked`);
     closeDropdown();
@@ -90,14 +85,14 @@ export default function ChatHeader() {
             className="text-gray-400 hover:text-white transition-colors duration-200 focus:outline-none"
             onClick={() => {}}
           >
-            <Search className="w-6 h-6" />
+            <Search size={24} />
           </button>
         </div>
         <button
           className="text-gray-400 hover:text-white transition-colors duration-200 focus:outline-none"
           onClick={toggleDropdown}
         >
-          <MoreVert className="w-6 h-6" />
+          <MoreVertical size={24} />
         </button>
 
         <div
@@ -120,11 +115,9 @@ export default function ChatHeader() {
         </div>
       </div>
 
-      {/* Media Modal */}
-      {/* Media Modal */}
-{isMediaModalOpen && (
-  <MediaModal toggleMediaModal={toggleMediaModal} />
-)}
+      {isMediaModalOpen && (
+        <MediaModal toggleMediaModal={toggleMediaModal} />
+      )}
 
     </div>
   );

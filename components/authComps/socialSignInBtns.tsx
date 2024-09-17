@@ -1,5 +1,4 @@
-import FacebookIcon from '@mui/icons-material/Facebook';
-import GoogleIcon from '@mui/icons-material/Google';
+import { FaFacebook, FaGoogle } from 'react-icons/fa';
 
 export default function SocialSignIn() {
   return (
@@ -13,16 +12,16 @@ export default function SocialSignIn() {
           href="#"
           className="flex items-center w-40 justify-center py-3 bg-gray-800 bg-opacity-40 border-2 border-gray-800 text-white rounded-md shadow-md transition-all duration-300 hover:bg-gray-800"
         >
-          <FacebookIcon className="mr-2" /> 
+          <FaFacebook className="mr-2" size={20} /> 
           <span> Facebook</span>
         </a>
 
         {/* Google Button */}
         <a
           href="#"
-          className="flex items-center w-40 justify-center py-3 bg-gray-800 bg-opacity-40  border-2 border-gray-800 text-white rounded-md shadow-md transition-all duration-300 hover:bg-gray-800"
+          className="flex items-center w-40 justify-center py-3 bg-gray-800 bg-opacity-40 border-2 border-gray-800 text-white rounded-md shadow-md transition-all duration-300 hover:bg-gray-800"
         >
-          <GoogleIcon className="mr-2" /> 
+          <FaGoogle className="mr-2" size={20} /> 
           <span> Google</span>
         </a>
       </div>

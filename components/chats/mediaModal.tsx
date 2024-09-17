@@ -1,6 +1,5 @@
 import { MouseEventHandler } from "react";
-import Close from "@mui/icons-material/Close";
-
+import { XCircleIcon } from 'lucide-react'
 export default function MediaModal({ toggleMediaModal }: { toggleMediaModal: MouseEventHandler<HTMLButtonElement> }) {
   return (
     <>
@@ -10,7 +9,7 @@ export default function MediaModal({ toggleMediaModal }: { toggleMediaModal: Mou
             className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors duration-200"
             onClick={toggleMediaModal}
           >
-            <Close className="w-6 h-6" />
+            <XCircleIcon className="w-6 h-6" />
           </button>
           <h2 className="text-white text-[24px] font-semibold mb-4">
             Shared Media & Documents

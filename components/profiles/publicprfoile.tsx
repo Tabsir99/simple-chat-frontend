@@ -1,14 +1,11 @@
-import React from "react";
 import {
-  AccountCircle,
-  Chat,
-  PersonAdd,
-  Report,
-  Block,
-  Group,
-  VisibilityOff,
-} from "@mui/icons-material";
-import Send from "@mui/icons-material/Send";
+  CircleUser,
+  UserPlus,
+  Ban,
+  Users,
+  EyeOff,
+  Send
+} from "lucide-react";
 
 const UserPublicProfile = () => {
   return (
@@ -19,7 +16,7 @@ const UserPublicProfile = () => {
           <h1 className="text-3xl font-bold">User Profile</h1>
 
           <button className=" bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg flex items-center">
-            <Block className="w-5 h-5 mr-1" />
+            <Ban className="w-5 h-5 mr-1" />
             Block
           </button>
         </div>
@@ -39,14 +36,14 @@ const UserPublicProfile = () => {
               <h2 className="text-2xl font-semibold mb-2">John Doe</h2>
               <p className="text-gray-400 mb-4">@johndoe</p>
               <div className="flex justify-center md:justify-start items-center mb-4">
-                <AccountCircle className="w-5 h-5 mr-2 text-gray-400" />
+                <CircleUser className="w-5 h-5 mr-2 text-gray-400" />
                 <span>john.doe@example.com</span>
               </div>
 
               {/* Inline Quick Actions */}
               <div className="flex justify-center md:justify-start space-x-4">
                 <button className="bg-gray-900 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center">
-                  <PersonAdd className="w-5 h-5 mr-2" />
+                  <UserPlus className="w-5 h-5 mr-2" />
                   Add Friend
                 </button>
                 <button className="bg-gray-900 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center">
@@ -89,11 +86,11 @@ const UserPublicProfile = () => {
         {/* Add to Group Button */}
         <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8 gap-10 flex justify-stretch items-center">
           <button className="bg-gray-900 w-full hover:bg-gray-700 text-white px-4 py-3 rounded-lg flex items-center justify-center">
-            <Group className="w-5 h-5 mr-2" />
+            <Users className="w-5 h-5 mr-2" />
             Add to Group
           </button>
           <button className="bg-gray-900 w-full justify-center hover:bg-gray-700 text-white px-4 py-3 rounded-lg flex items-center">
-            <VisibilityOff className="w-5 h-5 mr-2" />
+            <EyeOff className="w-5 h-5 mr-2" />
             Start Anonymous Chat
           </button>
         </div>

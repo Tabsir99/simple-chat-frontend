@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, MouseEvent } from "react";
-import { MoreVert } from "@mui/icons-material";
+import { MoreHorizontalIcon } from "lucide-react";
 import MediaModal from "../mediaModal";
 
 const options = [
@@ -83,7 +83,7 @@ export default function GroupHeader() {
           className="text-gray-400 hover:text-white transition-colors duration-200 focus:outline-none"
           onClick={toggleDropdown}
         >
-          <MoreVert className="w-6 h-6" />
+          <MoreHorizontalIcon className="w-6 h-6" />
         </button>
 
         <div

@@ -1,15 +1,10 @@
-import MainLayout from "@/app/chats/layout";
-import LogoutIcon from "@mui/icons-material/Logout";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
-import EditIcon from "@mui/icons-material/Edit";
-import EmailIcon from "@mui/icons-material/Email";
-import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import { LogOut, Camera, Edit, Mail, UserPlus } from "lucide-react";
 import UserPublicProfile from "@/components/profiles/publicprfoile";
 
 export default function UserProfile() {
-  const personal = true;
+  const personal = false;
   return (
-    <MainLayout>
+    <>
       {!personal ? (
         <UserPublicProfile />
       ) : (
@@ -30,7 +25,7 @@ export default function UserProfile() {
                     JD{" "}
                   </div>
                   <button className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 rounded-full p-2">
-                    <CameraAltIcon className="w-5 h-5" />
+                    <Camera className="w-5 h-5" />
                   </button>
                 </div>
 
@@ -40,7 +35,7 @@ export default function UserProfile() {
                   <p className="text-gray-400 mb-4">@johndoe</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center">
-                      <EmailIcon className="w-5 h-5 mr-2 text-gray-400" />
+                      <Mail className="w-5 h-5 mr-2 text-gray-400" />
                       <span>john.doe@example.com</span>
                     </div>
                   </div>
@@ -53,7 +48,7 @@ export default function UserProfile() {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-semibold">Bio</h3>
                 <button className="text-blue-400 hover:text-blue-300 flex items-center">
-                  <EditIcon className="w-4 h-4 mr-1" />
+                  <Edit className="w-4 h-4 mr-1" />
                   Edit
                 </button>
               </div>
@@ -84,17 +79,17 @@ export default function UserProfile() {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <button className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-lg flex items-center justify-center">
-                <GroupAddIcon className="w-5 h-5 mr-2" />
+                <UserPlus className="w-5 h-5 mr-2" />
                 Invite Friends
               </button>
               <button className="bg-red-600 hover:bg-red-700 justify-center text-white px-4 py-2 rounded-lg flex items-center">
-                <LogoutIcon className="w-5 h-5 mr-2" />
+                <LogOut className="w-5 h-5 mr-2" />
                 Logout
               </button>
             </div>
           </div>
         </div>
       )}
-    </MainLayout>
+    </>
   );
 }

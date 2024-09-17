@@ -1,4 +1,4 @@
-import { InsertEmoticon, AttachFile, Send } from "@mui/icons-material";
+import { Smile, Paperclip, Send } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 
 export default function MessageInput({
@@ -13,10 +13,10 @@ export default function MessageInput({
   return (
     <div className="bg-[#1f2329] px-4 py-2 border-t border-gray-700 flex items-center space-x-4">
       <button className="text-gray-400 hover:text-white transition">
-        <InsertEmoticon />
+        <Smile size={24} />
       </button>
       <button className="text-gray-400 hover:text-white transition">
-        <AttachFile />
+        <Paperclip size={24} />
       </button>
       <input
         type="text"
@@ -30,7 +30,7 @@ export default function MessageInput({
         className="text-gray-400 hover:text-white transition"
         onClick={() => sendMessage()}
       >
-        <Send />
+        <Send size={24} />
       </button>
     </div>
   );

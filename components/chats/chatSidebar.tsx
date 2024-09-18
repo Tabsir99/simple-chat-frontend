@@ -1,42 +1,21 @@
-import { Settings, Search, LogOut, HelpCircle, Heart } from "lucide-react";
+import { LogOut, HelpCircle } from "lucide-react";
+
+import SideBarNav from "./sidebarnav";
 import Link from "next/link";
-import { BsChat } from "react-icons/bs";
 
 export default function ChatSidebar() {
   return (
     <aside className="w-16 h-screen bg-[#222a30] text-white flex flex-col items-center overflow-y-auto overflow-x-hidden p-4">
       {/* Profile Section */}
-      <div className="mb-4 w-8 h-8 rounded-full border cursor-pointer"></div>
+      <Link href="/profile" className="mb-4 w-10 h-10 rounded-full bg-gray-700 text-base font-bold flex justify-center items-center text-gray-300 cursor-pointer">
+          JD
+      </Link>
       {/* Menu List */}
       <nav className="flex-1 border-t border-gray-700 pt-2">
-        <ul className="space-y-2 flex flex-col items-center">
-          <li className="flex items-center justify-center w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
-            <Link href="/chats" className="p-3 block">
-              <BsChat className="text-white" size={20} aria-label="Favorite" />
-            </Link>
-          </li>
-          <li className="flex items-center justify-center w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
-            <Link href="/chats/favorites" className="p-3 block">
-              <Heart className="text-white" size={20} aria-label="Favorite" />
-            </Link>
-          </li>
-          <li className="flex items-center justify-center p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
-            <Link href="/search-people">
-              {" "}
-              <Search
-                className="text-white"
-                size={20}
-                aria-label="Search People"
-              />
-            </Link>
-          </li>
-        </ul>
+        <SideBarNav />
         {/* Divider */}
         <hr className="my-4 border-gray-700" />
-        <ul className="space-y-2 flex flex-col items-center">
-          <li className="flex items-center justify-center p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
-            <Settings className="text-white" size={20} aria-label="Settings" />
-          </li>
+        <ul className="space-y-2 flex flex-col self-end items-center">
           <li className="flex items-center justify-center p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
             <LogOut className="text-white" size={20} aria-label="Log Out" />
           </li>

@@ -1,29 +1,24 @@
-import { FaFacebook, FaGoogle } from 'react-icons/fa';
+"use client";
+
+import { FaGoogle } from "react-icons/fa";
 
 export default function SocialSignIn() {
+  
+
   return (
     <>
       <p className="social-text py-2 text-base text-gray-500 text-center">
-        Or Sign in with social platforms
+        Or Sign in with Google
       </p>
-      <div className="social-media flex justify-center space-x-4">
-        {/* Facebook Button */}
-        <a
-          href="#"
-          className="flex items-center w-40 justify-center py-3 bg-gray-800 bg-opacity-40 border-2 border-gray-800 text-white rounded-md shadow-md transition-all duration-300 hover:bg-gray-800"
+      <div className="social-media flex justify-center ">
+        <button
+          className="bg-gray-800 border-2 flex justify-center items-center gap-0 rounded-md border-gray-800 bg-opacity-60 py-3 px-5 hover:bg-gray-700 hover:bg-opacity-70 transition-all duration-200"
+          onClick={() => {
+            window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+          }}
         >
-          <FaFacebook className="mr-2" size={20} /> 
-          <span> Facebook</span>
-        </a>
-
-        {/* Google Button */}
-        <a
-          href="#"
-          className="flex items-center w-40 justify-center py-3 bg-gray-800 bg-opacity-40 border-2 border-gray-800 text-white rounded-md shadow-md transition-all duration-300 hover:bg-gray-800"
-        >
-          <FaGoogle className="mr-2" size={20} /> 
-          <span> Google</span>
-        </a>
+          <FaGoogle className="mr-2" size={24} /> Sign In With Google
+        </button>
       </div>
     </>
   );

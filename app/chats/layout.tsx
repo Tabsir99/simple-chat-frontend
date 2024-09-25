@@ -2,7 +2,7 @@ import ChatSidebar from "@/components/chats/chatSidebar";
 import { Search } from "lucide-react";
 import Link from "next/link";
 
-export default function MainLayout({
+export default async function MainLayout({
   children,
 }: {
   children: React.ReactNode;

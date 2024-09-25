@@ -1,7 +1,17 @@
-
+"use client";
+import { useEffect } from "react";
 import { BsChatFill } from "react-icons/bs";
 
 export default function AllChats() {
+  useEffect(() => {
+    const channel = new BroadcastChannel("c1");
+    channel.postMessage("success")
+
+    const res = fetch("http://localhost:3001/api/auth/refresh",{
+      credentials: "include"
+    })
+    return () => channel.close()
+  }, []);
   return (
     <>
       <div className="flex flex-col items-center justify-center text-6xl gap-2 h-full text-gray-400">

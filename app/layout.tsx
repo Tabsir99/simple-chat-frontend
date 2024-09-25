@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={interFont.className}>
-        <main className="bg-[hsl(250,24%,9%)] h-screen overflow-hidden">{children}</main>
+        <main className="bg-[hsl(250,24%,9%)] h-screen min-w-[100vw] overflow-hidden">{children}</main>
       </body>
     </html>
   );

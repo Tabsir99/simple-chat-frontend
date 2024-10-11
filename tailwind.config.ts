@@ -29,11 +29,22 @@ const config: Config = {
           "0%": { transform: "translateX(0)", opacity: "1" },
           "100%": { transform: "translateX(-100%)", opacity: "0" },
         },
+        "shimmer": {
+          '0%': { backgroundPosition: '100% 0' },
+          '100%': { backgroundPosition: '-100% 0' },
+        },
       },
       animation: {
         "slide-left-in": "slide-left-in 0.6s ease forwards",
         "slide-left-out": "slide-left-out 0.6s ease forwards",
+        "shimmer": 'shimmer 2s infinite',
       },
+    },
+    backgroundSize: {
+      '200%': '200% 100%',
+    },
+    backgroundImage: {
+      shimmer: 'linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 100%)',
     },
   },
   plugins: [],

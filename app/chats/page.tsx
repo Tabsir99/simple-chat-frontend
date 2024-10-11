@@ -7,9 +7,6 @@ export default function AllChats() {
     const channel = new BroadcastChannel("c1");
     channel.postMessage("success")
 
-    const res = fetch("http://localhost:3001/api/auth/refresh",{
-      credentials: "include"
-    })
     return () => channel.close()
   }, []);
   return (

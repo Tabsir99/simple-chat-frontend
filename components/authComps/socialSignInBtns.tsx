@@ -1,9 +1,8 @@
-"use client";
 
 import { FaGoogle } from "react-icons/fa";
 
+
 export default function SocialSignIn() {
-  
 
   return (
     <>

@@ -1,41 +1,64 @@
+"use client";
+
 import ChatSidebar from "@/components/chats/chatSidebar";
 import { Search } from "lucide-react";
 import Link from "next/link";
+import { ProtectedRoute } from "@/components/authComps/authcontext";
+import useCustomSWR from "@/components/hooks/customSwr";
+import { MiniProfileSkeleton } from "@/components/skeletons/skeleton";
+import { useEffect } from "react";
+import { BsChatFill } from "react-icons/bs";
+import { useSocket } from "@/components/contextProvider/websocketContext";
+import { IChatHead } from "@/types/chatTypes";
+import { useChatContext } from "@/components/contextProvider/chatContext";
+import ActiveChats from "@/components/chats/activeChats";
 
-export default async function MainLayout({
+export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const chats = [
-    {
-      id: 1,
-      name: "John Doe",
-      lastMessage: "Hey, how's it going?",
-      unread: true,
-      newMessageCount: 3,
-      lastMessageTime: "10:35",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      lastMessage: "Can we meet tomorrow?",
-      unread: false,
-      newMessageCount: 3,
-      lastMessageTime: "10:35",
-    },
-    {
-      id: 3,
-      name: "James Bond",
-      lastMessage: "Mission accomplished.",
-      unread: true,
-      newMessageCount: 2,
-      lastMessageTime: "10:35",
-    },
-  ];
+  const { socket, isConnected } = useSocket();
 
+  const { activeChats, setActiveChats } = useChatContext()
+
+  const { data, error, isLoading } = useCustomSWR<Array<IChatHead>>(
+    `${process.env.NEXT_PUBLIC_API_URL}/chats`,
+  );
+
+  useEffect(() => {
+    setActiveChats(data || null)
+  }, [data]);
+  useEffect(() => {
+    if (!socket || !isConnected) {
+      return;
+    }
+
+    socket.on("friend:status", ({ friendId, status }) => {
+
+      setActiveChats(prevList =>
+        prevList?prevList?.map(chat => {
+          if (chat.oppositeUser.userId === friendId) {
+            return {
+              ...chat,
+              oppositeUser: {
+                ...chat.oppositeUser,
+                userStatus: status
+              }
+            };
+          }
+          return chat;
+        }):null
+      );
+    });
+
+    return () => {
+      socket.removeListener("friend:status")
+      socket.off("friend:status")
+    }
+  }, [isConnected]);
   return (
-    <>
+    <ProtectedRoute>
       <div className="h-full bg-[#1b1b1b] w-screen text-gray-100 flex">
         <ChatSidebar />
         <div className="chat-list px-4 space-y-4 bg-[#1c222a] bg-opacity-90">
@@ -48,40 +71,33 @@ export default async function MainLayout({
               className="w-full p-3 bg-transparent text-[18px] rounded-lg text-gray-300 placeholder-gray-400 outline-none"
             />
           </div>
-          {chats.map((chat) => (
-            <Link
-              key={chat.id}
-              href='/chats/chat1'
-              className={`flex items-center  w-80 py-3 hover:cursor-pointer px-4 bg-[#252a32] rounded-lg transition-all duration-300 ease-in-out hover:bg-[#272e38] `}
-            >
-              <div className="avatar w-12 h-12 bg-[#434343] rounded-full mr-4 relative">
-                {chat.unread && (
-                  <span className=" h-3 w-3 bg-green-500 border-2 border-gray-700 rounded-full block absolute bottom-0.5 right-0.5"></span>
-                )}
-              </div>
-              <div className="flex-1 space-y-0.5">
-                <h2 className="text-[18px] font-bold">{chat.name}</h2>
-                <p className="text-gray-400 text-[16px] truncate">
-                  {chat.lastMessage.length > 20
-                    ? chat.lastMessage.slice(0, 20) + "..."
-                    : chat.lastMessage}
-                </p>
-              </div>
+          {isLoading ? (
+            <>
+              <MiniProfileSkeleton />
+              <MiniProfileSkeleton />
+              <MiniProfileSkeleton />
+              <MiniProfileSkeleton />
+            </>
+          ) : activeChats?.length && activeChats.length > 0 ? (
+            activeChats.map((chat) => (
+              <ActiveChats data={chat} key={chat.chatRoomId} />
+            ))
+          ) : (
+            <div className="w-80 h-64 flex flex-col items-center justify-center bg-[#252a32] rounded-lg p-6 text-center">
+              <BsChatFill className="text-5xl mb-4 text-gray-500" />
 
-              <div className="flex flex-col gap-2 items-center">
-                <span className="text-[14px]"> {chat.lastMessageTime} </span>
-                <span className="bg-blue-600 rounded-full w-4 h-4 flex justify-center items-center text-[14px]">
-                  {" "}
-                  {chat.newMessageCount}{" "}
-                </span>
-              </div>
-            </Link>
-          ))}
+              <p className="text-gray-300 text-lg mb-4">No active chats</p>
+              <Link
+                href="/search-people"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out"
+              >
+                Search People
+              </Link>
+            </div>
+          )}
         </div>
-        <section className="bg-[#292f36] w-full">
-          {children}
-        </section>
+        <section className="bg-[#292f36] w-full">{children}</section>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

@@ -1,25 +1,24 @@
 
-interface LoadingButtonProps {
+interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     isLoading: boolean;
     children: React.ReactNode; // Changed to React.ReactNode
     className?: string; // Made className optional
 }
 
-export const LoadingButton: React.FC<LoadingButtonProps> = ({ isLoading, children, className = "" }) => {
+export const LoadingButton: React.FC<LoadingButtonProps> = ({ isLoading, children, className = "", ...btnprops }) => {
     return (
         <button
             className={`
                 relative text-white
                 overflow-hidden transition-all duration-300 ease-in-out
                 focus:outline-none 
-                disabled:opacity-70 disabled:cursor-not-allowed
-                ${isLoading ? "cursor-wait" : "cursor-pointer"}
+                disabled:opacity-60 disabled:cursor-not-allowed
                 ${className}
             `}
             disabled={isLoading}
-            
+            {...btnprops}
         >
-            <span className={`relative z-10 ${isLoading ? "opacity-0" : "opacity-100"}`}>
+            <span className={`relative z-10 flex justify-center items-center ${isLoading ? "opacity-0" : "opacity-100"}`}>
                 {children}
             </span>
             {isLoading && (

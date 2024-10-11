@@ -1,9 +1,14 @@
+'use client'
+
 import { LogOut, HelpCircle } from "lucide-react";
 
 import SideBarNav from "./sidebarnav";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function ChatSidebar() {
+  const router = useRouter()
+
   return (
     <aside className="w-16 h-screen bg-[#222a30] text-white flex flex-col items-center overflow-y-auto overflow-x-hidden p-4">
       {/* Profile Section */}
@@ -15,11 +20,19 @@ export default function ChatSidebar() {
         <SideBarNav />
         {/* Divider */}
         <hr className="my-4 border-gray-700" />
-        <ul className="space-y-2 flex flex-col self-end items-center">
-          <li className="flex items-center justify-center p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
+        <div className="space-y-2 flex flex-col self-end items-center">
+          <button onClick={async () => {
+            const res = await fetch("http://localhost:3001/api/auth/logout",{
+              credentials: "include"
+            })
+            if(res.ok){ 
+              sessionStorage.clear()
+              window.location.href = process.env.NEXT_PUBLIC_FRONTEND_URL || ""
+            }
+          }} className="flex items-center justify-center p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
             <LogOut className="text-white" size={20} aria-label="Log Out" />
-          </li>
-        </ul>
+          </button>
+        </div>
         {/* Divider */}
         <hr className="my-4 border-gray-700" />
         {/* Help & Feedback */}

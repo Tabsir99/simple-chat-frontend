@@ -1,87 +1,148 @@
-'use client'
-import ChatHeader from '@/components/chats/chatHeader';
-import MessageInput from '@/components/chats/messageInput';
-import { useState, useEffect, useRef } from 'react';
+"use client";
+import ChatHeader from "@/components/chats/chat/IndividualChatHead";
+import MessageInput from "@/components/chats/chat/messageInput";
+import { useState, useEffect, useRef, FormEvent, useLayoutEffect } from "react";
+import MessageContainer from "@/components/chats/messages/messageContainer";
+import TypingIndicator from "@/components/chats/messages/typeIndicator";
+import { Attachment, IChatHead, IMessage } from "@/types/chatTypes";
+import { useMessages } from "@/components/hooks/useMessage";
+import { useAuth } from "@/components/authComps/authcontext";
+import { useChatContext } from "@/components/contextProvider/chatContext";
+import { useParams, useRouter } from "next/navigation";
+import FullPageLoader from "@/components/ui/fullpageloader";
+import { useNotification } from "@/components/contextProvider/notificationContext";
 
 export default function ChatRoom() {
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hey, how are you doing?", type: "outgoing", time: "2:34 PM" },
-    { id: 2, text: "I'm good, thanks for asking. What about you?", type: "incoming", time: "2:35 PM" },
-    { id: 3, text: "All good here! Just working on the project.", type: "outgoing", time: "2:37 PM" }
-  ]);
+  const [newMessage, setNewMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<IMessage | null>(null);
+  const divRef = useRef<HTMLDivElement | null>(null);
+  const currentUser = useAuth().user;
+  const { activeChats } = useChatContext();
+  const params: { chatId: string } = useParams();
+  const { showNotification } = useNotification();
+  const router = useRouter();
+  const [selectedActiveChat, setSelectedActiveChat] =
+    useState<IChatHead | null>(null);
 
-  const [inputValue, setInputValue] = useState<string>('');
-  const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [newMessageId, setNewMessageId] = useState<null | number>(null);
-  const messageEndRef = useRef<HTMLDivElement>(null);
+  const {
+    messages,
+    addMessage,
+    editMessage,
+    deleteMessage,
+    markAsRead,
+    toggleReaction,
+  } = useMessages({ chatId: selectedActiveChat?.chatRoomId || null });
 
-  useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const sendMessage = () => {
-    if (inputValue.trim()) {
-      const newMessage = {
-        id: messages.length + 1,
-        text: inputValue,
-        type: 'outgoing',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, newMessage]);
-      setNewMessageId(newMessage.id);
-      setInputValue('');
-      setIsTyping(false);
-      
-      // Reset newMessageId after animation
-      setTimeout(() => setNewMessageId(null), 300);
-    }
+  const scrollToBottom = () => {
+    if (!divRef.current) return;
+    divRef.current.scrollTop = divRef.current.scrollHeight;
   };
 
   useEffect(() => {
-    if (inputValue) setIsTyping(true);
-    else setIsTyping(false);
-  }, [inputValue]);
+    scrollToBottom();
+  }, [messages.length]);
+
+  const simulateTyping = () => {
+    setIsTyping(true);
+    setTimeout(() => setIsTyping(false), 2000);
+  };
+
+  const sendMessage = async (
+    e: FormEvent<Element>,
+    attachments: Attachment[]
+  ) => {
+    e.preventDefault();
+    if (!newMessage.trim() && attachments.length === 0) return;
+
+    const newMsg: IMessage = {
+      messageId: String(messages.length + 1),
+      content: newMessage,
+      type: "outgoing",
+      time: new Date().toISOString(),
+      reactions: [],
+      senderName: currentUser?.username as string,
+      profilePicture: "",
+      parentMessage: replyingTo && {
+        messageId: replyingTo?.messageId,
+        content: replyingTo?.content,
+        senderName: replyingTo?.senderName,
+      },
+      attachments: attachments,
+      readBy: [
+        {
+          readerName: currentUser?.username as string,
+          profilePicture: currentUser?.profilePicture as string,
+          readerId: currentUser?.userId as string,
+        },
+      ],
+    };
+
+    addMessage(newMsg);
+    setNewMessage("");
+    setReplyingTo(null);
+  };
+
+  useLayoutEffect(() => {
+    if (activeChats) {
+      const activeChat = activeChats.find(
+        (chat) => chat.chatRoomId === params.chatId
+      );
+      if (!activeChat) {
+        showNotification("Failed to load chat", "error");
+        router.push("/chats");
+      } else {
+        setSelectedActiveChat(activeChat);
+      }
+    }
+  }, [activeChats]);
 
   return (
-    <section className="bg-[#292f36] w-full h-screen flex flex-col border-l-2 border-gray-700">
-      {/* Chat Header */}
-      <ChatHeader />
+    <section className="bg-[#212830] w-full h-screen flex flex-col border-l-2 border-gray-700">
+      {!selectedActiveChat ? (
+        <FullPageLoader
+          loadingPhrases={null}
+          className="h-full bg-opacity-40"
+        />
+      ) : (
+        <>
+          <ChatHeader selectedActiveChat={selectedActiveChat} />
 
-      {/* Chat Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.type === 'outgoing' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div 
-              className={`
-                ${message.type === 'outgoing' ? 'bg-blue-600' : 'bg-[#343c46]'} 
-                text-white p-3 rounded-lg max-w-sm shadow-md
-                ${newMessageId === message.id ? 'animate-fadeIn' : ''}
-              `}
-            >
-              <p>{message.text}</p>
-              <span className="text-xs text-gray-300 float-right mt-1">{message.time}</span>
+          <div className="flex flex-1">
+            {/* Main Chat */}
+            <div className="flex-1 flex flex-col">
+              <div
+                ref={divRef}
+                className="  py-4 px-2 flex flex-col gap-3 overflow-y-scroll overflow-x-hidden h-[calc(100vh-8rem)] scroll-smooth"
+              >
+                {messages.map((message) => (
+                  <>
+                    <MessageContainer
+                      key={message.messageId}
+                      message={message}
+                      currentUser={currentUser}
+                      toggleReaction={toggleReaction}
+                      onDelete={deleteMessage}
+                      onEdit={editMessage}
+                      setReplyingTo={setReplyingTo}
+                    />
+                  </>
+                ))}
+
+                {isTyping && <TypingIndicator profilePicture={""} username={"ta"} />}
+              </div>
+
+              <MessageInput
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
+                sendMessage={sendMessage}
+                replyingTo={replyingTo}
+                onCancelReply={() => setReplyingTo(null)}
+              />
             </div>
           </div>
-        ))}
-
-        {/* Typing Indicator
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-[#3d4248] text-white p-3 rounded-lg max-w-sm animate-pulse">
-              <p>Typing...</p>
-            </div>
-          </div>
-        )} */}
-
-        {/* Scroll to bottom ref */}
-        <div ref={messageEndRef} />
-      </div>
-
-      {/* Message Input */}
-      <MessageInput sendMessage={sendMessage} inputValue={inputValue} setInputValue={setInputValue} />
+        </>
+      )}
     </section>
   );
 }

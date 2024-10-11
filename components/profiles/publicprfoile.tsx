@@ -1,13 +1,79 @@
+"use client";
+
 import {
   CircleUser,
-  UserPlus,
-  Ban,
   Users,
   EyeOff,
-  Send
+  Briefcase,
+  Calendar,
 } from "lucide-react";
+import useCustomSWR from "../hooks/customSwr";
+import { useAuth } from "../authComps/authcontext";
+import { IUserProfile } from "@/types/userTypes";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import NoUserFound from "./nouser";
+import { useRouter } from "next/navigation";
+import AddFriendBtn from "./addFriendbutton";
+import UserStats from "./userstats";
 
-const UserPublicProfile = () => {
+const UserPublicProfile = ({ userId }: { userId: string | null }) => {
+  const defaultProfile: IUserProfile = {
+    email: "",
+    createdAt: "",
+    username: "",
+    bio: "",
+    profilePicture: "",
+    title: "",
+    totalChats: 0,
+    totalFriends: 0,
+    totalMessageSent: 0,
+    status: "",
+    isSender: false
+  };
+  const { checkAndRefreshToken } = useAuth();
+  const [userProfile, setUserProfile] = useState<IUserProfile>(defaultProfile);
+  const router = useRouter();
+
+  const { data, error, isLoading } = useCustomSWR<{
+    userInfo: IUserProfile;
+    isOwnProfile: boolean;
+  }>(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}` );
+
+  const LoadingPlaceholder = ({
+    width,
+    height,
+  }: {
+    width: string;
+    height: string;
+  }) => (
+    <div
+      className={`bg-gray-700 animate-pulse rounded ${width} ${height}`}
+    ></div>
+  );
+  useEffect(() => {
+    console.log(data)
+    if (data) {
+      if (data.isOwnProfile) {
+        return router.push("/profile");
+      }
+      
+      return setUserProfile(data.userInfo);
+    }
+    if (error) {
+      console.log(error,"FRom error")
+      setUserProfile(defaultProfile);
+    }
+  }, [data]);
+
+  if(!isLoading && data?.isOwnProfile){
+    return null
+  }
+
+  if (!userProfile.email && !isLoading) {
+    return <NoUserFound />;
+  }
+
   return (
     <div className="h-screen bg-gray-900 text-gray-100 p-8 overflow-y-scroll">
       <div className="max-w-4xl mx-auto">
@@ -15,10 +81,6 @@ const UserPublicProfile = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">User Profile</h1>
 
-          <button className=" bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg flex items-center">
-            <Ban className="w-5 h-5 mr-1" />
-            Block
-          </button>
         </div>
 
         {/* Profile Card */}
@@ -26,31 +88,52 @@ const UserPublicProfile = () => {
           <div className="flex flex-col md:flex-row items-center">
             {/* Avatar */}
             <div className="relative mb-6 md:mb-0 md:mr-8">
-              <div className="w-36 h-36 rounded-full bg-gray-700 flex justify-center items-center text-4xl font-bold">
-                JD
-              </div>
+              {isLoading ? (
+                <LoadingPlaceholder width="w-36" height="h-36" />
+              ) : userProfile?.profilePicture ? (
+                <Image
+                  src={userProfile.profilePicture}
+                  alt="user profile picture"
+                  width={144}
+                  height={144}
+                  className="rounded-full"
+                />
+              ) : (
+                <div className="w-36 h-36 rounded-full bg-gray-700 flex justify-center items-center text-4xl font-bold">
+                  {userProfile?.username?.slice(0, 2).toUpperCase()}
+                </div>
+              )}
             </div>
 
             {/* User Info */}
             <div className="flex-grow text-center md:text-left">
-              <h2 className="text-2xl font-semibold mb-2">John Doe</h2>
-              <p className="text-gray-400 mb-4">@johndoe</p>
+              <h2 className="text-2xl font-semibold mb-2">
+                {userProfile.username}
+              </h2>
               <div className="flex justify-center md:justify-start items-center mb-4">
                 <CircleUser className="w-5 h-5 mr-2 text-gray-400" />
-                <span>john.doe@example.com</span>
+                <span>{userProfile.email}</span>
+              </div>
+              <div className="flex justify-center md:justify-start items-center mb-4">
+                <Briefcase className="w-5 h-5 mr-2 text-gray-400" />
+                <span>
+                  {userProfile.title || (
+                    <span className="text-gray-400"> NO TITLE </span>
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-center md:justify-start items-center mb-4">
+                <Calendar className="w-5 h-5 mr-2 text-gray-400" />
+                <span>{userProfile.createdAt}</span>
               </div>
 
               {/* Inline Quick Actions */}
-              <div className="flex justify-center md:justify-start space-x-4">
-                <button className="bg-gray-900 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center">
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  Add Friend
-                </button>
-                <button className="bg-gray-900 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center">
-                  <Send className="w-5 h-5 mr-2" />
-                  Message
-                </button>
-              </div>
+              <AddFriendBtn
+                userId={userId}
+                status={userProfile.status}
+                isSender={userProfile.isSender}
+                checkAndRefreshToken={checkAndRefreshToken}
+              />
             </div>
           </div>
         </div>
@@ -58,30 +141,20 @@ const UserPublicProfile = () => {
         {/* Bio Section */}
         <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
           <h3 className="text-xl font-semibold mb-4">Bio</h3>
-          <p className="text-gray-300 mb-4">
-            Hi there! I'm John, a software developer passionate about creating
-            user-friendly applications. When I'm not coding, you can find me
-            hiking in the mountains or trying out new coffee shops.
-          </p>
+          <p className="text-gray-300 mb-4">{userProfile.bio || "No Bio"}</p>
 
           {/* Anonymous Chat */}
         </div>
 
         {/* Activity Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gray-800 rounded-lg shadow-lg p-6 text-center">
-            <h4 className="text-lg font-semibold mb-2">Total Chats</h4>
-            <p className="text-3xl font-bold text-blue-400">1,234</p>
-          </div>
-          <div className="bg-gray-800 rounded-lg shadow-lg p-6 text-center">
-            <h4 className="text-lg font-semibold mb-2">Friends</h4>
-            <p className="text-3xl font-bold text-green-400">567</p>
-          </div>
-          <div className="bg-gray-800 rounded-lg shadow-lg p-6 text-center">
-            <h4 className="text-lg font-semibold mb-2">Groups</h4>
-            <p className="text-3xl font-bold text-purple-400">42</p>
-          </div>
-        </div>
+
+        <UserStats
+          userStats={{
+            totalChats: userProfile.totalChats,
+            totalFriends: userProfile.totalFriends,
+            totalMessage: userProfile.totalMessageSent,
+          }}
+        />
 
         {/* Add to Group Button */}
         <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8 gap-10 flex justify-stretch items-center">

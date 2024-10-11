@@ -3,11 +3,13 @@ import SocialSignIn from "./socialSignInBtns";
 import { Dispatch, SetStateAction } from "react";
 import { LoadingButton } from "../ui/loadingbutton";
 
+
 interface FormContentProps {
   headingText: string;
   submitBtnValue: string;
   isLoading: boolean;
   setFormData: Dispatch<SetStateAction<{ email: string }>>;
+  showFaliure: string;
 }
 
 const FormContent: React.FC<FormContentProps> = ({
@@ -15,6 +17,7 @@ const FormContent: React.FC<FormContentProps> = ({
   submitBtnValue,
   isLoading,
   setFormData,
+  showFaliure,
 }) => {
   return (
     <>
@@ -31,19 +34,26 @@ const FormContent: React.FC<FormContentProps> = ({
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, email: e.target.value }))
           }
-          className="bg-transparent outline-none rounded-r-full leading-tight font-semibold text-[1.1rem] text-gray-100 focus:outline-none"
+          className="bg-transparent outline-none rounded-r-full leading-tight text-[1.1rem] text-gray-100 focus:outline-none"
         />
       </div>
-      <LoadingButton
-        className="btn solid w-[150px] flex justify-center items-center active:scale-90 disabled:scale-90 disabled:bg-[#373f4e] disabled:hover:bg-[#373f4e] disabled:cursor-not-allowed text-center bg-blue-600 hover:bg-blue-500 border-none outline-none h-[49px] rounded-md text-white uppercase font-semibold my-2.5 cursor-pointer transition duration-300 "
-        isLoading={isLoading}
-        
-      >
-        {submitBtnValue}
-      </LoadingButton>
 
-        <SocialSignIn />
-      
+      <div className="flex flex-col items-center">
+        {showFaliure && (
+          <div className="text-red-300 py-1 px-4 border border-red-500 bg-red-500 bg-opacity-20 rounded-md text-center">
+            {showFaliure}
+          </div>
+        )}
+        <LoadingButton
+          className="btn solid w-[150px] flex justify-center items-center active:scale-90 disabled:scale-90 disabled:bg-[#373f4e] disabled:hover:bg-[#373f4e] disabled:cursor-not-allowed text-center bg-blue-600 hover:bg-blue-500 border-none outline-none h-[49px] rounded-md text-white uppercase font-semibold my-2.5 cursor-pointer transition duration-300 "
+          isLoading={isLoading}
+        >
+          {submitBtnValue}
+        </LoadingButton>
+      </div>
+
+      <SocialSignIn />
+
       <div className="text-center w-full mt-6">
         <p className="text-[0.85rem] text-gray-400">
           By signing up, you agree to our

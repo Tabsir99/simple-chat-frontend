@@ -25,7 +25,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const { accessToken } = useAuth();
 
   useEffect(() => {
-    const socketInstance = io("http://localhost:3001", {
+    const socketInstance = io(process.env.NEXT_PUBLIC_BACKEND_URL, {
       path: "/socket.io/", // Match the server path
       auth: {
         token: accessToken,

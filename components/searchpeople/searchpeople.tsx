@@ -1,6 +1,6 @@
 "use client";
 import { IUserMiniProfile } from "@/types/userTypes";
-import { Search } from "lucide-react";
+import { AlertCircle, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { MiniProfileSkeleton } from "../skeletons/skeleton";
@@ -15,13 +15,25 @@ export default function SearchPeopleComp() {
   const abortController = useRef<AbortController | null>(null); // Store abort controller
   const { checkAndRefreshToken } = useAuth();
 
-  useEffect(() => {
-    const findPeople = async () => {
-      if (query.trim() === "") {
-        setPeople([]);
-        return;
-      }
+  const [showMessage, setShowMessage] = useState({
+    notFound: false,
+    warning: false,
+    default: true,
+  });
 
+  const queryRef = useRef("");
+  useEffect(() => {
+    setPeople([]);
+    if (!showMessage.notFound) {
+      queryRef.current = query;
+    }
+
+    const findPeople = async () => {
+      setShowMessage({
+        default: false,
+        notFound: false,
+        warning: false,
+      });
       setIsLoading(true);
 
       if (abortController.current) {
@@ -32,9 +44,9 @@ export default function SearchPeopleComp() {
       try {
         const token = await checkAndRefreshToken();
         const result = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_API_URL
-          }/users?query=${encodeURIComponent(query)}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/users?query=${encodeURIComponent(
+            query
+          )}`,
           {
             signal: abortController.current.signal,
             method: "get",
@@ -47,6 +59,14 @@ export default function SearchPeopleComp() {
         if (result.ok) {
           const data: { data: IUserMiniProfile[] } = await result.json();
           setPeople(data.data);
+          if (data.data.length === 0) {
+            queryRef.current = query;
+            setShowMessage({
+              default: false,
+              notFound: true,
+              warning: false,
+            });
+          }
         } else {
           console.error("Error fetching people:", result.statusText);
         }
@@ -55,22 +75,46 @@ export default function SearchPeopleComp() {
           console.error("Error fetching people:", error);
         }
       } finally {
-        setIsLoading(false); // Stop loading state
+        setIsLoading(false);
       }
     };
 
-    // Debounce logic
     if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current); // Clear previous timeout
+      clearTimeout(debounceTimeout.current);
     }
+
+    let warningTimer: NodeJS.Timeout;
 
     if (query.length > 1 && query.length < 30) {
       debounceTimeout.current = setTimeout(() => {
         findPeople();
-      }, 500); // 600ms debounce delay
+      }, 500);
+    } else if (query.trim() === "") {
+      setShowMessage({
+        warning: false,
+        default: true,
+        notFound: false,
+      });
+    } else {
+      if (!showMessage.notFound) {
+        warningTimer = setTimeout(() => {
+          setShowMessage({
+            default: false,
+            notFound: false,
+            warning: true,
+          });
+        }, 600);
+      } else {
+        setShowMessage({
+          default: false,
+          notFound: false,
+          warning: true,
+        });
+      }
     }
 
     // Cleanup on component unmount
+
     return () => {
       if (debounceTimeout.current) {
         clearTimeout(debounceTimeout.current);
@@ -78,19 +122,71 @@ export default function SearchPeopleComp() {
       if (abortController.current) {
         abortController.current.abort();
       }
+      clearTimeout(warningTimer);
     };
   }, [query]);
 
+  const renderMessage = () => {
+    if (showMessage.default) {
+      return (
+        <div
+          className={`text-center p-6 bg-gray-800 bg-opacity-70 rounded-lg w-80 shadow-lg`}
+        >
+          <Users className="mx-auto mb-4 text-blue-400" size={48} />
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            Discover People
+          </h3>
+          <p className="text-gray-400">
+            Start typing to find interesting people in the community
+          </p>
+        </div>
+      );
+    } else if (showMessage.warning) {
+      return (
+        <div
+          className={`text-center p-6 bg-gray-800 bg-opacity-70 rounded-lg w-80 shadow-lg`}
+        >
+          <AlertCircle className="mx-auto mb-4 text-yellow-400" size={48} />
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            Keep Typing
+          </h3>
+          <p className="text-gray-400">
+            Please enter at least 2 characters to start searching.
+          </p>
+        </div>
+      );
+    } else if (showMessage.notFound) {
+      return (
+        <div
+          className={`text-center p-6 bg-gray-800 bg-opacity-70 rounded-lg w-80 shadow-lg`}
+        >
+          <AlertCircle className="mx-auto mb-4 text-yellow-400" size={48} />
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            No Results Found
+          </h3>
+          <p className="text-gray-400">
+            We couldn't find anyone matching "{queryRef.current}". Try a
+            different search term.
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <>
-      <div className="relative mb-6 bg-gray-700 w-80 bg-opacity-50 overflow-hidden rounded-md flex items-center px-3">
-        <Search />
+
+      <div className="relative mb-6 bg-gray-700 bg-opacity-50 rounded-md flex items-center">
+        <Search className="absolute left-3" />
         <input
           type="text"
-          placeholder="Search people..."
-          className="w-full p-3 bg-transparent text-[18px] rounded-lg text-gray-300 placeholder-gray-400 outline-none"
+          placeholder="Search chats..."
+          className="w-full focus:border-gray-600 border-transparent py-3 bg-transparent text-[18px] border-2 pl-10 pr-4 rounded-md text-gray-300 placeholder-gray-400 outline-none"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+          }}
         />
       </div>
 
@@ -104,6 +200,8 @@ export default function SearchPeopleComp() {
           <MiniProfileSkeleton />
         </>
       )}
+
+      {renderMessage()}
 
       {/* Display search results */}
       {people.map((person) => (

@@ -6,7 +6,7 @@ const SocialTexts = () => {
           <h3 className="font-bold leading-none text-[1.8rem]">
             Welcome to Simple Chat
           </h3>
-          <p className="text-[0.95rem] py-2 mt-3 font-bold">
+          <p className="text-[0.95rem] py-2 mt-3">
             Please sign in to continue chatting <span className="max-sm:hidden"> with your <br /> friends and stay
             connected.</span>
           </p>

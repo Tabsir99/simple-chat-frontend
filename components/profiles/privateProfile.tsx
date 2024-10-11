@@ -42,7 +42,6 @@ export default function PrivateProfile() {
   },[accessToken, checkAndRefreshToken])
   const { data, error, isLoading } = useCustomSWR<{userInfo: IUserProfile, isOwnProfile: boolean}>(
     `${process.env.NEXT_PUBLIC_API_URL}/users/me`,
-    accessToken
   );
  
   useEffect(() => {

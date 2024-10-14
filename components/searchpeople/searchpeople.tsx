@@ -208,7 +208,7 @@ export default function SearchPeopleComp() {
         <Link
           key={person.userId}
           href={`/search-people/${person.userId}`}
-          className="flex items-center w-80 py-3 hover:cursor-pointer px-4 bg-[#252a32] rounded-lg transition-all duration-300 ease-in-out hover:bg-[#272e38]"
+          className="flex items-center w-80 py-3 hover:cursor-pointer px-4 bg-[#272f3a] shadow-lg rounded-lg transition-all duration-300 ease-in-out hover:bg-[#272e38]"
         >
           <div className="avatar w-12 h-12 bg-gray-700 rounded-full mr-4 flex justify-center items-center relative overflow-hidden">
             {person.profilePicture ? (

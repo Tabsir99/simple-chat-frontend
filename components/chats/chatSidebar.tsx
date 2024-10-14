@@ -4,8 +4,11 @@ import { LogOut, HelpCircle } from "lucide-react";
 
 import SideBarNav from "./sidebarnav";
 import Link from "next/link";
+import { useSocket } from "../contextProvider/websocketContext";
 
 export default function ChatSidebar() {
+
+  const {socket, isConnected}  = useSocket()
 
   return (
     <aside className="w-16 h-screen bg-[#1e242c] border-r-2 border-gray-700/40 text-white flex flex-col items-center overflow-y-auto overflow-x-hidden p-4">
@@ -34,7 +37,11 @@ export default function ChatSidebar() {
         {/* Divider */}
         <hr className="my-4 border-gray-700" />
         {/* Help & Feedback */}
-        <div className="mt-4 p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer flex items-center justify-center">
+        <div onClick={() => {
+          if(!isConnected) return
+          socket?.send("Test message")
+          socket?.on("message",(e) => console.log(e))
+        }} className="mt-4 p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer flex items-center justify-center">
           <HelpCircle className="text-white" size={20} aria-label="Help" />
         </div>
       </nav>

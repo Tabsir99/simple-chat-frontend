@@ -3,12 +3,10 @@
 import ChatSidebar from "@/components/chats/chatSidebar";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { ProtectedRoute } from "@/components/authComps/authcontext";
 import useCustomSWR from "@/components/hooks/customSwr";
 import { MiniProfileSkeleton } from "@/components/skeletons/skeleton";
 import { useEffect } from "react";
 import { BsChatFill } from "react-icons/bs";
-import { useSocket } from "@/components/contextProvider/websocketContext";
 import { IChatHead } from "@/types/chatTypes";
 import { useChatContext } from "@/components/contextProvider/chatContext";
 import ActiveChats from "@/components/chats/activeChats";
@@ -18,7 +16,6 @@ export default function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { socket, isConnected } = useSocket();
 
   const { activeChats, setActiveChats } = useChatContext();
 
@@ -29,40 +26,13 @@ export default function MainLayout({
   useEffect(() => {
     setActiveChats(data || null);
   }, [data]);
-  useEffect(() => {
-    if (!socket || !isConnected) {
-      return;
-    }
-
-    socket.on("friend:status", ({ friendId, status }) => {
-      setActiveChats((prevList) =>
-        prevList
-          ? prevList?.map((chat) => {
-              if (chat.oppositeUser.userId === friendId) {
-                return {
-                  ...chat,
-                  oppositeUser: {
-                    ...chat.oppositeUser,
-                    userStatus: status,
-                  },
-                };
-              }
-              return chat;
-            })
-          : null
-      );
-    });
-
-    return () => {
-      socket.removeListener("friend:status");
-      socket.off("friend:status");
-    };
-  }, [isConnected]);
+  
   return (
-    <ProtectedRoute>
-      <div className="h-full overflow-hidden bg-[#1b1b1b] w-screen text-gray-100 flex">
+    <>
+     
+      <div className="h-full overflow-hidden bg-[#1b1b1b]  w-screen text-gray-100 flex">
         <ChatSidebar />
-        <div className="chat-list px-4 flex flex-col bg-[#1c222a] bg-opacity-90">
+        <div className="chat-list px-4 flex flex-col bg-[#1a222d]">
           <h1 className="text-2xl font-bold pt-4 mb-4"> Chats </h1>
           <div className="relative mb-6 bg-gray-700 bg-opacity-50 rounded-md flex items-center">
             <Search className="absolute left-3" />
@@ -87,7 +57,7 @@ export default function MainLayout({
                 <ActiveChats data={chat} key={chat.chatRoomId} />
               ))
             ) : (
-              <div className="w-80 h-64 flex flex-col items-center justify-center bg-[#232932] rounded-lg p-6 text-center">
+              <div className="w-80 h-64 flex flex-col items-center justify-center bg-gray-800 bg-opacity-70 shadow-lg rounded-lg p-6 text-center">
                 <BsChatFill className="text-5xl mb-4 text-gray-500" />
 
                 <p className="text-gray-300 text-lg mb-4">No active chats</p>
@@ -101,8 +71,8 @@ export default function MainLayout({
             )}
           </div>
         </div>
-        <section className="bg-gray-900/50 w-full">{children}</section>
+        <section className="bg-[#292f36]  w-full">{children}</section>
       </div>
-    </ProtectedRoute>
+    </>
   );
 }

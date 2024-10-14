@@ -7,21 +7,16 @@ import { useAuth } from "../authComps/authcontext";
 interface SocketContextType {
   socket: Socket | null
   isConnected: boolean
-  lastMessage: any
-  sendMessage: (message: any) => void
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
-  lastMessage: null,
-  sendMessage: () => {}
 });
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [lastMessage, setLastMessage] = useState(null);
   const { accessToken } = useAuth();
 
   useEffect(() => {
@@ -53,32 +48,19 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       setIsConnected(false);
     });
 
-    socketInstance.on('message', (message) => {
-      console.log('Received message:', message);
-      setLastMessage(message);
-    });
 
     setSocket(socketInstance);
     return () => {
       socketInstance.removeAllListeners()
       socketInstance.disconnect();
     };
-  }, [accessToken]); // Added accessToken to dependency array
+  }, [accessToken]);
 
-  const sendMessage = (message: any) => {
-    if (socket && isConnected) {
-      socket.emit('message', message);
-    } else {
-      console.warn('Socket is not connected');
-    }
-  };
 
   return (
     <SocketContext.Provider value={{ 
       socket, 
       isConnected, 
-      lastMessage, 
-      sendMessage 
     }}>
       {children}
     </SocketContext.Provider>

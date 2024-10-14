@@ -1,7 +1,7 @@
 import { Mail } from "lucide-react";
 import SocialSignIn from "./socialSignInBtns";
 import { Dispatch, SetStateAction } from "react";
-import { LoadingButton } from "../ui/loadingbutton";
+import { LoadingButton } from "../ui/buttons";
 
 
 interface FormContentProps {

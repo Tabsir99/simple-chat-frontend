@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { Socket, io } from 'socket.io-client'
 import { useAuth } from "../authComps/authcontext";
+import { ecnf } from "@/utils/env";
 
 interface SocketContextType {
   socket: Socket | null
@@ -20,7 +21,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const { accessToken } = useAuth();
 
   useEffect(() => {
-    const socketInstance = io(process.env.NEXT_PUBLIC_BACKEND_URL, {
+    const socketInstance = io(ecnf.backendUrl, {
       path: "/socket.io/", // Match the server path
       auth: {
         token: accessToken,

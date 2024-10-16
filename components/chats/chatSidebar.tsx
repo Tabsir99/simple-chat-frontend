@@ -5,6 +5,7 @@ import { LogOut, HelpCircle } from "lucide-react";
 import SideBarNav from "./sidebarnav";
 import Link from "next/link";
 import { useSocket } from "../contextProvider/websocketContext";
+import { ecnf } from "@/utils/env";
 
 export default function ChatSidebar() {
 
@@ -23,12 +24,12 @@ export default function ChatSidebar() {
         <hr className="my-4 border-gray-700" />
         <div className="space-y-2 flex flex-col self-end items-center">
           <button onClick={async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`,{
+            const res = await fetch(`${ecnf.apiUrl}/auth/logout`,{
               credentials: "include"
             })
             if(res.ok){ 
               sessionStorage.clear()
-              window.location.href = process.env.NEXT_PUBLIC_FRONTEND_URL || ""
+              window.location.href = ecnf.frontendUrl || ""
             }
           }} className="flex items-center justify-center p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer">
             <LogOut className="text-white" size={20} aria-label="Log Out" />

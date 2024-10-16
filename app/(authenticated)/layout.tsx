@@ -4,6 +4,9 @@ import { useChatContext } from "@/components/contextProvider/chatContext";
 import { useSocket } from "@/components/contextProvider/websocketContext";
 import { ProtectedRoute } from "@/components/authComps/authcontext";
 import { useEffect } from "react";
+import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
+import { mutate } from "swr";
+import { ecnf } from "@/utils/env";
 
 export default function RootAuthLayout({
   children,
@@ -12,12 +15,15 @@ export default function RootAuthLayout({
 }) {
   const { isConnected, socket } = useSocket();
   const { setActiveChats } = useChatContext();
+  const { incrementTotalNewFriendRequests, incrementUnseenAcceptedFriendRequests } = useRecentActivities()
+  
 
   useEffect(() => {
     if (!socket || !isConnected) {
       return;
     }
     const userEvents = ({ event, data }: { event: string; data: any }) => {
+      console.log(event, data)
       switch (event) {
         case "user:status":
           const { friendId, status } = data as {
@@ -41,9 +47,14 @@ export default function RootAuthLayout({
               : null
           );
           break;
-
         case "friend:request":
-          console.log(event, data)
+          incrementTotalNewFriendRequests()
+          mutate(`${ecnf.apiUrl}/friendships`)
+          break
+
+        case "friend:accepted":
+          incrementUnseenAcceptedFriendRequests()
+          mutate(`${ecnf.apiUrl}/friendships`)
           break
         default:
           break;

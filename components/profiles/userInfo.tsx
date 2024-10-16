@@ -18,7 +18,7 @@ isEditing,
 }: {
   handleTitleEdit: Function
   handleNameEdit: Function
-  userInfo: Omit<IUserProfile, 'isSender' | 'status'>
+  userInfo: Omit<IUserProfile, 'isCurrentUserSender' | 'status'>
   handleNameChange: React.ChangeEventHandler<HTMLInputElement>
   handleTitleChange: React.ChangeEventHandler<HTMLInputElement>
   isEditing: IIsEditing

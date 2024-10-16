@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { IMessage, Reactions } from "@/types/chatTypes";
 import { IUserMiniProfile } from "@/types/userTypes";
 import useCustomSWR from "./customSwr";
+import { ecnf } from "@/utils/env";
 
 export function useMessages({ chatId }: { chatId: string | null }) {
   const [messages, setMessages] = useState<IMessage[]>([]);
 
   const { data, error, isLoading } = useCustomSWR<IMessage[]>(
     chatId
-      ? `${process.env.NEXT_PUBLIC_API_URL}/chats/${chatId}/messages`
+      ? `${ecnf.apiUrl}/chats/${chatId}/messages`
       : null,
     {
       focusThrottleInterval: 20000,

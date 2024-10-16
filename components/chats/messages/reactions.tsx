@@ -12,14 +12,15 @@ interface ReactionComponentProps {
 }
 
 const REACTION_EMOJIS = [
-  { emoji: "👍", label: "thumbs up" },
-  { emoji: "❤️", label: "heart" },
-  { emoji: "😊", label: "smile" },
-  { emoji: "🎉", label: "celebration" },
-  { emoji: "😂", label: "haha" },
-  { emoji: "🤔", label: "thinking" },
-  { emoji: "😠", label: "angry" },
+  { id: "thumbs_up", emoji: "👍" },
+  { id: "heart", emoji: "❤️" },
+  { id: "smile", emoji: "😊" },
+  { id: "celebration", emoji: "🎉" },
+  { id: "haha", emoji: "😂" },
+  { id: "thinking", emoji: "🤔" },
+  { id: "angry", emoji: "😠" },
 ];
+
 // ReactionButton Component
 export const ReactionButton = ({
   message,
@@ -44,7 +45,7 @@ export const ReactionButton = ({
             }}
             key={emoji.emoji}
             className=" relative w-9 flex justify-center items-center h-9 rounded-full bg-none border-none cursor-pointer transition duration-200 active:scale-90 hover:scale-110 hover:-translate-y-1 hover:bg-gray-600"
-            title={emoji.label}
+            title={emoji.id}
           >
             <span className="text-[24px]">{emoji.emoji}</span>
           </button>

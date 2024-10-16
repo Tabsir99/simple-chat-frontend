@@ -7,21 +7,21 @@ type NotificationType = "success" | "error" | "warning" | "info";
 
 const notificationTypes = {
   success: {
-    bgColor: "bg-emerald-900/80",
+    bgColor: "bg-emerald-900",
     iconColor: "text-emerald-400",
     icon: CheckCircle,
   },
   error: {
-    bgColor: "bg-rose-900/80",
+    bgColor: "bg-rose-900",
     iconColor: "text-rose-400",
     icon: XCircle,
   },
   warning: {
-    bgColor: "bg-amber-900/80",
+    bgColor: "bg-amber-900",
     iconColor: "text-amber-400",
     icon: AlertCircle,
   },
-  info: { bgColor: "bg-sky-900/80", iconColor: "text-sky-400", icon: Info },
+  info: { bgColor: "bg-sky-900", iconColor: "text-sky-400", icon: Info },
 };
 
 export interface NotificationProps {

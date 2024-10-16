@@ -1,52 +1,101 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { useAuth } from "@/components/authComps/authcontext";
+import { FriendshipStatus } from "@/types/userTypes";
+import { useNotification } from "../contextProvider/notificationContext";
+import { KeyedMutator } from "swr";
+import { ApiResponse } from "@/types/responseType";
+import { ecnf } from "@/utils/env";
 
-type Action = "accept" | "reject" | "block" | "unblock";
+type Action = "accept" | "reject" | "block" | "unblock" | "create" | "cancel";
 
-const useFriendshipActions = () => {
-  const [statuses, setStatuses] = useState(new Map<string, string>());
+const useFriendshipActions = <T=any>({
+  initFriendshipStatus,
+  mutate
+}: {
+  initFriendshipStatus: FriendshipStatus;
+  mutate?: (KeyedMutator<ApiResponse<T>>)
+
+
+}) => {
+  const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>(initFriendshipStatus);
+  const [loading, setLoading] = useState(false);
+
   const { checkAndRefreshToken } = useAuth();
+  const { showNotification } = useNotification()
 
-  const handleAction = async (action: Action, userId: string, isSender: boolean) => {
-    const fetchFunction = async (status: "accepted" | "blocked" | "unblocked") => {
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/friendships/${userId}`;
-      const token = await checkAndRefreshToken();
+  const handleFriendshipAction = async (
+    action: Action,
+    userId: string,
+  ) => { 
 
-      const response = await fetch(url, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status }),
-      });
+    const fetchFunction = async (
+      status: FriendshipStatus
+    ) => {
+      const url =
+        action === "create"
+          ? `${ecnf.apiUrl}/friendships`
+          : `${ecnf.apiUrl}/friendships/${userId}`;
+      const method = action === "create" ? "POST" : "PATCH";
+      const reqBody =
+        action === "create"
+          ? JSON.stringify({ targetUserId: userId })
+          : JSON.stringify({ status });
 
-      if (response.ok) {
-        setStatuses((prev) => {
-          const newStatuses = new Map(prev);
-          newStatuses.set(userId, action);
-          return newStatuses;
+      try {
+        setLoading(true);
+        const token = await checkAndRefreshToken();
+
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: reqBody,
         });
+
+        
+        if(!response.ok) {
+          showNotification(`Error occured! Could not perform the action`,"error")
+        }
+      } catch (error) {
+        console.log(error,"OK");
+      } finally {
+        if(mutate){
+          mutate()
+        }
+        setLoading(false);
       }
     };
 
     switch (action) {
       case "reject":
-        isSender ? await fetchFunction("unblocked") : await fetchFunction("blocked");
+        await fetchFunction("blocked");
+        break;
+      case "cancel":
+        await fetchFunction("")
         break;
       case "block":
         await fetchFunction("blocked");
         break;
       case "unblock":
-        await fetchFunction("unblocked");
+        await fetchFunction("");
         break;
       case "accept":
         await fetchFunction("accepted");
         break;
+      case "create":
+        await fetchFunction("pending")
+        break;
     }
   };
 
-  return { handleAction, statuses, setStatuses };
+  return {
+    handleFriendshipAction,
+    friendshipStatus,
+    setFriendshipStatus,
+    loading,
+  };
 };
 
 export default useFriendshipActions;

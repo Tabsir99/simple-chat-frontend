@@ -6,9 +6,9 @@ import {
   EyeOff,
   Briefcase,
   Calendar,
+  ShieldOff,
 } from "lucide-react";
 import useCustomSWR from "../hooks/customSwr";
-import { useAuth } from "../authComps/authcontext";
 import { IUserProfile } from "@/types/userTypes";
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -16,6 +16,8 @@ import NoUserFound from "./nouser";
 import { useRouter } from "next/navigation";
 import AddFriendBtn from "./addFriendbutton";
 import UserStats from "./userstats";
+import FullPageLoader from "../ui/fullpageloader";
+import { ecnf } from "@/utils/env";
 
 const UserPublicProfile = ({ userId }: { userId: string | null }) => {
   const defaultProfile: IUserProfile = {
@@ -29,49 +31,54 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
     totalFriends: 0,
     totalMessageSent: 0,
     status: "",
-    isSender: false
+    isCurrentUserSender: false,
+    isCurrentUserBlocked: false,
+    isLoading: true
   };
-  const { checkAndRefreshToken } = useAuth();
   const [userProfile, setUserProfile] = useState<IUserProfile>(defaultProfile);
   const router = useRouter();
 
-  const { data, error, isLoading } = useCustomSWR<{
+  const { data, error, mutate } = useCustomSWR<{
     userInfo: IUserProfile;
     isOwnProfile: boolean;
-  }>(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}` );
+  }>(`${ecnf.apiUrl}/users/${userId}`, {
+    revalidateOnMount: true
+  });
 
-  const LoadingPlaceholder = ({
-    width,
-    height,
-  }: {
-    width: string;
-    height: string;
-  }) => (
-    <div
-      className={`bg-gray-700 animate-pulse rounded ${width} ${height}`}
-    ></div>
-  );
+  const updateSender = (value: boolean) => {
+    setUserProfile(prev => ({...prev, isCurrentUserSender: value}))
+  }
+
+
   useEffect(() => {
-    console.log(data)
+    if (error) {
+      defaultProfile.isLoading = false
+      defaultProfile.isCurrentUserBlocked = true
+      setUserProfile(defaultProfile);
+      return
+    }
     if (data) {
       if (data.isOwnProfile) {
         return router.push("/profile");
       }
-      
+      data.userInfo.isLoading = false
       return setUserProfile(data.userInfo);
     }
-    if (error) {
-      console.log(error,"FRom error")
-      setUserProfile(defaultProfile);
-    }
-  }, [data]);
+    
+  }, [data,error]);
 
-  if(!isLoading && data?.isOwnProfile){
-    return null
+
+  if(userProfile.isLoading){
+    return <FullPageLoader className="h-full" />
+  }
+  if (!userProfile.email && !userProfile.isLoading) {
+    return <NoUserFound />;
   }
 
-  if (!userProfile.email && !isLoading) {
-    return <NoUserFound />;
+  if(userProfile.isCurrentUserBlocked){
+    return (
+    
+    <div className="h-screen bg-gray-900 bg-opacity-80 flex justify-center items-center p-8"><BlockMessage /></div>)
   }
 
   return (
@@ -88,9 +95,7 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
           <div className="flex flex-col md:flex-row items-center">
             {/* Avatar */}
             <div className="relative mb-6 md:mb-0 md:mr-8">
-              {isLoading ? (
-                <LoadingPlaceholder width="w-36" height="h-36" />
-              ) : userProfile?.profilePicture ? (
+              {userProfile?.profilePicture ? (
                 <Image
                   src={userProfile.profilePicture}
                   alt="user profile picture"
@@ -129,10 +134,12 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
 
               {/* Inline Quick Actions */}
               <AddFriendBtn
-                userId={userId}
+                user={{userId, username: userProfile.username}}
                 status={userProfile.status}
-                isSender={userProfile.isSender}
-                checkAndRefreshToken={checkAndRefreshToken}
+                isCurrentUserSender={userProfile.isCurrentUserSender}
+                isCurrentUserBlocked={userProfile.isCurrentUserBlocked}
+                updateSender={updateSender}
+                mutate={mutate}
               />
             </div>
           </div>
@@ -173,3 +180,24 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
 };
 
 export default UserPublicProfile;
+
+
+
+const BlockMessage = () => {
+  return (
+    <div className="max-w-md w-full mx-auto p-6 rounded-xl bg-gray-800 shadow-lg bg-opacity-50 transform transition-all duration-500 hover:scale-105">
+      <div className="flex items-center justify-center mb-4">
+        <div className="relative">
+          <ShieldOff size={48} className="text-red-500 animate-pulse" />
+          <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full animate-ping"></span>
+        </div>
+      </div>
+      <h2 className="text-2xl font-bold text-center text-white mb-2">Access Restricted</h2>
+      <p className="text-gray-300 text-center">
+        You've been blocked by this user. Unable to view their profile or interact at this time.
+      </p>
+
+    </div>
+  );
+};
+

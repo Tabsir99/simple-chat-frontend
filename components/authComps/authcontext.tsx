@@ -13,6 +13,7 @@ import { IUserMiniProfile } from "@/types/userTypes";
 import FullPageLoader from "../ui/fullpageloader";
 import { useRouter } from "next/navigation";
 import { ApiResponse } from "@/types/responseType";
+import { ecnf } from "@/utils/env";
 
 interface AuthContextType {
   accessToken: string | null;
@@ -68,7 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     refreshRef.current = true;
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/verify-refresh`,
+        `${ecnf.apiUrl}/auth/verify-refresh`,
         {
           method: "POST",
           credentials: "include",
@@ -129,7 +130,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     async (token: string) => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/users/me?userId=true&username=true&profilePicture=true`,
+          `${ecnf.apiUrl}/users/me?userId=true&username=true&profilePicture=true`,
           {
             headers: {
               authorization: `Bearer ${token}`,

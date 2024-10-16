@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { MiniProfileSkeleton } from "../skeletons/skeleton";
 import { useAuth } from "../authComps/authcontext";
 import Image from "next/image";
+import { ecnf } from "@/utils/env";
 
 export default function SearchPeopleComp() {
   const [people, setPeople] = useState<IUserMiniProfile[]>([]);
@@ -44,7 +45,7 @@ export default function SearchPeopleComp() {
       try {
         const token = await checkAndRefreshToken();
         const result = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/users?query=${encodeURIComponent(
+          `${ecnf.apiUrl}/users?query=${encodeURIComponent(
             query
           )}`,
           {
@@ -177,7 +178,7 @@ export default function SearchPeopleComp() {
   return (
     <>
 
-      <div className="relative mb-6 bg-gray-700 bg-opacity-50 rounded-md flex items-center">
+      <div className="relative mb-6 bg-gray-700 w-80 bg-opacity-50 rounded-md flex items-center">
         <Search className="absolute left-3" />
         <input
           type="text"

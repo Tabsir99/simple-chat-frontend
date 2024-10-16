@@ -8,9 +8,11 @@ import { useAuth } from "../authComps/authcontext";
 import useCustomSWR from "../hooks/customSwr";
 import Image from "next/image";
 import { IIsEditing, IUserProfile } from "@/types/userTypes";
+import FullPageLoader from "../ui/fullpageloader";
+import { ecnf } from "@/utils/env";
 
 export default function PrivateProfile() {
-  const defaultProfile: Omit<IUserProfile, 'isSender' | 'status'> = {
+  const defaultProfile: Omit<IUserProfile, 'isCurrentUserSender' | 'status'> = {
     email: "",
     createdAt: "",
     username: "",
@@ -21,9 +23,9 @@ export default function PrivateProfile() {
     totalFriends: 0,
     totalMessageSent: 0,
   };
-  const { accessToken, checkAndRefreshToken } = useAuth();
+  const { checkAndRefreshToken, loading } = useAuth();
 
-  const [userProfile, setUserProfile] = useState<Omit<IUserProfile, 'isSender' | 'status'>>(defaultProfile);
+  const [userProfile, setUserProfile] = useState<Omit<IUserProfile, 'isCurrentUserSender' | 'status'>>(defaultProfile);
   const [isEditing, setIsEditing] = useState<IIsEditing>({
     bio: false,
     title: false,
@@ -33,15 +35,16 @@ export default function PrivateProfile() {
 
   useEffect(() => {
     const validateToken = async () => {
+      const accessToken = await checkAndRefreshToken()
       if (accessToken) {
         await checkAndRefreshToken();
       }
     };
 
     validateToken();
-  },[accessToken, checkAndRefreshToken])
+  },[checkAndRefreshToken, loading])
   const { data, error, isLoading } = useCustomSWR<{userInfo: IUserProfile, isOwnProfile: boolean}>(
-    `${process.env.NEXT_PUBLIC_API_URL}/users/me`,
+    `${ecnf.apiUrl}/users/me`,
   );
  
   useEffect(() => {
@@ -103,18 +106,9 @@ export default function PrivateProfile() {
   const displayOrDefault = (value: string | undefined, defaultText: string) =>
     value || defaultText;
 
-  const LoadingPlaceholder = ({
-    width,
-    height,
-  }: {
-    width: string;
-    height: string;
-  }) => (
-    <div
-      className={`bg-gray-700 animate-pulse rounded ${width} ${height}`}
-    ></div>
-  );
-
+  if(isLoading || loading){
+    return <FullPageLoader className="h-full w-full" />
+  }
   return (
     <div className="h-screen bg-gray-900 text-white w-full px-8 py-4 overflow-y-auto">
       <div className="max-w-4xl mx-auto">
@@ -137,9 +131,7 @@ export default function PrivateProfile() {
         <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8 h-48">
           <div className="flex flex-col md:flex-row items-center md:items-start">
             <div className="relative mb-6 md:mb-0 md:mr-8">
-              {isLoading ? (
-                <LoadingPlaceholder width="w-36" height="h-36" />
-              ) : userProfile?.profilePicture ? (
+              {userProfile?.profilePicture ? (
                 <Image
                   src={userProfile.profilePicture}
                   alt="user profile picture"
@@ -157,9 +149,7 @@ export default function PrivateProfile() {
               </button>
             </div>
 
-            {isLoading ? (
-              <LoadingPlaceholder width="w-full" height="h-36" />
-            ) : (
+            {(
               <UserInfo
                 isEditing={isEditing}
                 userInfo={userProfile}
@@ -173,9 +163,7 @@ export default function PrivateProfile() {
         </div>
 
         {/* USER BIO START */}
-        {isLoading ? (
-          <LoadingPlaceholder width="w-full" height="h-32 p-6 mb-8" />
-        ) : (
+        { (
           <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8 min-h-32 relative">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">Bio</h3>

@@ -1,85 +1,78 @@
-import React, { useState } from "react";
-import { UserPlus, UserCheck, UserX, Clock, X, Shield } from "lucide-react";
-import { ApiResponse } from "@/types/responseType";
+import {
+  UserPlus,
+  UserCheck,
+  UserX,
+  Clock,
+  X,
+  Shield,
+  UserPlus2,
+} from "lucide-react";
 import { CustomButton } from "../ui/buttons";
-
-type FriendshipStatus = "pending" | "accepted" | "blocked" | "";
+import useFriendshipActions from "../hooks/useFriendshipActions";
+import { FriendshipStatus, IUserProfile } from "@/types/userTypes";
+import { KeyedMutator } from "swr";
+import { ApiResponse } from "@/types/responseType";
+import ConfirmationModal from "../ui/confirmationModal";
+import { useState } from "react";
 
 interface AddFriendBtnProps {
-  userId: string | null;
+  user: {
+    userId: string | null,
+    username: string
+  };
   status: FriendshipStatus;
-  isSender: boolean;
-  checkAndRefreshToken: () => Promise<string | null>;
+  isCurrentUserSender: boolean;
+  updateSender: (value: boolean) => void;
+  isCurrentUserBlocked: boolean | undefined;
+  mutate: KeyedMutator<
+    ApiResponse<{
+      userInfo: IUserProfile;
+      isOwnProfile: boolean;
+    }>
+  >;
 }
 
-export default function AddFriendBtn({ userId, status, isSender, checkAndRefreshToken }: AddFriendBtnProps) {
-  const [currentStatus, setCurrentStatus] = useState(status);
-  const [loading, setLoading] = useState(false)
+export default function AddFriendBtn({
+  user,
+  status,
+  isCurrentUserSender,
+  updateSender,
+  isCurrentUserBlocked,
+  mutate,
+}: AddFriendBtnProps) {
+  const { handleFriendshipAction } = useFriendshipActions({
+    initFriendshipStatus: status,
+    mutate: mutate,
+  });
 
-  const statusConfig = {
-    pending: {
-      text: isSender ? "Respond" : "Pending",
-      icon: Clock,
-      variant: "default" as const,
-    },
-    accepted: {
-      text: "Friends",
-      icon: UserCheck,
-      variant: "default" as const,
-    },
-    blocked: {
-      text: !isSender ? "Blocked" : "Unblock",
-      icon: Shield,
-      variant: "danger" as const,
-    },
-    "": {
-      text: "Add Friend",
-      icon: UserPlus,
-      variant: "success" as const,
-    },
-  };
+  const [showBlockModal, setShowBlockModal] = useState(false)
 
-  const handleFriendshipAction = async (action: string, newStatus?: FriendshipStatus | "unblocked") => {
-    if (!userId) return;
+  if (status === "pending" && isCurrentUserSender) {
+    return (
+      <CustomButton
+        onClick={() => handleFriendshipAction("cancel", user.userId as string)}
+        variant="outline"
+      >
+        <X className="w-4 h-4 mr-2" />
+        Cancel Request
+      </CustomButton>
+    );
+  }
 
-    const method = action === "add" ? "POST" : "PATCH";
-    const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/friendships${action === "add" ? "" : `/${userId}`}`;
-    const body = JSON.stringify(action === "add" ? { targetUserId: userId } : { status: newStatus });
-
-    try {
-      setLoading(true)
-      const token = await checkAndRefreshToken();
-      if (!token) throw new Error("No token available");
-      const response = await fetch(endpoint, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: body
-      })
-      if(response.ok){
-        const data: ApiResponse = await response.json()
-        setCurrentStatus(data.data.status)
-      }
-    } catch (error) {
-      console.error("Error performing friendship action:", error);
-    }
-    finally {
-      setLoading(false)
-    }
-  };
-
-  const { text, icon: Icon, variant } = statusConfig[currentStatus] || statusConfig[""];
-
-  if (currentStatus === "pending" && isSender) {
+  if (status === "pending" && !isCurrentUserSender) {
     return (
       <div className="flex gap-2">
-        <CustomButton onClick={() => handleFriendshipAction("update", "accepted")} variant="success">
+        <CustomButton
+          onClick={() => handleFriendshipAction("accept", user.userId as string)}
+          variant="success"
+        >
           <UserCheck className="w-4 h-4 mr-2" />
           Accept
         </CustomButton>
-        <CustomButton onClick={() => handleFriendshipAction("update", "blocked")} variant="danger">
+        <CustomButton
+          onClick={() => handleFriendshipAction("reject", user.userId as string)}
+          variant="danger"
+        >
           <UserX className="w-4 h-4 mr-2" />
           Reject
         </CustomButton>
@@ -87,45 +80,59 @@ export default function AddFriendBtn({ userId, status, isSender, checkAndRefresh
     );
   }
 
-  if (currentStatus === "pending" && !isSender) {
-    return (
-      <CustomButton onClick={() => handleFriendshipAction("update", "unblocked")} variant="outline">
-        <X className="w-4 h-4 mr-2" />
-        Cancel Request
-      </CustomButton>
-    );
-  }
-
-  if (currentStatus === "accepted") {
+  if (status === "accepted") {
     return (
       <div className="flex gap-2">
-        <CustomButton onClick={() => handleFriendshipAction("update", "")} variant={variant}>
-          <Icon className="w-4 h-4 mr-2" />
-          {text}
+        <CustomButton variant="outline" className="pointer-events-none">
+          Friends
         </CustomButton>
-        <CustomButton onClick={() => handleFriendshipAction("update", "blocked")} variant="danger">
+        <CustomButton
+          onClick={() => setShowBlockModal(true)}
+          variant="danger"
+        >
           <Shield className="w-4 h-4 mr-2" />
           Block
         </CustomButton>
+
+        <ConfirmationModal
+          isOpen={showBlockModal}
+          onClose={() => setShowBlockModal(false)}
+          title={`Block ${user.username}?`}
+          onConfirm={() => handleFriendshipAction("block", user.userId as string)}
+        >
+          This will remove them from your friends list and block all future
+          interactions.
+        </ConfirmationModal>
       </div>
+    );
+  }
+
+  if (status === "blocked") {
+    return (
+      <>
+        {!isCurrentUserBlocked && (
+          <CustomButton
+            onClick={() => handleFriendshipAction("unblock", user.userId as string)}
+            variant="default"
+          >
+            <Shield className="w-4 h-4 mr-2" />
+            Unblock
+          </CustomButton>
+        )}
+      </>
     );
   }
 
   return (
     <CustomButton
-      onClick={() => handleFriendshipAction(currentStatus === "blocked" && isSender ? "update" : "add", "unblocked")}
-      variant={variant}
-      disabled={loading}
+      onClick={() => {
+        handleFriendshipAction("create", user.userId as string);
+        updateSender(true);
+      }}
+      variant="success"
     >
-      {loading ? (
-        <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      ) : (
-        <Icon className="w-4 h-4 mr-2" />
-      )}
-      {text}
+      <UserPlus2 className="w-4 h-4 mr-2" />
+      Add Friend
     </CustomButton>
   );
 }

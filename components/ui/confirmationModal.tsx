@@ -1,15 +1,17 @@
+import { CustomButton } from "./buttons";
+
 const ConfirmationModal = ({
     isOpen,
     onClose,
     title,
     children,
-    actions,
+    onConfirm
   }: {
     isOpen: boolean;
     onClose: () => void;
     title: string;
     children: React.ReactNode;
-    actions: React.ReactNode;
+    onConfirm: () => void
   }) => {
     if (!isOpen) return null;
   
@@ -19,7 +21,23 @@ const ConfirmationModal = ({
         <div className="relative bg-slate-900 rounded-lg w-full max-w-md p-6 border border-slate-800">
           <h3 className="text-xl font-semibold text-white mb-4">{title}</h3>
           <div className="text-slate-300 mb-6">{children}</div>
-          <div className="flex justify-end space-x-3">{actions}</div>
+          <div className="flex justify-end space-x-3">
+          <CustomButton
+              variant="ghost"
+              onClick={onClose}
+            >
+              Cancel
+            </CustomButton>
+            <CustomButton
+              variant="danger"
+              onClick={() => {
+                onConfirm()
+                onClose()
+              }}
+            >
+              Block User
+            </CustomButton>
+          </div>
         </div>
       </div>
     );

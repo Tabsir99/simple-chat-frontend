@@ -5,7 +5,7 @@ import { SocketProvider } from "@/components/contextProvider/websocketContext";
 import { NotificationProvider } from "@/components/contextProvider/notificationContext";
 import type { Metadata } from "next";
 import { ChatProvider } from "@/components/contextProvider/chatContext";
-import { UserInteractionsProvider } from "@/components/contextProvider/userInteractionContext";
+import { RecentActivitiesProvider } from "@/components/contextProvider/recentActivityContext";
 
 const interFont = Inter({
   weight: ["400", "700"],
@@ -33,10 +33,10 @@ function RootLayout({
           <AuthProvider>
             <SocketProvider>
               <ChatProvider>
-                <UserInteractionsProvider>
+                <RecentActivitiesProvider>
                   {/* Notification Provider is for the notification pop up component context */}
                   <NotificationProvider>{children} </NotificationProvider>
-                </UserInteractionsProvider>
+                </RecentActivitiesProvider>
               </ChatProvider>
             </SocketProvider>
           </AuthProvider>

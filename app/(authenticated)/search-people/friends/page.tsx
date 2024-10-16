@@ -1,85 +1,95 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Users, UserPlus, UserX } from "lucide-react";
 import useCustomSWR from "@/components/hooks/customSwr";
 import { NoConnectionsMessage } from "@/components/searchpeople/noConnections";
 import { FriendItem } from "@/components/searchpeople/friendItem";
 import { CustomButton } from "@/components/ui/buttons";
-import useFriendshipActions from "@/components/hooks/useFriendshipActions";
+import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
+import { useAuth } from "@/components/authComps/authcontext";
+import { ecnf } from "@/utils/env";
 
 export default function FriendList() {
   const [activeTab, setActiveTab] = useState<"friends" | "pending" | "blocked">(
     "friends"
   );
-  const { handleAction, statuses, setStatuses } = useFriendshipActions()
-  
-  const { data } = useCustomSWR<
+  const { data, mutate } = useCustomSWR<
     {
       userId: string;
       username: string;
-      status: "online" | "offline" | "pending" | "blocked";
+      status: "accepted" | "pending" | "blocked";
       profilePicture: string;
-      isSender: boolean;
+      isCurrentUserSender: boolean;
     }[]
-  >(`${process.env.NEXT_PUBLIC_API_URL}/friendships`);
+  >(`${ecnf.apiUrl}/friendships`);
 
-  useEffect(() => {
-    if (!data) return;
-    setStatuses((prev) => {
-      const newStatuses = new Map(prev);
-      data.forEach((res) => {
-        newStatuses.set(res.userId, res.status);
-      });
-      return newStatuses;
-    });
-  }, [data]);
-
-  const tabs: {
-    id: "friends" | "pending" | "blocked";
-    icon: any;
-    label: string;
-    count: number;
-    }[] = [
+  const { state } = useRecentActivities();
+  const [tabs, setTabs] = useState<
+    {
+      id: "friends" | "pending" | "blocked";
+      icon: any;
+      label: string;
+      count: number;
+    }[]
+  >([
     {
       id: "friends",
       icon: Users,
       label: "Friends",
-      count:
-        data?.filter(
-          (connection) =>
-            connection.status === "online" || connection.status === "offline"
-        ).length || 0,
+      count: state.unseenAcceptedFriendRequests,
     },
     {
       id: "pending",
       icon: UserPlus,
       label: "Pending",
-      count:
-        data?.filter((connection) => connection.status === "pending").length ||
-        0,
+      count: 0,
     },
     {
       id: "blocked",
       icon: UserX,
       label: "Blocked",
-      count:
-        data?.filter((connection) => connection.status === "blocked").length ||
-        0,
+      count: 0,
     },
-  ];
+  ]);
+
+  useEffect(() => {
+    const newTabs = tabs.map((tab) => {
+      if (tab.id === "friends") {
+        return {
+          ...tab,
+          count: state.unseenAcceptedFriendRequests,
+        };
+      }
+
+      return tab;
+    });
+    setTabs(newTabs);
+  }, [state]);
+
+  useEffect(() => {
+    const newTabs = tabs.map((tab) => {
+      if (tab.id === "pending") {
+        return {
+          ...tab,
+          count: data?.filter((user) => (user && !user.isCurrentUserSender && user.status === "pending")).length || 0,
+        };
+      }
+
+      return tab;
+    });
+    setTabs(newTabs);
+  }, [data]);
 
   const renderConnections = () => {
     const filteredUsers = data?.filter((user) => {
+      if (!user) return false;
       switch (activeTab) {
         case "friends":
-          return (
-            statuses.get(user.userId) === "online" ||
-            statuses.get(user.userId) === "offline"
-          );
+          return user.status === "accepted";
         case "pending":
-          return statuses.get(user.userId) === "pending";
+          return user.status === "pending";
         case "blocked":
-          return statuses.get(user.userId) === "blocked";
+          return user.status === "blocked";
         default:
           return false;
       }
@@ -90,14 +100,7 @@ export default function FriendList() {
     }
 
     return filteredUsers?.map((item) => (
-      <FriendItem
-        key={item.userId}
-        {...item}
-        onAccept={() => handleAction("accept", item.userId, item.isSender)}
-        onReject={() => handleAction("reject", item.userId, item.isSender)}
-        onBlock={() => handleAction("block", item.userId, item.isSender)}
-        onUnblock={() => handleAction("unblock", item.userId, item.isSender)}
-      />
+      <FriendItem key={item.userId} {...item} mutate={mutate} />
     ));
   };
 
@@ -115,7 +118,7 @@ export default function FriendList() {
           >
             <tab.icon className="w-4 h-4 mr-2" />
             {tab.label}
-            {tab.count > 0 && tab.id === "pending" && (
+            {tab.count > 0 && tab.id !== "blocked" && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 {tab.count}
               </span>
@@ -131,6 +134,37 @@ export default function FriendList() {
           renderConnections()
         )}
       </div>
+
+      <BackgroundJob />
     </div>
   );
 }
+
+const BackgroundJob = () => {
+  const { checkAndRefreshToken } = useAuth()
+  const { resetUnseenAcceptedFriendRequests, resetTotalNewFriendRequests, state } = useRecentActivities()
+
+
+  useEffect(() => {
+
+    if(state.totalNewFriendRequests === 0 && state.unseenAcceptedFriendRequests ===0) return
+
+    (async () => {
+
+      const token = await checkAndRefreshToken()
+      await fetch(`${ecnf.apiUrl}/users/me/recent-activities`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          event: "reset-friends"
+        })
+      });
+      resetUnseenAcceptedFriendRequests()
+      resetTotalNewFriendRequests()
+    })()
+  }, [checkAndRefreshToken, state]);
+  return null;
+};

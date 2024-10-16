@@ -39,7 +39,7 @@ const defaultPhrases = [
   "Checking for new messages..."
 ];
 
-const FullPageLoader = ({ loadingPhrases=defaultPhrases, className=" fixed w-screen " }: { loadingPhrases?: String[] | null, className?: string }) => {
+const FullPageLoader = ({ loadingPhrases=defaultPhrases, className=" fixed w-screen h-screen " }: { loadingPhrases?: String[] | null, className?: string }) => {
   const [displayText, setDisplayText] = useState('');
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);

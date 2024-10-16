@@ -1,3 +1,7 @@
+export type FriendshipStatus = "pending" | "accepted" | "blocked" | "";
+
+
+
 export interface IUserProfile {
   username: string;
   email: string;
@@ -9,7 +13,9 @@ export interface IUserProfile {
   totalFriends: number;
   totalMessageSent: number;
   status: "pending"|"accepted"|"blocked"|"",
-  isSender: boolean
+  isCurrentUserSender: boolean,
+  isCurrentUserBlocked?: boolean,
+  isLoading?: boolean
 }
 
 export interface IIsEditing {
@@ -25,3 +31,5 @@ export interface IUserMiniProfile {
   bio: string;            // Biography of the user
   profilePicture: string;  // URL or path to the profile picture
 }
+
+

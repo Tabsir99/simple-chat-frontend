@@ -10,6 +10,9 @@ import { BsChatFill } from "react-icons/bs";
 import { IChatHead } from "@/types/chatTypes";
 import { useChatContext } from "@/components/contextProvider/chatContext";
 import ActiveChats from "@/components/chats/activeChats";
+import { useAuth } from "@/components/authComps/authcontext";
+import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
+import { ecnf } from "@/utils/env";
 
 export default function MainLayout({
   children,
@@ -20,7 +23,7 @@ export default function MainLayout({
   const { activeChats, setActiveChats } = useChatContext();
 
   const { data, error, isLoading } = useCustomSWR<Array<IChatHead>>(
-    `${process.env.NEXT_PUBLIC_API_URL}/chats`
+    `${ecnf.apiUrl}/chats`
   );
 
   useEffect(() => {
@@ -73,6 +76,38 @@ export default function MainLayout({
         </div>
         <section className="bg-[#292f36]  w-full">{children}</section>
       </div>
+
+      <BackgroundJob />
     </>
   );
 }
+
+
+
+
+
+const BackgroundJob = () => {
+  const { checkAndRefreshToken } = useAuth()
+  const { resetnewUnseenChats, state } = useRecentActivities()
+
+
+  useEffect(() => {
+    if(state.totalNewUnseenChats === 0) return
+    (async () => {
+
+      const token = await checkAndRefreshToken()
+      await fetch(`${ecnf.apiUrl}/users/me/recent-activities`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          event: "reset-chats"
+        })
+      });
+      resetnewUnseenChats()
+    })()
+  }, []);
+  return null;
+};

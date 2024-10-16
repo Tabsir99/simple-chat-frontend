@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BsChat } from "react-icons/bs";
-import { useUserInteractions } from "../contextProvider/userInteractionContext";
+import { useRecentActivities } from "../contextProvider/recentActivityContext";
 
 const navItems = [
   { href: "/chats", icon: BsChat, label: "Chats" },
@@ -17,7 +17,7 @@ const navItems = [
 export default function SideBarNav() {
   const [activeRoute, setActiveRoute] = useState("");
   const pathName = usePathname();
-  const { state } = useUserInteractions();
+  const { state } = useRecentActivities();
 
   useEffect(() => {
     setActiveRoute(pathName);
@@ -26,9 +26,9 @@ export default function SideBarNav() {
   const getAlertCount = (href: string) => {
     switch (href) {
       case "/chats":
-        return state.newMessagesCount;
+        return state.totalNewUnseenChats;
       case "/search-people/friends":
-        return state.pendingFriendRequests + state.unseenAcceptedFriendRequests;
+        return state.totalNewFriendRequests + state.unseenAcceptedFriendRequests;
       default:
         return 0;
     }

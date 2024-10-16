@@ -4,6 +4,7 @@ import SocialTexts from "@/components/authComps/socialTexts";
 import { FormEvent, useEffect, useState } from "react";
 import FormContent from "@/components/authComps/formContent";
 import { PublicRoute } from "@/components/authComps/authcontext";
+import { ecnf } from "@/utils/env";
 
 export default function AuthComponent() {
   const [showResponse, setShowResponse] = useState({
@@ -63,7 +64,7 @@ export default function AuthComponent() {
 
 
                   const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/send-verification-email`,
+                    `${ecnf.apiUrl}/send-verification-email`,
                     {
                       method: "POST",
                       headers: {

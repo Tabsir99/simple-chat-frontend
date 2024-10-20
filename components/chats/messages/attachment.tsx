@@ -23,9 +23,9 @@ const Attachments = ({ attachments }: AttachmentsProps) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <span>{attachment.file.name}</span>
+              <span>{attachment.url}</span>
               <span className="text-sm text-gray-400">
-                ({Math.round(attachment.file.size / 1024)}KB)
+                ({""}KB)
               </span>
             </a>
           )}

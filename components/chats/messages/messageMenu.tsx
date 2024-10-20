@@ -7,11 +7,13 @@ export default function MessageMenu({
   onDelete,
   setIsEditing,
   setReplyingTo,
+  isSender
 }: {
   message: IMessage;
   onDelete: (messageId: string) => void;
   setIsEditing: Dispatch<SetStateAction<boolean>>;
   setReplyingTo: Dispatch<SetStateAction<IMessage | null>>;
+  isSender: boolean
 }) {
   const [showMenu, setShowMenu] = useState(false);
 
@@ -39,7 +41,7 @@ export default function MessageMenu({
           >
             <Reply /> Reply
           </button>
-          {message.type === "outgoing" && (
+          {isSender && (
             <>
               <button
                 onClick={() => {

@@ -17,7 +17,7 @@ const navItems = [
 export default function SideBarNav() {
   const [activeRoute, setActiveRoute] = useState("");
   const pathName = usePathname();
-  const { state } = useRecentActivities();
+  const { activities } = useRecentActivities();
 
   useEffect(() => {
     setActiveRoute(pathName);
@@ -26,9 +26,9 @@ export default function SideBarNav() {
   const getAlertCount = (href: string) => {
     switch (href) {
       case "/chats":
-        return state.totalNewUnseenChats;
+        return activities.unseenChats;
       case "/search-people/friends":
-        return state.totalNewFriendRequests + state.unseenAcceptedFriendRequests;
+        return activities.friendRequests + activities.acceptedFriendRequests;
       default:
         return 0;
     }

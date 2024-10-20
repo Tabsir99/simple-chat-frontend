@@ -12,25 +12,54 @@ import {
   Crown,
   Shield,
 } from "lucide-react";
+import useCustomSWR from "@/components/hooks/customSwr";
+import { ecnf } from "@/utils/env";
 
-
+// members: [
+//   {
+//     name: "John Doe",
+//     role: "Project Manager",
+//     status: "online",
+//     isAdmin: true,
+//   },
+//   {
+//     name: "Jane Smith",
+//     role: "Developer",
+//     status: "online",
+//     isModerator: true,
+//   },
+//   { name: "Mike Johnson", role: "Designer", status: "offline" },
+//   { name: "Emily Brown", role: "Marketing", status: "online" },
+//   { name: "Alex Turner", role: "QA Tester", status: "offline" },
+//   { name: "Olivia Wilson", role: "Developer", status: "online" },
+// ],
 
 
 export const GroupInfoModal = ({
   onClose,
   groupData,
+  selectedChatId
 }: {
   isOpen: boolean;
   onClose: () => void;
-  groupData: any;
+  groupData: {
+    roomName: string
+    description: string
+  };
+  selectedChatId: string
 }) => {
   const [activeTab, setActiveTab] = useState("members");
   const [searchTerm, setSearchTerm] = useState("");
   const [translateClass, setTranslateClass] = useState("translateX(100%)");
+  
 
-  const filteredMembers = groupData.members.filter((member: any) =>
-    member.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const {} = useCustomSWR(`${ecnf.apiUrl}/chats/${selectedChatId}?all=`)
+
+  const members = []
+  const filteredMembers: {name: string, role: string, status: string}[] = []
+  // members.filter((member: any) =>
+  //   member.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   const [selectedMember, setSelectedMember] = useState(null);
 
@@ -142,7 +171,7 @@ export const GroupInfoModal = ({
             )}
             {activeTab === "media" && (
               <div className="grid grid-cols-3 gap-2">
-                {groupData.media.map((item: any, index: number) => (
+                {/* {groupData.media.map((item: any, index: number) => (
                   <div
                     key={index}
                     className="aspect-square bg-gray-800 rounded-lg overflow-hidden"
@@ -153,12 +182,12 @@ export const GroupInfoModal = ({
                       className="w-full h-full object-cover"
                     />
                   </div>
-                ))}
+                ))} */}
               </div>
             )}
             {activeTab === "links" && (
               <div className="space-y-2">
-                {groupData.links.map((link: any, index: number) => (
+                {/* {groupData.links.map((link: any, index: number) => (
                   <a
                     key={index}
                     href={link.url}
@@ -169,7 +198,7 @@ export const GroupInfoModal = ({
                     <h3 className="text-white font-medium">{link.title}</h3>
                     <p className="text-blue-400 text-sm">{link.url}</p>
                   </a>
-                ))}
+                ))} */}
               </div>
             )}
           </div>

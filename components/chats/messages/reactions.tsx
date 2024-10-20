@@ -9,6 +9,7 @@ interface ReactionComponentProps {
     emoji: string,
     currentUser: Omit<IUserMiniProfile, "bio"> | null
   ) => void;
+  isSender: boolean
 }
 
 const REACTION_EMOJIS = [
@@ -26,12 +27,13 @@ export const ReactionButton = ({
   message,
   currentUser,
   toggleReaction,
+  isSender
 }: ReactionComponentProps) => {
   return (
     <div
       className={
         "absolute top-1/2 -translate-y-1/2 opacity-0  group-hover:opacity-100 -z-10 group-hover:z-30 mt-2 transition-opacity duration-0 group-hover:duration-300 " +
-        (message.type === "outgoing" ? "right-full" : " left-full")
+        (!isSender ? "left-full" : " right-full")
       }
     >
       <div
@@ -60,13 +62,14 @@ export const ReactionDisplay = ({
   message,
   currentUser,
   toggleReaction,
+  isSender
 }: ReactionComponentProps) => {
 
 
   return (
     <div
       className={`flex flex-wrap items-end gap-0.5 px-2 -mt-2 z-10 relative ${
-        message.type === "outgoing" ? " justify-end " : " justify-start "
+        !isSender ? " justify-start " : "  justify-end"
       }`}
     >
       {message.reactions.map((reaction, index) => (

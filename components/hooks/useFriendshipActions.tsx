@@ -5,6 +5,7 @@ import { useNotification } from "../contextProvider/notificationContext";
 import { KeyedMutator } from "swr";
 import { ApiResponse } from "@/types/responseType";
 import { ecnf } from "@/utils/env";
+import { mutate as gMutate } from "swr";
 
 type Action = "accept" | "reject" | "block" | "unblock" | "create" | "cancel";
 
@@ -58,8 +59,10 @@ const useFriendshipActions = <T=any>({
         if(!response.ok) {
           showNotification(`Error occured! Could not perform the action`,"error")
         }
+        if (action === "accept") {
+          gMutate(`${ecnf.apiUrl}/chats`);
+        }
       } catch (error) {
-        console.log(error,"OK");
       } finally {
         if(mutate){
           mutate()

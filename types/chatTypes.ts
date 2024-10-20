@@ -1,20 +1,27 @@
 export interface IChatHead {
   chatRoomId: string;
-  isGroup: boolean;
-  roomName: string;
-  oppositeUser: {
-    userId: string,
-    username: string;
-    profilePicture: string | null;
-    userStatus: "online" | "offline";
-  };
-  unreadCount: number;
-  lastMessage: string | undefined;
-  lastMessageSenderId: string | undefined;
-  lastActivity: string | null;
+    isGroup: boolean;
+    roomName: string;
+    roomImage: string | null;
+    roomStatus: "online"|"offline";
+    privateChatMemberId: string | false;
+    unreadCount: number;
+    lastMessage: string | undefined;
+    lastMessageSenderId: string | undefined;
+    lastActivity: string,
+    isTyping?: { profilePicture: string, username: string, userId: string }[]
 }
 
 
+export type ChatMembers = {
+  memberName: string;
+  isAdmin: boolean;
+  memberPicture: string | null;
+  memberId: string;
+  memberStatus: "online"|"offline";
+  memberNickname: string | null;
+  isCreator: boolean;
+}[] | undefined
 
 
 export type Reactions = {
@@ -23,7 +30,6 @@ export type Reactions = {
 };
 
 export type Attachment = {
-  file: File;
   url: string;
   type: "image" | "video" | "document";
 }
@@ -36,11 +42,16 @@ type Message = {
   isDeleted?: boolean;
 }
 
+
 export interface IMessage extends Message {
-  type: "incoming" | "outgoing";
   reactions: Reactions[];
-  senderName: string;
-  profilePicture: string;
+  
+
+  sender: {
+    senderName: string;
+    profilePicture: string;
+    senderId: string
+  }
   parentMessage?: {
     messageId?: string,
     content?: string,
@@ -55,5 +66,37 @@ export interface IMessage extends Message {
 
 
   attachments?: Attachment[];
-  status?: "sent" | "delivered" | "read"
+  status?: "sending" | "sent" | "delivered" | "failed" | "read"
+}
+
+
+
+export type TypingEventData = {
+  chatRoomId: string;
+  username: string;
+  profilePicture: string; 
+  isStarting: boolean;
+  userId: string
+}
+
+
+
+
+
+
+
+
+
+
+
+interface IMessageReceipt {
+  receiptId: string;
+  lastReadMessageId: string;
+  userId: string;
+  chatRoomId: string;
+  readAt: Date;
+  user: {
+    profilePicture?: string;
+    name: string;
+  };
 }

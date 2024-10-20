@@ -38,7 +38,6 @@ const useCustomSWR = <T = any>(
       ...config,
       revalidateOnFocus: false,
       dedupingInterval: 4000,
-      // revalidateOnMount: false
     }
   );
 

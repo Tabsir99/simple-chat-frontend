@@ -11,11 +11,15 @@ export default function MessageContent({
   onEdit,
   onDelete,
   setReplyingTo,
+  isSender,
+  isCurrentChatPrivate
 }: {
   message: IMessage;
   onDelete: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
   setReplyingTo: Dispatch<SetStateAction<IMessage | null>>;
+  isSender: boolean;
+  isCurrentChatPrivate: boolean
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
@@ -29,18 +33,14 @@ export default function MessageContent({
       <div
         id={message.messageId}
         className={`
-                relative pl-4 pr-8 py-3 transition-colors duration-1000 delay-200 min-w-40
-                ${
-                  message.type === "outgoing"
-                    ? "bg-blue-600 bg-opacity-80"
-                    : "bg-[#2a313e] "
-                }
+                relative pl-4 pr-8 py-3 transition-colors duration-1000 delay-200 w-fit
+                ${!isSender ? " bg-[#2a313e]" : "bg-blue-600 bg-opacity-80 "}
                 text-white  rounded-lg
                 ${message.isDeleted ? "opacity-60 cursor-not-allowed" : ""}
               `}
       >
         {/* START-------MESSAGE POINTER------START */}
-        {!message.isDeleted && message.type === "incoming" && (
+        {!message.isDeleted && !isSender && (
           <div
             id={`pointer-${message.messageId}`}
             className={
@@ -61,6 +61,7 @@ export default function MessageContent({
           onDelete={onDelete}
           setIsEditing={setIsEditing}
           setReplyingTo={setReplyingTo}
+          isSender={isSender}
         />
 
         {/* Message Content */}
@@ -90,16 +91,26 @@ export default function MessageContent({
                 {formatDate(message.time)}{" "}
               </span>
 
-              {message.type === "outgoing" && (
+              {isSender && isCurrentChatPrivate && (
                 <>
+                  {message.status === "sending" && (
+                    <span className="text-[14px] translate-x-6 text-gray-300 px-2 rounded-md">
+                      sending
+                    </span>
+                  )}
                   {message.status === "sent" && (
                     <span className="text-[14px] translate-x-6 text-gray-300 px-2 rounded-md">
-                      Sent
+                      sent
                     </span>
                   )}
                   {message.status === "delivered" && (
                     <span className="text-[14px] translate-x-6 text-gray-300 px-2 rounded-md">
                       Delivered
+                    </span>
+                  )}
+                  {message.status === "read" && (
+                    <span className="text-[14px] translate-x-6 text-gray-300 px-2 rounded-md">
+                      {message.readBy.length > 1 ?"Seen":"sent"}
                     </span>
                   )}
                 </>
@@ -116,7 +127,6 @@ export default function MessageContent({
     </>
   );
 }
-
 
 const MessageEdit = ({
   editedContent,

@@ -49,7 +49,6 @@ export default function PrivateProfile() {
  
   useEffect(() => {
   
-    console.log("ran") 
     if (data) {
       return setUserProfile(data.userInfo);
     }

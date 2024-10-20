@@ -1,7 +1,5 @@
 import { IMessage } from "@/types/chatTypes";
-import {
-  ArrowUpLeft,
-} from "lucide-react";
+import { ArrowUpLeft } from "lucide-react";
 import Image from "next/image";
 import { Dispatch, SetStateAction } from "react";
 import { ReactionButton, ReactionDisplay } from "./reactions";
@@ -15,6 +13,8 @@ export default function MessageContainer({
   onDelete,
   onEdit,
   setReplyingTo,
+  isSender,
+  isCurrentChatGroup,
 }: {
   message: IMessage;
   toggleReaction: (
@@ -26,6 +26,8 @@ export default function MessageContainer({
   onDelete: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
   setReplyingTo: Dispatch<SetStateAction<IMessage | null>>;
+  isCurrentChatGroup: boolean;
+  isSender: boolean;
 }) {
   const scrollToMessage = (messageId: string | undefined) => {
     const messageEl = document.getElementById(messageId || "");
@@ -51,9 +53,7 @@ export default function MessageContainer({
 
   return (
     <div
-      className={`flex flex-col ${
-        message.type === "outgoing" ? "items-end" : "items-start"
-      }`}
+      className={`flex flex-col ${!isSender ? "items-start" : " items-end"}`}
     >
       {/* START-------MESSAGE REPLY------START */}
       {message.parentMessage && (
@@ -61,7 +61,7 @@ export default function MessageContainer({
           onClick={() => scrollToMessage(message.parentMessage?.messageId)}
           className={
             "-mb-2 group block mt-4 pb-5 pt-2 px-4  text-sm cursor-pointer active:scale-95 transition-transform duration-200 bg-gray-800 border-2 border-gray-700 rounded-lg bg-opacity-40 " +
-            (message.type === "incoming" ? "translate-x-12": "-translate-x-5")
+            (!isSender ? "translate-x-12" : "-translate-x-5")
           }
         >
           <div className="flex items-center mb-1 ">
@@ -87,12 +87,12 @@ export default function MessageContainer({
           "flex max-w-md relative break-words text-pretty group items-start gap-4 pr-3 "
         }
       >
-        {message.type === "incoming" ? (
-          message.profilePicture ? (
+        {!isSender ? (
+          message.sender.profilePicture ? (
             <div className="w-8 h-8 flex-shrink-0 -mt-2">
               <Image
-                src={message.profilePicture}
-                alt={message.senderName}
+                src={message.sender.profilePicture}
+                alt={message.sender.senderName}
                 width={40}
                 height={40}
                 className="rounded-full w-full h-full object-cover"
@@ -100,7 +100,7 @@ export default function MessageContainer({
             </div>
           ) : (
             <span className="flex-shrink-0 flex justify-center items-center w-8 h-8 text-[14px] font-bold rounded-full bg-gray-700 uppercase -mt-2">
-              {message.senderName.slice(0, 2)}
+              {message.sender.senderName.charAt(0)}
             </span>
           )
         ) : null}
@@ -111,6 +111,8 @@ export default function MessageContainer({
             onDelete={onDelete}
             onEdit={onEdit}
             setReplyingTo={setReplyingTo}
+            isSender={isSender}
+            isCurrentChatPrivate={!isCurrentChatGroup}
           />
 
           {!message.isDeleted && (
@@ -118,6 +120,7 @@ export default function MessageContainer({
               currentUser={currentUser}
               message={message}
               toggleReaction={toggleReaction}
+              isSender={isSender}
             />
           )}
 
@@ -126,13 +129,14 @@ export default function MessageContainer({
               currentUser={currentUser}
               message={message}
               toggleReaction={toggleReaction}
+              isSender={isSender}
             />
           )}
         </div>
       </div>
 
       {/* Message Receipts */}
-      {message.readBy && message.readBy?.length > 0 && (
+      {message.readBy && message.readBy?.length > 0 && isCurrentChatGroup && (
         <MessageRecipt readBy={message.readBy} />
       )}
     </div>
@@ -148,9 +152,6 @@ const MessageRecipt = ({
     readerId: string;
   }>;
 }) => {
-
-
-  
   return (
     <div className=" flex items-center justify-end mt-3 text-xs text-gray-400 py-2 w-full h-6 px-3">
       <div className="flex items-center gap-0.5">

@@ -1,95 +1,94 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useAuth } from "../authComps/authcontext";
-import { ApiResponse } from "@/types/responseType";
 import { ecnf } from "@/utils/env";
+import { usePathname } from "next/navigation";
 
-// Define the shape of our context
-interface RecentActivityContextType {
-  state: RecentActivities;
-  setPendingFriendRequests: (count: number) => void;
-  incrementnewUnseenChats: () => void;
-  resetnewUnseenChats: () => void;
-  incrementUnseenAcceptedFriendRequests: () => void;
-  resetUnseenAcceptedFriendRequests: () => void;
-  resetTotalNewFriendRequests: () => void
-  incrementTotalNewFriendRequests: () => void
+interface Activities {
+  friendRequests: number;
+  unseenChats: number;
+  acceptedFriendRequests: number;
 }
 
-type RecentActivities = {
-  totalNewFriendRequests: number;
-  totalNewUnseenChats: number;
-  unseenAcceptedFriendRequests: number;
-  initial: boolean
-};
+type UpdateAction = "increment" | "decrement" | "set";
 
-// Create the context
-const RecentActivityContext = createContext<
-RecentActivityContextType | undefined
->(undefined);
+interface RecentActivityContextType {
+  activities: Activities;
+  updateActivity: (type: keyof Activities, action: UpdateAction, value?: number) => void;
+}
 
-// Create a provider component
-export const RecentActivitiesProvider: React.FC<{
-  children: React.ReactNode;
-}> = ({ children }) => {
-  const [state, setState] = useState<RecentActivities>({
-    totalNewFriendRequests: 0,
-    totalNewUnseenChats: 0,
-    unseenAcceptedFriendRequests: 0,
-    initial: true
+const RecentActivityContext = createContext<RecentActivityContextType | null>(null);
+
+export const RecentActivitiesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [activities, setActivities] = useState<Activities>({
+    friendRequests: 0,
+    unseenChats: 0,
+    acceptedFriendRequests: 0,
   });
 
-  // Helper function to update state
-  const updateState = (newState: Partial<RecentActivities>) => {
-    setState((prevState) => ({ ...prevState, ...newState }));
+  const { checkAndRefreshToken, loading } = useAuth();
+  const pathname = usePathname()
+  const currentPathRef = useRef(pathname)
+  useEffect(() => {
+    currentPathRef.current = pathname
+  },[pathname])
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      const token = await checkAndRefreshToken();
+      if (!token) return;
+
+      const res = await fetch(`${ecnf.apiUrl}/users/me/recent-activities`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const { data } = await res.json();
+        if (data) {
+          setActivities({
+            friendRequests: data.totalNewFriendRequests,
+            unseenChats: data.totalNewUnseenChats,
+            acceptedFriendRequests: data.unseenAcceptedFriendRequests,
+          });
+        }
+      }
+    };
+
+    if (!loading) {
+      fetchActivities();
+    }
+  }, [loading, checkAndRefreshToken]);
+
+  const updateActivity = (type: keyof Activities, action: UpdateAction, value?: number) => {
+
+    if(type === "unseenChats" && action === "increment" && currentPathRef.current.includes("/chats")) return
+    setActivities(prev => {
+      const currentValue = prev[type];
+      let newValue: number;
+
+      switch (action) {
+        case "increment":
+          newValue = currentValue + 1;
+          break;
+        case "decrement":
+          newValue = Math.max(0, currentValue - 1);
+          break;
+        case "set":
+          newValue = value !== undefined ? value : currentValue;
+          break;
+        default:
+          return prev;
+      }
+
+      return { ...prev, [type]: newValue };
+    });
   };
 
   const value: RecentActivityContextType = {
-    state,
-    setPendingFriendRequests: (count: number) =>
-      updateState({ totalNewFriendRequests: count }),
-    incrementnewUnseenChats: () =>
-      updateState({ totalNewUnseenChats: state.totalNewUnseenChats + 1 }),
-    resetnewUnseenChats: () => updateState({ totalNewUnseenChats: 0 }),
-    incrementUnseenAcceptedFriendRequests: () =>
-      updateState({
-        unseenAcceptedFriendRequests: state.unseenAcceptedFriendRequests + 1,
-      }),
-    resetUnseenAcceptedFriendRequests: () =>
-      updateState({ unseenAcceptedFriendRequests: 0 }),
-    resetTotalNewFriendRequests: () =>
-      updateState({ totalNewFriendRequests: 0 }),
-    incrementTotalNewFriendRequests: () =>
-      updateState({ totalNewFriendRequests: state.totalNewFriendRequests + 1 }),
+    activities,
+    updateActivity,
   };
-
-  const { checkAndRefreshToken, loading } = useAuth();
-
-  useEffect(() => {
-    if(!state.initial) return
-    (async () => {
-      const token = await checkAndRefreshToken();
-      if(!token) return
-      const res = await fetch(
-        `${ecnf.apiUrl}/users/me/recent-activities`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (res.ok) {
-        const data: ApiResponse<RecentActivities> = await res.json();
-        if (data.data) {
-          
-          setState({ ...data.data, initial: false });
-        }
-      }
-    })();
-  }, [loading, checkAndRefreshToken]);
 
   return (
     <RecentActivityContext.Provider value={value}>
@@ -98,13 +97,10 @@ export const RecentActivitiesProvider: React.FC<{
   );
 };
 
-// Custom hook to use the context
-export const useRecentActivities = () => {
+export const useRecentActivities = (): RecentActivityContextType => {
   const context = useContext(RecentActivityContext);
-  if (context === undefined) {
-    throw new Error(
-      "useUserInteractions must be used within a UserInteractionsProvider"
-    );
+  if (!context) {
+    throw new Error("useRecentActivities must be used within a RecentActivitiesProvider");
   }
   return context;
 };

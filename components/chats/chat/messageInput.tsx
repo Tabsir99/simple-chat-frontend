@@ -5,6 +5,8 @@ import { useAttachments } from "@/components/hooks/useAttachments";
 import Image from "next/image";
 import { GrAttachment } from "react-icons/gr";
 
+
+
 export default function MessageInput({
   sendMessage,
   newMessage,
@@ -39,23 +41,23 @@ export default function MessageInput({
       {replyingTo && (
         <div className={"flex items-center absolute -top-16 left-0 border-2 border-gray-700 z-30 gap-3 px-4 py-3 bg-gray-800 rounded-lg shadow-lg max-w-[90%] transition-all duration-500 "}>
           {/* Profile Picture */}
-          {replyingTo.profilePicture ? (
+          {replyingTo.sender.profilePicture ? (
             <img
-              src={replyingTo.profilePicture}
-              alt={replyingTo.senderName}
+              src={replyingTo.sender.profilePicture}
+              alt={replyingTo.sender.senderName}
               className="w-10 h-10 rounded-full flex-shrink-0"
             />
           ) : (
             <span className="uppercase font-bold text-xs flex justify-center items-center bg-gray-700 bg-opacity-60 w-10 h-10 rounded-full">
               {" "}
-              {replyingTo.senderName.slice(0, 2)}{" "}
+              {replyingTo.sender.senderName.charAt(0)}{" "}
             </span>
           )}
 
           {/* Reply Info */}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold text-gray-300 mb-1">
-              Replying to {replyingTo.senderName}
+              Replying to {replyingTo.sender.senderName}
             </div>
 
             {/* Message Preview */}

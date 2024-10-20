@@ -28,7 +28,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       },
       transports: ["websocket", "polling"], // Fixed typo in polling
       reconnectionAttempts: 5, // Increased for better reliability
-      reconnectionDelay: 1500,
+      reconnectionDelay: 3000,
       secure: process.env.NODE_ENV === "production",
       autoConnect: true
     });
@@ -40,12 +40,10 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     socketInstance.on("connect_error", (error) => {
-      console.log("Connection error:", error);
       setIsConnected(false);
     });
 
     socketInstance.on('disconnect', () => {
-      console.log('Disconnected from Socket.IO');
       setIsConnected(false);
     });
 

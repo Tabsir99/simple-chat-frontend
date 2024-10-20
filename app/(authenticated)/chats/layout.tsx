@@ -3,16 +3,13 @@
 import ChatSidebar from "@/components/chats/chatSidebar";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import useCustomSWR from "@/components/hooks/customSwr";
 import { MiniProfileSkeleton } from "@/components/skeletons/skeleton";
-import { useEffect } from "react";
 import { BsChatFill } from "react-icons/bs";
-import { IChatHead } from "@/types/chatTypes";
 import { useChatContext } from "@/components/contextProvider/chatContext";
 import ActiveChats from "@/components/chats/activeChats";
-import { useAuth } from "@/components/authComps/authcontext";
+import { useEffect } from "react";
 import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
-import { ecnf } from "@/utils/env";
+
 
 export default function MainLayout({
   children,
@@ -20,16 +17,13 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
 
-  const { activeChats, setActiveChats } = useChatContext();
-
-  const { data, error, isLoading } = useCustomSWR<Array<IChatHead>>(
-    `${ecnf.apiUrl}/chats`
-  );
+  const { activeChats, isLoading } = useChatContext();
+  const { updateActivity } = useRecentActivities()
 
   useEffect(() => {
-    setActiveChats(data || null);
-  }, [data]);
-  
+    updateActivity("unseenChats","set",0)
+  },[])
+
   return (
     <>
      
@@ -74,10 +68,9 @@ export default function MainLayout({
             )}
           </div>
         </div>
-        <section className="bg-[#292f36]  w-full">{children}</section>
+        <section className="bg-[#1d2328] overflow-hidden w-full">{children}</section>
       </div>
 
-      <BackgroundJob />
     </>
   );
 }
@@ -85,29 +78,3 @@ export default function MainLayout({
 
 
 
-
-const BackgroundJob = () => {
-  const { checkAndRefreshToken } = useAuth()
-  const { resetnewUnseenChats, state } = useRecentActivities()
-
-
-  useEffect(() => {
-    if(state.totalNewUnseenChats === 0) return
-    (async () => {
-
-      const token = await checkAndRefreshToken()
-      await fetch(`${ecnf.apiUrl}/users/me/recent-activities`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          event: "reset-chats"
-        })
-      });
-      resetnewUnseenChats()
-    })()
-  }, []);
-  return null;
-};

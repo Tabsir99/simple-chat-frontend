@@ -18,14 +18,12 @@ export function useAttachments() {
         const url = type === "image" ? URL.createObjectURL(file) : "";
 
         return {
-          file,
           url,
           type,
         };
       })
     );
 
-    console.log(attachments)
     setAttachments(prevAttachments => [...prevAttachments, ...newAttachments]);
   };
 

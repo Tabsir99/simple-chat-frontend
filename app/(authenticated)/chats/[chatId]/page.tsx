@@ -11,19 +11,26 @@ import { useChatContext } from "@/components/contextProvider/chatContext";
 import { useParams, useRouter } from "next/navigation";
 import FullPageLoader from "@/components/ui/fullpageloader";
 import { useNotification } from "@/components/contextProvider/notificationContext";
+import { useSocket } from "@/components/contextProvider/websocketContext";
+import { v4 as uuid4 } from "uuid";
 
 export default function ChatRoom() {
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [replyingTo, setReplyingTo] = useState<IMessage | null>(null);
+
   const divRef = useRef<HTMLDivElement | null>(null);
   const currentUser = useAuth().user;
+
   const { activeChats } = useChatContext();
-  const params: { chatId: string } = useParams();
   const { showNotification } = useNotification();
+
+  const params: { chatId: string } = useParams();
   const router = useRouter();
   const [selectedActiveChat, setSelectedActiveChat] =
     useState<IChatHead | null>(null);
+
+  const { isConnected, socket } = useSocket();
 
   const {
     messages,
@@ -36,17 +43,43 @@ export default function ChatRoom() {
 
   const scrollToBottom = () => {
     if (!divRef.current) return;
+
     divRef.current.scrollTop = divRef.current.scrollHeight;
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages.length]);
+  }, [messages]);
 
-  const simulateTyping = () => {
-    setIsTyping(true);
-    setTimeout(() => setIsTyping(false), 2000);
-  };
+
+  useEffect(() => {
+    if (newMessage.length > 0 && !isTyping) {
+      setIsTyping(true);
+      if (socket) {
+        socket.emit("user:typing", {
+          username: currentUser?.username,
+          userId: currentUser?.userId,
+          profilePicture: currentUser?.profilePicture,
+          isStarting: true,
+
+          chatRoomId: selectedActiveChat?.chatRoomId,
+        });
+      }
+    }
+    if (newMessage.length === 0 && isTyping) {
+      setIsTyping(false);
+      if (socket) {
+        socket.emit("user:typing", {
+          username: currentUser?.username,
+          profilePicture: currentUser?.profilePicture,
+          userId: currentUser?.userId,
+          isStarting: false,
+
+          chatRoomId: selectedActiveChat?.chatRoomId,
+        });
+      }
+    }
+  }, [newMessage, isConnected]);
 
   const sendMessage = async (
     e: FormEvent<Element>,
@@ -56,17 +89,23 @@ export default function ChatRoom() {
     if (!newMessage.trim() && attachments.length === 0) return;
 
     const newMsg: IMessage = {
-      messageId: String(messages.length + 1),
+      messageId: uuid4(),
       content: newMessage,
-      type: "outgoing",
       time: new Date().toISOString(),
       reactions: [],
-      senderName: currentUser?.username as string,
-      profilePicture: "",
+
+      sender: {
+        profilePicture: currentUser?.profilePicture as string,
+        senderName: currentUser?.username as string,
+        senderId: currentUser?.userId as string,
+      },
+      isDeleted: false,
+      isEdited: false,
+
       parentMessage: replyingTo && {
         messageId: replyingTo?.messageId,
         content: replyingTo?.content,
-        senderName: replyingTo?.senderName,
+        senderName: replyingTo?.sender.senderName,
       },
       attachments: attachments,
       readBy: [
@@ -76,9 +115,10 @@ export default function ChatRoom() {
           readerId: currentUser?.userId as string,
         },
       ],
+      status: "sending",
     };
 
-    addMessage(newMsg);
+    addMessage(newMsg, currentUser);
     setNewMessage("");
     setReplyingTo(null);
   };
@@ -98,7 +138,7 @@ export default function ChatRoom() {
   }, [activeChats]);
 
   return (
-    <section className="bg-[#212830] w-full h-screen flex flex-col border-l-2 border-gray-700">
+    <section className=" w-full flex flex-col border-l-2 border-gray-700 overflow-hidden">
       {!selectedActiveChat ? (
         <FullPageLoader
           loadingPhrases={null}
@@ -108,28 +148,38 @@ export default function ChatRoom() {
         <>
           <ChatHeader selectedActiveChat={selectedActiveChat} />
 
-          <div className="flex flex-1">
+          <div>
             {/* Main Chat */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex flex-col overflow-hidden">
               <div
                 ref={divRef}
-                className="  py-4 px-2 flex flex-col gap-3 overflow-y-scroll overflow-x-hidden h-[calc(100vh-8rem)] scroll-smooth"
-              >
-                {messages.map((message) => (
-                  <>
-                    <MessageContainer
-                      key={message.messageId}
-                      message={message}
-                      currentUser={currentUser}
-                      toggleReaction={toggleReaction}
-                      onDelete={deleteMessage}
-                      onEdit={editMessage}
-                      setReplyingTo={setReplyingTo}
-                    />
-                  </>
-                ))}
 
-                {isTyping && <TypingIndicator profilePicture={""} username={"ta"} />}
+                className="  py-4 px-2 flex flex-col gap-3 overflow-x-hidden overflow-y-auto h-[calc(100vh-8rem)]"
+              >
+                {messages.map((message) => {
+                  
+                  return (
+                      <MessageContainer
+                        key={message.messageId}
+                        message={message}
+                        currentUser={currentUser}
+                        toggleReaction={toggleReaction}
+                        onDelete={deleteMessage}
+                        onEdit={editMessage}
+                        setReplyingTo={setReplyingTo}
+                        isSender={message.sender.senderId === currentUser?.userId}
+                        isCurrentChatGroup={selectedActiveChat.isGroup}
+                      />
+                  );
+                })}
+
+
+                {selectedActiveChat.isTyping &&
+                  selectedActiveChat.isTyping.length > 0 && (
+                    <TypingIndicator
+                      typingUsers={selectedActiveChat.isTyping}
+                    />
+                  )}
               </div>
 
               <MessageInput

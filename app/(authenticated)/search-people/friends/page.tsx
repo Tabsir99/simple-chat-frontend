@@ -8,11 +8,14 @@ import { CustomButton } from "@/components/ui/buttons";
 import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
 import { useAuth } from "@/components/authComps/authcontext";
 import { ecnf } from "@/utils/env";
+import { useSocket } from "@/components/contextProvider/websocketContext";
 
 export default function FriendList() {
   const [activeTab, setActiveTab] = useState<"friends" | "pending" | "blocked">(
     "friends"
   );
+  const { socket } = useSocket();
+  const {user} = useAuth()
   const { data, mutate } = useCustomSWR<
     {
       userId: string;
@@ -23,7 +26,7 @@ export default function FriendList() {
     }[]
   >(`${ecnf.apiUrl}/friendships`);
 
-  const { state } = useRecentActivities();
+  const { activities, updateActivity } = useRecentActivities();
   const [tabs, setTabs] = useState<
     {
       id: "friends" | "pending" | "blocked";
@@ -36,13 +39,13 @@ export default function FriendList() {
       id: "friends",
       icon: Users,
       label: "Friends",
-      count: state.unseenAcceptedFriendRequests,
+      count: activities.acceptedFriendRequests,
     },
     {
       id: "pending",
       icon: UserPlus,
       label: "Pending",
-      count: 0,
+      count: activities.friendRequests,
     },
     {
       id: "blocked",
@@ -53,32 +56,29 @@ export default function FriendList() {
   ]);
 
   useEffect(() => {
-    const newTabs = tabs.map((tab) => {
-      if (tab.id === "friends") {
-        return {
-          ...tab,
-          count: state.unseenAcceptedFriendRequests,
-        };
-      }
+    setTabs(prev => {
+      return prev.map(t => {
+        if(t.id === "friends"){
+          return {...t,count: activities.acceptedFriendRequests}
+        }
+        if(t.id === "pending"){
+          return {...t,count: activities.friendRequests}
+        }
+        return t
+      })
+    })
+    if (!socket || !user || (activities.acceptedFriendRequests + activities.friendRequests === 0)) return;
 
-      return tab;
-    });
-    setTabs(newTabs);
-  }, [state]);
+    if (activeTab === "friends") {
+      updateActivity("acceptedFriendRequests", "set", 0);
+    }
 
-  useEffect(() => {
-    const newTabs = tabs.map((tab) => {
-      if (tab.id === "pending") {
-        return {
-          ...tab,
-          count: data?.filter((user) => (user && !user.isCurrentUserSender && user.status === "pending")).length || 0,
-        };
-      }
+    if (activeTab === "pending") {
+      updateActivity("friendRequests", "set", 0);
+    }
 
-      return tab;
-    });
-    setTabs(newTabs);
-  }, [data]);
+    socket.emit("activity:reset",{type: "friends",userId: user.userId})
+  }, [socket, activeTab, user, activities]);
 
   const renderConnections = () => {
     const filteredUsers = data?.filter((user) => {
@@ -134,37 +134,6 @@ export default function FriendList() {
           renderConnections()
         )}
       </div>
-
-      <BackgroundJob />
     </div>
   );
 }
-
-const BackgroundJob = () => {
-  const { checkAndRefreshToken } = useAuth()
-  const { resetUnseenAcceptedFriendRequests, resetTotalNewFriendRequests, state } = useRecentActivities()
-
-
-  useEffect(() => {
-
-    if(state.totalNewFriendRequests === 0 && state.unseenAcceptedFriendRequests ===0) return
-
-    (async () => {
-
-      const token = await checkAndRefreshToken()
-      await fetch(`${ecnf.apiUrl}/users/me/recent-activities`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          event: "reset-friends"
-        })
-      });
-      resetUnseenAcceptedFriendRequests()
-      resetTotalNewFriendRequests()
-    })()
-  }, [checkAndRefreshToken, state]);
-  return null;
-};

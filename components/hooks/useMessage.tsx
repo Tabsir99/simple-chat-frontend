@@ -1,20 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IMessage, Reactions } from "@/types/chatTypes";
 import { IUserMiniProfile } from "@/types/userTypes";
 import useCustomSWR from "./customSwr";
 import { ecnf } from "@/utils/env";
+import { useSocket } from "../contextProvider/websocketContext";
+import { useChatContext } from "../contextProvider/chatContext";
 
 export function useMessages({ chatId }: { chatId: string | null }) {
   const [messages, setMessages] = useState<IMessage[]>([]);
+  const { updateLastActivity } = useChatContext();
+  const { socket } = useSocket();
 
-  const { data, error, isLoading } = useCustomSWR<IMessage[]>(
-    chatId
-      ? `${ecnf.apiUrl}/chats/${chatId}/messages`
-      : null,
+  const limitRef = useRef(50);
+
+  const { data, mutate } = useCustomSWR<IMessage[]>(
+    chatId ? `${ecnf.apiUrl}/chats/${chatId}/messages` : null,
     {
-      focusThrottleInterval: 20000,
+      revalidateIfStale: false,
+      // revalidateOnMount: false
     }
   );
+
 
   useEffect(() => {
     if (!data) {
@@ -23,16 +29,98 @@ export function useMessages({ chatId }: { chatId: string | null }) {
     setMessages(data);
   }, [data]);
 
-  const addMessage = (newMessage: IMessage) => {
-    setMessages((prevMessages) => {
-      const updatedPrevMessages = prevMessages.map((msg) => ({
-        ...msg,
-        readBy: msg.readBy.filter(
-          (reader) => reader.readerId !== newMessage.readBy[0].readerId
-        ),
-      }));
 
-      return [...updatedPrevMessages, newMessage];
+
+
+
+  useEffect(() => {
+    if (!socket) return;
+
+    // Listen for status updates from server
+    const handleStatusUpdate = ({
+      messageId,
+      status,
+      readBy
+    }: {
+      messageId: string;
+      status: IMessage["status"];
+      readBy: {
+        readerName: string;
+        profilePicture: string;
+        readerId: string;
+      }[];
+    }) => {
+
+      mutate((currentData) => {
+        if (!currentData?.data) return currentData;
+
+        const newMessageReaders = new Set(
+          readBy.map((reader) => reader.readerId)
+        );
+        const newData = currentData.data?.map<IMessage>((message) => {
+
+          if(message.messageId === messageId){
+            return {
+              ...message,
+              status: status,
+              readBy: readBy
+            }
+          }
+          return {...message, readBy: message.readBy.filter(reader => !newMessageReaders.has(reader.readerId))}
+        })
+
+        return {
+          ...currentData,
+          data: newData
+        }
+      }, false);
+    };
+
+    socket.on("message:status", handleStatusUpdate);
+
+    return () => {
+      socket.off("message:status");
+    };
+  }, [socket, mutate]);
+
+
+  const addMessage = async (
+    newMessage: IMessage,
+    currentUser: Omit<IUserMiniProfile, "bio"> | null
+  ) => {
+    if (!data || !currentUser) return;
+    const newData = data.map((message) => {
+      const newReadBy = message.readBy.filter(
+        (user) => user.readerId !== currentUser.userId
+      );
+
+      return {
+        ...message,
+        readBy: newReadBy,
+      };
+    });
+    newData.push(newMessage);
+
+    if (newData.length > limitRef.current) {
+      newData.splice(0, newData.length - limitRef.current);
+    }
+    mutate(
+      {
+        success: true,
+        meta: { timestamp: new Date().toISOString(), version: "1.0" },
+        data: newData,
+      },
+      {
+        revalidate: false,
+      }
+    );
+
+    // Update the active chat heads to render newMessage content and time
+    updateLastActivity(chatId as string, newMessage);
+
+    socket?.emit("message:send", {
+      chatRoomId: chatId,
+      message: newMessage,
     });
   };
 

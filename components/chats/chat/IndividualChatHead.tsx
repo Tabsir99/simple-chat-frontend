@@ -17,45 +17,104 @@ import {
   Info,
   BellOff,
   LogOut,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MediaModal from "./mediaModal";
-import { useChatContext } from "../../contextProvider/chatContext";
 import Image from "next/image";
 import { GroupInfoModal } from "./groupInfoModal";
 import { IChatHead } from "@/types/chatTypes";
+import { ecnf } from "@/utils/env";
+import { useAuth } from "@/components/authComps/authcontext";
+import { mutate } from "swr";
+import { useNotification } from "@/components/contextProvider/notificationContext";
 
-const options = [
-  {
-    item: "Profile",
-    icon: <User className="text-gray-400" size={18} />,
-  },
-  { item: "Media", icon: <ImageIcon className="text-gray-400" size={18} /> },
-  { item: "Favorite", icon: <Heart className="text-gray-400" size={18} /> },
-  { item: "Block", icon: <Ban className="text-gray-400" size={18} /> },
-];
+type MenuAction =
+  | { type: "NAVIGATE"; path: string }
+  | { type: "TOGGLE_MEDIA" }
+  | { type: "TOGGLE_GROUP_MODAL" }
+  | { type: "MUTE" }
+  | { type: "LEAVE" }
+  | { type: "FAVORITE" }
+  | { type: "BLOCK" }
+  | { type: "CREATE_GROUP" }
+  | { type: "CLOSE" };
 
-const groupChatOptions = [
-  {
-    item: "Group",
-    icon: <Info className="text-gray-400" size={18} />,
-  },
-  { item: "Favorite", icon: <Heart className="text-gray-400" size={18} /> },
-  {
-    item: "Mute",
-    icon: <BellOff className="text-gray-400" size={18} />,
-  },
-  { item: "Leave", icon: <LogOut className="text-gray-400" size={18} /> },
-];
+// Define menu item interface
+interface MenuItem {
+  item: string;
+  icon: ReactNode;
+  action: MenuAction;
+}
 
-export default function ChatHeader({ selectedActiveChat }: { selectedActiveChat: IChatHead }) {
+// Create menu configurations
+const createMenuConfig = (
+  userId?: string
+): Record<"regular" | "group", MenuItem[]> => ({
+  regular: [
+    {
+      item: "Profile",
+      icon: <User size={18} />,
+      action: { type: "NAVIGATE", path: `/search-people/${userId}` },
+    },
+    {
+      item: "Media",
+      icon: <ImageIcon size={18} />,
+      action: { type: "TOGGLE_MEDIA" },
+    },
+    {
+      item: "Favorite",
+      icon: <Heart size={18} />,
+      action: { type: "FAVORITE" },
+    },
+    {
+      item: "Block",
+      icon: <Ban size={18} />,
+      action: { type: "BLOCK" },
+    },
+    {
+      item: "Create Group",
+      icon: <Users size={18} />,
+      action: { type: "CREATE_GROUP" },
+    },
+  ],
+  group: [
+    {
+      item: "Group Info",
+      icon: <Info size={18} />,
+      action: { type: "TOGGLE_GROUP_MODAL" },
+    },
+    {
+      item: "Favorite",
+      icon: <Heart size={18} />,
+      action: { type: "FAVORITE" },
+    },
+    {
+      item: "Mute",
+      icon: <BellOff size={18} />,
+      action: { type: "MUTE" },
+    },
+    {
+      item: "Leave Group",
+      icon: <LogOut size={18} />,
+      action: { type: "LEAVE" },
+    },
+  ],
+});
+
+export default function ChatHeader({
+  selectedActiveChat,
+}: {
+  selectedActiveChat: IChatHead;
+}) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [groupModal, setGroupModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
+  const { checkAndRefreshToken, user } = useAuth();
+  const { showNotification } = useNotification();
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
@@ -73,17 +132,40 @@ export default function ChatHeader({ selectedActiveChat }: { selectedActiveChat:
     setGroupModal(false);
   };
 
-  const handleOptionClick = (option: string) => {
-
-    if (option === "Profile") {
-      return router.push(`/search-people/${selectedActiveChat?.oppositeUser.userId}`);
+  const handleOptionClick = async (action: MenuAction) => {
+    if (action.type === "NAVIGATE") {
+      return router.push(action.path);
     }
-    if (option === "Media") {
+    if (action.type === "TOGGLE_MEDIA") {
       toggleMediaModal();
     }
-    if (option === "Group") {
-      console.log(option);
+    if (action.type === "TOGGLE_GROUP_MODAL") {
       setGroupModal(true);
+    }
+    if (action.type === "CREATE_GROUP") {
+      const token = await checkAndRefreshToken();
+      const response = await fetch(`${ecnf.apiUrl}/chats/groups`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          {
+            userId: user?.userId,
+            username: user?.username,
+          },
+          {
+            userId: selectedActiveChat.privateChatMemberId,
+            username: selectedActiveChat.roomName,
+          },
+        ]),
+      });
+      if (response.ok) {
+        mutate(`${ecnf.apiUrl}/chats`);
+      } else {
+        showNotification("Could not create a group", "error");
+      }
     }
     closeDropdown();
   };
@@ -126,26 +208,31 @@ export default function ChatHeader({ selectedActiveChat }: { selectedActiveChat:
           <>
             {" "}
             <Link
-              href={`/search-people/${selectedActiveChat.oppositeUser.userId}`}
+              href={
+                selectedActiveChat.isGroup
+                  ? "#"
+                  : `/search-people/${selectedActiveChat.privateChatMemberId}`
+              }
               className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-gray-400"
             >
-              {selectedActiveChat.oppositeUser.profilePicture ? (
+              {selectedActiveChat.isGroup ? (
+                <span className="text-[18px] uppercase">GC</span>
+              ) : selectedActiveChat.roomImage ? (
                 <Image
-                  src={selectedActiveChat.oppositeUser.profilePicture}
+                  src={selectedActiveChat.roomImage}
                   alt="profile picture"
                 />
               ) : (
                 <span className="text-[18px] uppercase">
-                  {" "}
-                  {selectedActiveChat.oppositeUser.username.slice(0, 2)}{" "}
+                  {selectedActiveChat.roomName.slice(0, 1)}
                 </span>
               )}
             </Link>
             <div className="capitalize">
               <h2 className="text-white text-[18px] font-semibold">
-                {selectedActiveChat.roomName || selectedActiveChat.oppositeUser.username}
+                {selectedActiveChat.roomName}
               </h2>
-              {selectedActiveChat.oppositeUser.userStatus === "online" ? (
+              {selectedActiveChat.roomStatus === "online" ? (
                 <p className="text-[14px] text-green-400"> online </p>
               ) : (
                 <p className="text-[14px] text-gray-400"> offline </p>
@@ -180,11 +267,13 @@ export default function ChatHeader({ selectedActiveChat }: { selectedActiveChat:
             dropdownRef={dropdownRef}
             handleOptionClick={handleOptionClick}
             isDropdownOpen={isDropdownOpen}
-            options={groupChatOptions}
+            options={
+              createMenuConfig().group
+            }
           />
         ) : (
           <ChatRoomMenu
-            options={options}
+            options={createMenuConfig(selectedActiveChat.privateChatMemberId as string).regular}
             dropdownRef={dropdownRef}
             handleOptionClick={handleOptionClick}
             isDropdownOpen={isDropdownOpen}
@@ -192,40 +281,19 @@ export default function ChatHeader({ selectedActiveChat }: { selectedActiveChat:
         )}
       </div>
 
-      {isMediaModalOpen && <MediaModal toggleMediaModal={toggleMediaModal} />}
-
-
+      {isMediaModalOpen && <MediaModal toggleMediaModal={toggleMediaModal} selectedChatId={selectedActiveChat.chatRoomId} />}
 
       {groupModal && (
         <GroupInfoModal
-        isOpen={groupModal}
-          groupData={ {
-            name: selectedActiveChat.roomName,
+          isOpen={groupModal}
+          groupData={{
+            roomName: selectedActiveChat.roomName,
             description: selectedActiveChat.roomName,
-            members: [
-              { name: "John Doe", role: "Project Manager", status: "online", isAdmin: true },
-              { name: "Jane Smith", role: "Developer", status: "online", isModerator: true },
-              { name: "Mike Johnson", role: "Designer", status: "offline" },
-              { name: "Emily Brown", role: "Marketing", status: "online" },
-              { name: "Alex Turner", role: "QA Tester", status: "offline" },
-              { name: "Olivia Wilson", role: "Developer", status: "online" },
-            ],
-            media: [
-              { url: "https://picsum.photos/200/200?random=1" },
-              { url: "https://picsum.photos/200/200?random=2" },
-              { url: "https://picsum.photos/200/200?random=3" },
-              { url: "https://picsum.photos/200/200?random=4" },
-              { url: "https://picsum.photos/200/200?random=5" },
-              { url: "https://picsum.photos/200/200?random=6" },
-            ],
-            links: [
-              { title: "Project Roadmap", url: "https://example.com/roadmap" },
-              { title: "Design Assets", url: "https://example.com/design-assets" },
-              { title: "API Documentation", url: "https://example.com/api-docs" },
-            ],
-          }
-          }
-          onClose={closeGroupModal}
+          }}
+          onClose={() => {
+            closeGroupModal();
+          }}
+          selectedChatId={selectedActiveChat.chatRoomId}
         />
       )}
     </div>
@@ -240,27 +308,31 @@ const ChatRoomMenu = ({
 }: {
   dropdownRef: RefObject<HTMLDivElement>;
   isDropdownOpen: boolean;
-  handleOptionClick: (item: string) => void;
-  options: Array<{ item: string; icon: ReactNode }>;
+  handleOptionClick: (action: MenuAction) => void;
+  options: MenuItem[];
 }) => {
   return (
     <div
       ref={dropdownRef}
       className={
-        "absolute py-2 w-32 z-40 top-full right-0 mt-2 bg-gray-800 text-white rounded-lg shadow-xl px-3 border border-gray-600 overflow-hidden origin-top " +
+        "absolute top-full origin-top right-0 mt-2 w-fit border-2 border-gray-700 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5 divide-y divide-gray-700 " +
         (isDropdownOpen ? "transition-transform duration-200" : "scale-y-0")
       }
     >
-      {options.map(({ item, icon }) => (
-        <button
-          key={item}
-          className="w-full rounded-lg text-left px-3 py-2.5 flex gap-1 text-[18px] items-center hover:bg-gray-700 focus:bg-gray-700 focus:outline-none transition-colors duration-200"
-          onClick={() => handleOptionClick(item)}
-        >
-          {icon}
-          <span>{item}</span>
-        </button>
-      ))}
+      <div className="py-1">
+        {options.map(({ item, icon, action }) => (
+          <button
+            onClick={() => handleOptionClick(action)}
+            key={item}
+            className="group flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:bg-gray-700 focus:text-white"
+          >
+            <span className="mr-3 text-gray-400 group-hover:text-white">
+              {icon}
+            </span>
+            <span className="flex-grow text-left">{item}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

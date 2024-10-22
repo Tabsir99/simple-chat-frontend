@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { IMessage, Reactions } from "@/types/chatTypes";
+import { IMessage, IMessageReceipt, Reactions } from "@/types/chatTypes";
 import { IUserMiniProfile } from "@/types/userTypes";
 import useCustomSWR from "./customSwr";
 import { ecnf } from "@/utils/env";
@@ -8,30 +8,28 @@ import { useChatContext } from "../contextProvider/chatContext";
 
 export function useMessages({ chatId }: { chatId: string | null }) {
   const [messages, setMessages] = useState<IMessage[]>([]);
+  const [readReceipts, setReadReceipts] = useState<IMessageReceipt[]>([]);
+
   const { updateLastActivity } = useChatContext();
   const { socket } = useSocket();
 
   const limitRef = useRef(50);
 
-  const { data, mutate } = useCustomSWR<IMessage[]>(
-    chatId ? `${ecnf.apiUrl}/chats/${chatId}/messages` : null,
-    {
-      revalidateIfStale: false,
-      // revalidateOnMount: false
-    }
-  );
-
+  const { data, mutate } = useCustomSWR<{
+    messages: IMessage[];
+    allRecipts: IMessageReceipt[];
+  }>(chatId ? `${ecnf.apiUrl}/chats/${chatId}/messages` : null, {
+    revalidateIfStale: false,
+  });
 
   useEffect(() => {
     if (!data) {
       return;
     }
-    setMessages(data);
+    setMessages(data.messages);
+    setReadReceipts(data.allRecipts);
+
   }, [data]);
-
-
-
-
 
   useEffect(() => {
     if (!socket) return;
@@ -40,39 +38,41 @@ export function useMessages({ chatId }: { chatId: string | null }) {
     const handleStatusUpdate = ({
       messageId,
       status,
-      readBy
+      readBy,
     }: {
       messageId: string;
-      status: IMessage["status"];
-      readBy: {
-        readerName: string;
-        profilePicture: string;
-        readerId: string;
-      }[];
+      status: "sent" | "delivered" | "failed";
+      readBy: string[];
     }) => {
-
       mutate((currentData) => {
-        if (!currentData?.data) return currentData;
+        if (!currentData) return currentData;
 
-        const newMessageReaders = new Set(
-          readBy.map((reader) => reader.readerId)
-        );
-        const newData = currentData.data?.map<IMessage>((message) => {
+        const readerSet = new Set(readBy);
 
-          if(message.messageId === messageId){
-            return {
-              ...message,
-              status: status,
-              readBy: readBy
-            }
-          }
-          return {...message, readBy: message.readBy.filter(reader => !newMessageReaders.has(reader.readerId))}
-        })
+        const newData: {
+          messages: IMessage[];
+          allRecipts: IMessageReceipt[];
+        } = {
+          messages: currentData.messages.map((msg) => {
+            return msg.messageId !== messageId
+              ? msg
+              : { ...msg, status: status };
+          }),
+          allRecipts:
+            status === "failed"
+              ? currentData.allRecipts
+              : currentData.allRecipts.map((or) => {
+                  if (readerSet.has(or.reader.userId)) {
+                    return {
+                      reader: or.reader,
+                      lastReadMessageId: messageId,
+                    };
+                  }
+                  return or;
+                }),
+        };
 
-        return {
-          ...currentData,
-          data: newData
-        }
+        return newData;
       }, false);
     };
 
@@ -83,38 +83,37 @@ export function useMessages({ chatId }: { chatId: string | null }) {
     };
   }, [socket, mutate]);
 
-
   const addMessage = async (
     newMessage: IMessage,
     currentUser: Omit<IUserMiniProfile, "bio"> | null
   ) => {
     if (!data || !currentUser) return;
-    const newData = data.map((message) => {
-      const newReadBy = message.readBy.filter(
-        (user) => user.readerId !== currentUser.userId
-      );
 
-      return {
-        ...message,
-        readBy: newReadBy,
-      };
-    });
-    newData.push(newMessage);
-
-    if (newData.length > limitRef.current) {
-      newData.splice(0, newData.length - limitRef.current);
+    if (messages.length > limitRef.current) {
+      messages.splice(0, messages.length - limitRef.current);
     }
-    mutate(
-      {
-        success: true,
-        meta: { timestamp: new Date().toISOString(), version: "1.0" },
-        data: newData,
-      },
-      {
-        revalidate: false,
-      }
-    );
 
+    mutate((currentData) => {
+      if (!currentData) return currentData;
+
+      const newData: {
+        messages: IMessage[];
+        allRecipts: IMessageReceipt[];
+      } = {
+        allRecipts: currentData.allRecipts.map((r) =>
+          r.reader.userId === currentUser.userId
+            ? {
+                ...r,
+                lastReadMessageId: newMessage.messageId,
+                readStatus: "sending",
+              }
+            : r
+        ),
+        messages: [...currentData.messages, newMessage],
+      };
+
+      return newData;
+    }, false);
     // Update the active chat heads to render newMessage content and time
     updateLastActivity(chatId as string, newMessage);
 
@@ -124,6 +123,77 @@ export function useMessages({ chatId }: { chatId: string | null }) {
     });
   };
 
+
+  const hToggleReaction = (message: IMessage, userId: string, reactionEmoji: string) => {
+    const reactionMap = new Map(
+      message.MessageReaction.map((reaction) => [reaction.emoji, reaction])
+    );
+
+    /**
+     * Find if user has an existing reaction on this message
+     * Iterates through reaction map to find any emoji the user has already used
+     */
+    let userCurrentReactionEmoji: string | undefined;
+    for (const [emoji, reaction] of reactionMap.entries()) {
+      if (reaction.users.includes(userId)) {
+        userCurrentReactionEmoji = emoji;
+        break;
+      }
+    }
+    return {
+      ...message,
+      MessageReaction: message.MessageReaction.map((reaction) => {
+        /**
+         * Handle reaction modifications based on three cases:
+         * 1. Remove existing reaction if user clicks same emoji again
+         * 2. Add new reaction if:
+         *    - User has no existing reaction, or
+         *    - User is switching to a different emoji
+         * 3. Leave other reactions unchanged
+         * @returns {Reactions | null} Modified reaction or null if reaction should be removed
+         */
+
+        if (reaction.emoji === userCurrentReactionEmoji) {
+          const newUsers = reaction.users.filter((uid) => uid !== userId);
+          return newUsers.length > 0
+            ? { emoji: reaction.emoji, users: newUsers }
+            : null;
+        }
+
+        if (
+          reaction.emoji === reactionEmoji &&
+          (!userCurrentReactionEmoji ||
+            userCurrentReactionEmoji !== reactionEmoji)
+        ) {
+          return {
+            emoji: reaction.emoji,
+            users: [...reaction.users, userId],
+          };
+        }
+
+        return reaction;
+      })
+
+        // Handle reaction updates and maintain type safety
+        .filter((reaction): reaction is Reactions => reaction !== null)
+
+        /**
+         * Append new reaction if:
+         * 1. The emoji doesn't exist in current reactions AND
+         * 2. Either:
+         *    - User has no existing reaction
+         *    - Or user's existing reaction is different
+         * This maintains reaction order consistency in the array
+         */
+        .concat(
+          !reactionMap.has(reactionEmoji) &&
+            (!userCurrentReactionEmoji ||
+              userCurrentReactionEmoji !== reactionEmoji)
+            ? [{ emoji: reactionEmoji, users: [userId] }]
+            : []
+        ),
+    };
+  }
   const toggleReaction = (
     messageId: string,
     reactionEmoji: string,
@@ -131,56 +201,24 @@ export function useMessages({ chatId }: { chatId: string | null }) {
   ) => {
     if (!currentUser?.userId) return;
     const userId = currentUser.userId;
+    let modifiedReactions: IMessage["MessageReaction"] = []
 
-    setMessages((prevMessages) => {
-      return prevMessages.map((message) => {
-        if (message.messageId !== messageId) return message;
+    mutate(currentData => {
+      if(!currentData) return currentData
+      
+      return {
+        allRecipts: currentData.allRecipts,
+        messages: currentData.messages.map(message => {
+          if(message.messageId !== messageId) return message
+          const modifiedMessage = hToggleReaction(message,userId,reactionEmoji)
+          modifiedReactions = modifiedMessage.MessageReaction
 
-        const reactionMap = new Map(
-          message.reactions.map((reaction) => [reaction.emoji, reaction])
-        );
+          return modifiedMessage
+        })
+      }
+    }, false)
 
-        let userCurrentReactionEmoji: string | undefined;
-        for (const [emoji, reaction] of reactionMap.entries()) {
-          if (reaction.users.includes(userId)) {
-            userCurrentReactionEmoji = emoji;
-            break;
-          }
-        }
-
-        return {
-          ...message,
-          reactions: message.reactions
-            .map((reaction) => {
-              if (reaction.emoji === userCurrentReactionEmoji) {
-                const newUsers = reaction.users.filter((uid) => uid !== userId);
-                return newUsers.length > 0
-                  ? { emoji: reaction.emoji, users: newUsers }
-                  : null;
-              }
-              if (
-                reaction.emoji === reactionEmoji &&
-                (!userCurrentReactionEmoji ||
-                  userCurrentReactionEmoji !== reactionEmoji)
-              ) {
-                return {
-                  emoji: reaction.emoji,
-                  users: [...reaction.users, userId],
-                };
-              }
-              return reaction;
-            })
-            .filter((reaction): reaction is Reactions => reaction !== null)
-            .concat(
-              !reactionMap.has(reactionEmoji) &&
-                (!userCurrentReactionEmoji ||
-                  userCurrentReactionEmoji !== reactionEmoji)
-                ? [{ emoji: reactionEmoji, users: [userId] }]
-                : []
-            ),
-        };
-      });
-    });
+    socket?.emit("message:reaction",{messageId,reactions: modifiedReactions})
   };
 
   const editMessage = (messageId: string, newContent: string) => {
@@ -212,36 +250,12 @@ export function useMessages({ chatId }: { chatId: string | null }) {
     );
   };
 
-  const markAsRead = (messageId: string, currentUser: string) => {
-    setMessages((prevMessages) =>
-      prevMessages.map((msg) => {
-        if (
-          msg.messageId === messageId &&
-          !msg.readBy?.find((val) => val.readerId === currentUser)
-        ) {
-          return {
-            ...msg,
-            readBy: [
-              ...(msg.readBy || []),
-              {
-                profilePicture: "",
-                readerName: currentUser,
-                readerId: currentUser,
-              },
-            ],
-          };
-        }
-        return msg;
-      })
-    );
-  };
-
   return {
     messages,
+    readReceipts,
     addMessage,
     toggleReaction,
     editMessage,
     deleteMessage,
-    markAsRead,
   };
 }

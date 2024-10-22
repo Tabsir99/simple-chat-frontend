@@ -14,7 +14,7 @@ const useFriendshipActions = <T=any>({
   mutate
 }: {
   initFriendshipStatus: FriendshipStatus;
-  mutate?: (KeyedMutator<ApiResponse<T>>)
+  mutate?: (KeyedMutator<T>)
 
 
 }) => {

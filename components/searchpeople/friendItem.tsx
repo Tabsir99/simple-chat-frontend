@@ -15,13 +15,13 @@ interface FriendItemProps {
   profilePicture: string;
   isCurrentUserSender: boolean;
   userId: string;
-  mutate: KeyedMutator<ApiResponse<{
+  mutate: KeyedMutator<{
     userId: string;
     username: string;
     status: "accepted" | "pending" | "blocked";
     profilePicture: string;
     isCurrentUserSender: boolean;
-}[]>>
+  }[]>
 
 }
 

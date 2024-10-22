@@ -1,10 +1,11 @@
-import { IMessage } from "@/types/chatTypes";
+import { IMessage, IMessageReceipt } from "@/types/chatTypes";
 import { ArrowUpLeft } from "lucide-react";
 import Image from "next/image";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, Fragment, SetStateAction, useEffect, useMemo } from "react";
 import { ReactionButton, ReactionDisplay } from "./reactions";
 import MessageContent from "./messageContent";
 import { IUserMiniProfile } from "@/types/userTypes";
+
 
 export default function MessageContainer({
   message,
@@ -15,8 +16,10 @@ export default function MessageContainer({
   setReplyingTo,
   isSender,
   isCurrentChatGroup,
+  allReadRecipts,
 }: {
   message: IMessage;
+  allReadRecipts: IMessageReceipt[];
   toggleReaction: (
     messageId: string,
     emoji: string,
@@ -29,6 +32,7 @@ export default function MessageContainer({
   isCurrentChatGroup: boolean;
   isSender: boolean;
 }) {
+
   const scrollToMessage = (messageId: string | undefined) => {
     const messageEl = document.getElementById(messageId || "");
     const msgPointer = document.getElementById(`pointer-${messageId}`);
@@ -51,6 +55,7 @@ export default function MessageContainer({
     }
   };
 
+
   return (
     <div
       className={`flex flex-col ${!isSender ? "items-start" : " items-end"}`}
@@ -70,7 +75,7 @@ export default function MessageContainer({
               className="mr-2 text-gray-400 group-hover:text-gray-200 transition-colors duration-200"
             />
             <span className="font-semibold text-gray-300">
-              {message.parentMessage.senderName}
+              {message.parentMessage.sender?.username}
             </span>
           </div>
           <p className="text-gray-400 line-clamp-2">
@@ -88,11 +93,11 @@ export default function MessageContainer({
         }
       >
         {!isSender ? (
-          message.sender.profilePicture ? (
+          message.sender?.profilePicture ? (
             <div className="w-8 h-8 flex-shrink-0 -mt-2">
               <Image
                 src={message.sender.profilePicture}
-                alt={message.sender.senderName}
+                alt={message.sender.username}
                 width={40}
                 height={40}
                 className="rounded-full w-full h-full object-cover"
@@ -100,7 +105,7 @@ export default function MessageContainer({
             </div>
           ) : (
             <span className="flex-shrink-0 flex justify-center items-center w-8 h-8 text-[14px] font-bold rounded-full bg-gray-700 uppercase -mt-2">
-              {message.sender.senderName.charAt(0)}
+              {message.sender?.username.charAt(0)}
             </span>
           )
         ) : null}
@@ -124,7 +129,7 @@ export default function MessageContainer({
             />
           )}
 
-          {message.reactions.length > 0 && (
+          {message.MessageReaction.length > 0 && (
             <ReactionDisplay
               currentUser={currentUser}
               message={message}
@@ -136,46 +141,93 @@ export default function MessageContainer({
       </div>
 
       {/* Message Receipts */}
-      {message.readBy && message.readBy?.length > 0 && isCurrentChatGroup && (
-        <MessageRecipt readBy={message.readBy} />
-      )}
+      <MessageRecipt
+        currentUserId={currentUser?.userId as string}
+        allReadRecipts={allReadRecipts}
+        messageId={message.messageId}
+        messageStatus={message.status}
+        isPrivateChat={!isCurrentChatGroup}
+        isCurrentUserSender={message.sender?.userId === currentUser?.userId}
+      />
     </div>
   );
 }
 
 const MessageRecipt = ({
-  readBy,
+  currentUserId,
+  allReadRecipts,
+  messageId,
+  isPrivateChat,
+  isCurrentUserSender,
+  messageStatus,
 }: {
-  readBy: Array<{
-    readerName: string;
-    profilePicture: string;
-    readerId: string;
-  }>;
+  allReadRecipts: IMessageReceipt[];
+  currentUserId: string;
+  messageId: string;
+  isPrivateChat: boolean;
+  isCurrentUserSender: boolean,
+  messageStatus: IMessage["status"],
 }) => {
+  const readersToShow = useMemo(
+    () =>
+      allReadRecipts.filter(
+        (receipt) =>
+          receipt.reader.userId !== currentUserId &&
+          receipt.lastReadMessageId === messageId
+      ),
+    [messageId, allReadRecipts, currentUserId]
+  );
+
+  const currentUserR = useMemo(() => allReadRecipts.filter(r => r.reader.userId === currentUserId && r.lastReadMessageId === messageId)[0], [allReadRecipts,currentUserId,messageId])
+  
+  
+
   return (
-    <div className=" flex items-center justify-end mt-3 text-xs text-gray-400 py-2 w-full h-6 px-3">
+    <div
+      className={
+        " flex items-center justify-end text-xs text-gray-400  w-full px-3 " +
+        (readersToShow.length !== 0 && !isPrivateChat
+          ? "py-2  mt-3 h-6"
+          : "pt-2")
+      }
+    >
+      {currentUserR && isCurrentUserSender && readersToShow.length === 0 && messageStatus}
       <div className="flex items-center gap-0.5">
-        <span className="mr-1"> Read by: </span>
-        {readBy?.map((reader, index) => (
-          <div key={reader.readerId} className="relative">
-            {reader.profilePicture ? (
-              <img
-                src={reader.profilePicture}
-                alt={reader.readerName}
-                className="w-7 h-7 rounded-full border border-gray-600"
-                title={reader.readerName}
-              />
-            ) : (
-              <div
-                className="w-7 h-7 p-2  rounded-full bg-gray-600 bg-opacity-20 flex items-center justify-center text-[12px] uppercase text-white border border-gray-700"
-                title={reader.readerName}
-              >
-                {reader.readerName.slice(0, 2)}
-              </div>
-            )}
-          </div>
+        {readersToShow.length > 0 && readersToShow.map((reader, index) => (
+          <Fragment key={reader.reader.userId}>
+            <span className="mr-1">
+              {isPrivateChat?isCurrentUserSender?"seen":"":"Read By:"}
+            </span>
+            {!isPrivateChat && <Avatar reader={reader.reader} />}
+          </Fragment>
         ))}
       </div>
+    </div>
+  );
+};
+
+const Avatar = ({
+  reader,
+}: {
+  reader: { userId: string; profilePicture: string; username: string };
+}) => {
+  return (
+    <div key={reader.userId} className="relative">
+      {reader.profilePicture ? (
+        <img
+          src={reader.profilePicture}
+          alt={reader.username}
+          className="w-7 h-7 rounded-full border border-gray-600"
+          title={reader.username}
+        />
+      ) : (
+        <div
+          className="w-7 h-7 p-2  rounded-full bg-gray-600 bg-opacity-20 flex items-center justify-center text-[12px] uppercase text-white border border-gray-700"
+          title={reader.username}
+        >
+          {reader.username.charAt(0)}
+        </div>
+      )}
     </div>
   );
 };

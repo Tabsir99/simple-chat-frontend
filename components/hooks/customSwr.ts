@@ -14,7 +14,8 @@ const fetcher = async (url: string, token: string): Promise<any> => {
   if (!response.ok) {
     throw new Error("Network response was not ok");
   } else {
-    return response.json();
+    const data: ApiResponse = await response.json();
+    return data.data
   }
 };
 
@@ -24,7 +25,7 @@ const useCustomSWR = <T = any>(
 ) => {
   const { checkAndRefreshToken } = useAuth();
 
-  const { data, error, isLoading, mutate } = useSWR<ApiResponse<T>>(
+  const { data, error, isLoading, mutate } = useSWR<T>(
     url,
     async (key) => {
       const token = await checkAndRefreshToken();
@@ -42,7 +43,7 @@ const useCustomSWR = <T = any>(
   );
 
   return {
-    data: data?.data,
+    data: data,
     error,
     isLoading,
     mutate,

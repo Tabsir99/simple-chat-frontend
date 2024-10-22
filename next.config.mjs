@@ -7,7 +7,8 @@ const nextConfig = {
             pathname: "/**"
         }]
     },
-    reactStrictMode: true
+    reactStrictMode: true,
+
 };
 
 export default nextConfig;

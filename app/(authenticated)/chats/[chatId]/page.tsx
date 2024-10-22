@@ -13,10 +13,9 @@ import FullPageLoader from "@/components/ui/fullpageloader";
 import { useNotification } from "@/components/contextProvider/notificationContext";
 import { useSocket } from "@/components/contextProvider/websocketContext";
 import { v4 as uuid4 } from "uuid";
+import { Bell, Info } from "lucide-react";
 
 export default function ChatRoom() {
-  const [newMessage, setNewMessage] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
   const [replyingTo, setReplyingTo] = useState<IMessage | null>(null);
 
   const divRef = useRef<HTMLDivElement | null>(null);
@@ -30,15 +29,13 @@ export default function ChatRoom() {
   const [selectedActiveChat, setSelectedActiveChat] =
     useState<IChatHead | null>(null);
 
-  const { isConnected, socket } = useSocket();
-
   const {
     messages,
     addMessage,
     editMessage,
     deleteMessage,
-    markAsRead,
     toggleReaction,
+    readReceipts,
   } = useMessages({ chatId: selectedActiveChat?.chatRoomId || null });
 
   const scrollToBottom = () => {
@@ -51,39 +48,19 @@ export default function ChatRoom() {
     scrollToBottom();
   }, [messages]);
 
-
   useEffect(() => {
-    if (newMessage.length > 0 && !isTyping) {
-      setIsTyping(true);
-      if (socket) {
-        socket.emit("user:typing", {
-          username: currentUser?.username,
-          userId: currentUser?.userId,
-          profilePicture: currentUser?.profilePicture,
-          isStarting: true,
-
-          chatRoomId: selectedActiveChat?.chatRoomId,
-        });
+    const t = setTimeout(() => {
+      if (divRef.current) {
+        divRef.current.style.scrollBehavior = "smooth";
       }
-    }
-    if (newMessage.length === 0 && isTyping) {
-      setIsTyping(false);
-      if (socket) {
-        socket.emit("user:typing", {
-          username: currentUser?.username,
-          profilePicture: currentUser?.profilePicture,
-          userId: currentUser?.userId,
-          isStarting: false,
-
-          chatRoomId: selectedActiveChat?.chatRoomId,
-        });
-      }
-    }
-  }, [newMessage, isConnected]);
+    },1000);
+    return () => clearTimeout(t);
+  }, [divRef.current]);
 
   const sendMessage = async (
-    e: FormEvent<Element>,
-    attachments: Attachment[]
+    e: FormEvent<HTMLFormElement>,
+    attachments: Attachment[],
+    newMessage: string
   ) => {
     e.preventDefault();
     if (!newMessage.trim() && attachments.length === 0) return;
@@ -91,13 +68,14 @@ export default function ChatRoom() {
     const newMsg: IMessage = {
       messageId: uuid4(),
       content: newMessage,
-      time: new Date().toISOString(),
-      reactions: [],
-
+      createdAt: new Date().toISOString(),
+      MessageReaction: [],
+      status: "sending",
+      type: "user",
       sender: {
         profilePicture: currentUser?.profilePicture as string,
-        senderName: currentUser?.username as string,
-        senderId: currentUser?.userId as string,
+        userId: currentUser?.userId as string,
+        username: currentUser?.username as string,
       },
       isDeleted: false,
       isEdited: false,
@@ -105,21 +83,12 @@ export default function ChatRoom() {
       parentMessage: replyingTo && {
         messageId: replyingTo?.messageId,
         content: replyingTo?.content,
-        senderName: replyingTo?.sender.senderName,
+        sender: { username: replyingTo.sender?.username as string },
       },
-      attachments: attachments,
-      readBy: [
-        {
-          readerName: currentUser?.username as string,
-          profilePicture: currentUser?.profilePicture as string,
-          readerId: currentUser?.userId as string,
-        },
-      ],
-      status: "sending",
+      Attachment: attachments,
     };
 
     addMessage(newMsg, currentUser);
-    setNewMessage("");
     setReplyingTo(null);
   };
 
@@ -153,26 +122,43 @@ export default function ChatRoom() {
             <div className="flex flex-col overflow-hidden">
               <div
                 ref={divRef}
-
                 className="  py-4 px-2 flex flex-col gap-3 overflow-x-hidden overflow-y-auto h-[calc(100vh-8rem)]"
               >
                 {messages.map((message) => {
-                  
-                  return (
-                      <MessageContainer
+                  if (message.type === "system") {
+                    return (
+                      <div
                         key={message.messageId}
-                        message={message}
-                        currentUser={currentUser}
-                        toggleReaction={toggleReaction}
-                        onDelete={deleteMessage}
-                        onEdit={editMessage}
-                        setReplyingTo={setReplyingTo}
-                        isSender={message.sender.senderId === currentUser?.userId}
-                        isCurrentChatGroup={selectedActiveChat.isGroup}
-                      />
+                        className="flex justify-center items-center mt-3 mb-6 animate-fadeIn"
+                      >
+                        <div className=" bg-gray-900 bg-opacity-40 rounded-lg px-6 py-3 max-w-[85%] border border-gray-700">
+                          <div className="flex items-center space-x-3">
+                            <div className="flex-shrink-0">
+                              <Bell className="w-5 h-5 text-gray-400" />
+                            </div>
+                            <p className="text-sm font-medium text-gray-200">
+                              {message.content}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <MessageContainer
+                      key={message.messageId}
+                      message={message}
+                      currentUser={currentUser}
+                      toggleReaction={toggleReaction}
+                      onDelete={deleteMessage}
+                      onEdit={editMessage}
+                      setReplyingTo={setReplyingTo}
+                      isSender={message.sender?.userId === currentUser?.userId}
+                      isCurrentChatGroup={selectedActiveChat.isGroup}
+                      allReadRecipts={readReceipts}
+                    />
                   );
                 })}
-
 
                 {selectedActiveChat.isTyping &&
                   selectedActiveChat.isTyping.length > 0 && (
@@ -183,11 +169,10 @@ export default function ChatRoom() {
               </div>
 
               <MessageInput
-                newMessage={newMessage}
-                setNewMessage={setNewMessage}
                 sendMessage={sendMessage}
                 replyingTo={replyingTo}
                 onCancelReply={() => setReplyingTo(null)}
+                selectedActiveChat={selectedActiveChat}
               />
             </div>
           </div>

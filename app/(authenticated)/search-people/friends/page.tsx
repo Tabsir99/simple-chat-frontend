@@ -56,6 +56,26 @@ export default function FriendList() {
   ]);
 
   useEffect(() => {
+    if (!socket || !user) return;
+  
+    let shouldEmit = false;
+  
+    if (activeTab === "friends" && activities.acceptedFriendRequests > 0) {
+      updateActivity("acceptedFriendRequests", "set", 0);
+      shouldEmit = true;
+    }
+  
+    if (activeTab === "pending" && activities.friendRequests > 0) {
+      updateActivity("friendRequests", "set", 0);
+      shouldEmit = true;
+    }
+  
+    if (shouldEmit) {
+      socket.emit("activity:reset", {type: "friends", userId: user.userId});
+    }
+  }, [socket, activeTab, user, activities.acceptedFriendRequests, activities.friendRequests]);
+
+  useEffect(() => {
     setTabs(prev => {
       return prev.map(t => {
         if(t.id === "friends"){
@@ -67,18 +87,7 @@ export default function FriendList() {
         return t
       })
     })
-    if (!socket || !user || (activities.acceptedFriendRequests + activities.friendRequests === 0)) return;
-
-    if (activeTab === "friends") {
-      updateActivity("acceptedFriendRequests", "set", 0);
-    }
-
-    if (activeTab === "pending") {
-      updateActivity("friendRequests", "set", 0);
-    }
-
-    socket.emit("activity:reset",{type: "friends",userId: user.userId})
-  }, [socket, activeTab, user, activities]);
+  },[activities.acceptedFriendRequests,activities.friendRequests])
 
   const renderConnections = () => {
     const filteredUsers = data?.filter((user) => {

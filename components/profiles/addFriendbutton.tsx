@@ -25,10 +25,10 @@ interface AddFriendBtnProps {
   updateSender: (value: boolean) => void;
   isCurrentUserBlocked: boolean | undefined;
   mutate: KeyedMutator<
-    ApiResponse<{
+{
       userInfo: IUserProfile;
       isOwnProfile: boolean;
-    }>
+    }
   >;
 }
 

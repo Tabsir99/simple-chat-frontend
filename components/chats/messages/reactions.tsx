@@ -46,7 +46,7 @@ export const ReactionButton = ({
               toggleReaction(message.messageId, emoji.emoji, currentUser);
             }}
             key={emoji.emoji}
-            className=" relative w-9 flex justify-center items-center h-9 rounded-full bg-none border-none cursor-pointer transition duration-200 active:scale-90 hover:scale-110 hover:-translate-y-1 hover:bg-gray-600"
+            className=" relative w-9 flex justify-center items-center h-9 rounded-full bg-none border-none cursor-pointer transition hover:duration-150 duration-100 ease-linear active:scale-90 hover:-translate-y-1 hover:bg-gray-600"
             title={emoji.id}
           >
             <span className="text-[24px]">{emoji.emoji}</span>
@@ -72,7 +72,7 @@ export const ReactionDisplay = ({
         !isSender ? " justify-start " : "  justify-end"
       }`}
     >
-      {message.reactions.map((reaction, index) => (
+      {message.MessageReaction.map((reaction, index) => (
         <button
           key={`${reaction.emoji}-${index}`}
           onClick={() => {

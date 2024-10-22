@@ -88,41 +88,17 @@ export default function MessageContent({
 
               <span className="text-[14px] text-gray-300">
                 {" "}
-                {formatDate(message.time)}{" "}
+                {formatDate(message.createdAt)}{" "}
               </span>
 
-              {isSender && isCurrentChatPrivate && (
-                <>
-                  {message.status === "sending" && (
-                    <span className="text-[14px] translate-x-6 text-gray-300 px-2 rounded-md">
-                      sending
-                    </span>
-                  )}
-                  {message.status === "sent" && (
-                    <span className="text-[14px] translate-x-6 text-gray-300 px-2 rounded-md">
-                      sent
-                    </span>
-                  )}
-                  {message.status === "delivered" && (
-                    <span className="text-[14px] translate-x-6 text-gray-300 px-2 rounded-md">
-                      Delivered
-                    </span>
-                  )}
-                  {message.status === "read" && (
-                    <span className="text-[14px] translate-x-6 text-gray-300 px-2 rounded-md">
-                      {message.readBy.length > 1 ?"Seen":"sent"}
-                    </span>
-                  )}
-                </>
-              )}
             </div>
           </div>
         )}
 
         {/* Attachments */}
-        {message.attachments && message.attachments.length > 0 && (
+        {/* {message.attachments && message.attachments.length > 0 && (
           <Attachments attachments={message.attachments} />
-        )}
+        )} */}
       </div>
     </>
   );

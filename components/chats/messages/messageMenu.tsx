@@ -1,21 +1,22 @@
 import { MoreVertical, Reply, Pencil, Trash } from "lucide-react";
 import { IMessage } from "@/types/chatTypes";
 import { Dispatch, SetStateAction, useState } from "react";
+import { useAuth } from "@/components/authComps/authcontext";
 
 export default function MessageMenu({
   message,
   onDelete,
   setIsEditing,
   setReplyingTo,
-  isSender
 }: {
   message: IMessage;
   onDelete: (messageId: string) => void;
   setIsEditing: Dispatch<SetStateAction<boolean>>;
   setReplyingTo: Dispatch<SetStateAction<IMessage | null>>;
-  isSender: boolean
 }) {
   const [showMenu, setShowMenu] = useState(false);
+
+  const currentUser = useAuth().user
 
   return (
     <>
@@ -41,7 +42,7 @@ export default function MessageMenu({
           >
             <Reply /> Reply
           </button>
-          {isSender && (
+          {message.sender?.userId === currentUser?.userId  && (
             <>
               <button
                 onClick={() => {

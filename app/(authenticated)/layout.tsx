@@ -7,8 +7,12 @@ import { useCallback, useEffect, useRef } from "react";
 import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
 import { mutate } from "swr";
 import { ecnf } from "@/utils/env";
-import { IMessage, IMessageReceipt, TypingEventData } from "@/types/chatTypes";
-import { ApiResponse } from "@/types/responseType";
+import {
+  AttachmentViewModel,
+  IMessage,
+  TypingEventData,
+} from "@/types/chatTypes";
+import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useParams } from "next/navigation";
 
 type UserStatusEvent = {
@@ -39,7 +43,8 @@ type NewMessageEvent = {
   data: {
     chatRoomId: string;
     message: IMessage;
-    readBy: string[]
+    readBy: string[];
+    attachment?: AttachmentViewModel;
   };
 };
 
@@ -54,13 +59,28 @@ type MessageReadEvent = {
   };
 };
 
-type MessageEvents = TypingEvent | NewMessageEvent | MessageReadEvent;
+type ReactionEvent = {
+  event: "message:reaction";
+  data: {
+    reactions: IMessage["MessageReaction"];
+    messageId: string;
+    chatRoomId: string;
+    username: string;
+    reactionType: string;
+    isDeleting: boolean;
+  };
+};
+type MessageEvents =
+  | TypingEvent
+  | NewMessageEvent
+  | MessageReadEvent
+  | ReactionEvent;
 export default function RootAuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isConnected, socket } = useSocket();
+  const { socket } = useSocket();
   const { setActiveChats, updateLastActivity } = useChatContext();
   const { user } = useAuth();
 
@@ -92,7 +112,7 @@ export default function RootAuthLayout({
   }, [param, socket, user]);
 
   useEffect(() => {
-    if (!socket || !isConnected) {
+    if (!socket) {
       return;
     }
 
@@ -100,12 +120,12 @@ export default function RootAuthLayout({
       switch (event) {
         case "user:status":
           const { friendId, status } = data;
-          let chatId: string | undefined
+          let chatId: string | undefined;
           setActiveChats((prevChats) =>
             prevChats
               ? prevChats?.map((chat) => {
                   if (chat.privateChatMemberId === friendId) {
-                    chatId = chat.chatRoomId
+                    chatId = chat.chatRoomId;
                     return {
                       ...chat,
                       roomStatus: status,
@@ -116,15 +136,20 @@ export default function RootAuthLayout({
               : null
           );
 
-          mutate(`${ecnf.apiUrl}/chats/${chatId}/messages`,(currentData: NewMessageMutate | undefined) => {
-            if(!currentData) return currentData
+          mutate(
+            `${ecnf.apiUrl}/chats/${chatId}/messages`,
+            (currentData: AllMessageResponse | undefined) => {
+              if (!currentData) return currentData;
 
-            currentData.messages[currentData.messages.length - 1].status = "delivered"
-            return {
-              allRecipts: currentData.allRecipts,
-              messages: currentData.messages
+              currentData.messages[currentData.messages.length - 1].status =
+                "delivered";
+              return {
+                allReceipts: currentData.allReceipts,
+                messages: currentData.messages,
+                attachments: currentData.attachments,
+              };
             }
-          })
+          );
           break;
         case "friend:request":
           updateActivity("friendRequests", "increment");
@@ -184,7 +209,7 @@ export default function RootAuthLayout({
           break;
 
         case "message:new":
-          updateLastActivity(data.chatRoomId, data.message);
+          updateLastActivity(data.chatRoomId, data.message, data.attachment);
           if (currentChatRef.current !== data.chatRoomId) {
             if (!currentChatRef.current) {
               updateActivity("unseenChats", "increment");
@@ -207,13 +232,13 @@ export default function RootAuthLayout({
 
           mutate(
             `${ecnf.apiUrl}/chats/${data.chatRoomId}/messages`,
-            (current: NewMessageMutate | undefined) => {
+            (current: AllMessageResponse | undefined) => {
               if (!current) return current;
 
               const readerSet = new Set(data.readBy);
 
-              const newData: NewMessageMutate = {
-                allRecipts: current.allRecipts.map((r) => {
+              const newData: AllMessageResponse = {
+                allReceipts: current.allReceipts.map((r) => {
                   if (readerSet.has(r.reader.userId)) {
                     return {
                       reader: r.reader,
@@ -222,7 +247,13 @@ export default function RootAuthLayout({
                   }
                   return r;
                 }),
-                messages: [...current.messages, data.message],
+                messages: [data.message, ...current.messages],
+                attachments: data.attachment
+                  ? [
+                      ...current.attachments,
+                      { ...data.attachment, messageId: data.message.messageId },
+                    ]
+                  : current.attachments,
               };
 
               return newData;
@@ -235,22 +266,61 @@ export default function RootAuthLayout({
         case "message:read":
           mutate(
             `${ecnf.apiUrl}/chats/${data.chatRoomId}/messages`,
-            (current: NewMessageMutate | undefined) => {
+            (current: AllMessageResponse | undefined) => {
               if (!current) return current;
 
-              const newData: NewMessageMutate = {
+              const newData: AllMessageResponse = {
                 messages: current.messages,
-                allRecipts: current.allRecipts.map((r) =>
+                allReceipts: current.allReceipts.map((r) =>
                   r.reader.userId === data.readerId
                     ? { ...r, lastReadMessageId: data.messageId }
                     : r
                 ),
+                attachments: current.attachments,
               };
 
-              return newData
+              return newData;
             },
             false
           );
+          break;
+
+        case "message:reaction":
+          let isSender: boolean = false;
+          mutate(
+            `${ecnf.apiUrl}/chats/${data.chatRoomId}/messages`,
+            (current: AllMessageResponse | undefined) => {
+              if (!current) return current;
+              return {
+                allReceipts: current.allReceipts,
+                messages: current.messages.map((message) => {
+                  if (message.messageId !== data.messageId) return message;
+                  if (message.sender?.userId === user?.userId) {
+                    isSender = true;
+                  }
+                  return { ...message, MessageReaction: data.reactions };
+                }),
+                attachments: current.attachments,
+              };
+            },false
+          );
+
+          if (isSender && !data.isDeleting) {
+            setActiveChats((prev) => {
+              if (!prev) return prev;
+              return prev.map((chatHead) => {
+                if (chatHead.chatRoomId !== data.chatRoomId) return chatHead;
+                return {
+                  ...chatHead,
+                  unreadCount: chatHead.unreadCount++,
+                  lastMessage: {
+                    ...chatHead.lastMessage,
+                    content: `${data.username} reacted with "${data.reactionType} to your message"`
+                  },
+                };
+              });
+            });
+          }
           break;
         default:
           break;
@@ -267,7 +337,11 @@ export default function RootAuthLayout({
       socket.off("chatEvent");
       socket.off("messageEvent");
     };
-  }, [isConnected, socket]);
+  }, [socket]);
+
+  // (async () => {
+  // const s = await navigator
+  // })()
 
   return (
     <>
@@ -275,8 +349,3 @@ export default function RootAuthLayout({
     </>
   );
 }
-
-type NewMessageMutate = {
-  messages: IMessage[];
-  allRecipts: IMessageReceipt[];
-};

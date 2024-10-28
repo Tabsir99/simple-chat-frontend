@@ -106,7 +106,7 @@ export default function PrivateProfile() {
     value || defaultText;
 
   if(isLoading || loading){
-    return <FullPageLoader className="h-full w-full" />
+    return <FullPageLoader className="" width="100%" height="100%" />
   }
   return (
     <div className="h-screen bg-gray-900 text-white w-full px-8 py-4 overflow-y-auto">

@@ -9,7 +9,6 @@ import { useRecentActivities } from "../contextProvider/recentActivityContext";
 
 const navItems = [
   { href: "/chats", icon: BsChat, label: "Chats" },
-  { href: "/chats/favorites", icon: Heart, label: "Favorites" },
   { href: "/search-people/friends", icon: Users, label: "Friends" },
   { href: "/search-people", icon: Search, label: "Search People" },
 ];

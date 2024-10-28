@@ -1,33 +1,54 @@
 import { useEffect, useRef, useState } from "react";
-import { IMessage, IMessageReceipt, Reactions } from "@/types/chatTypes";
+import {
+  IMessage,
+  IMessageReceipt,
+  AttachmentViewModel,
+  Reactions,
+} from "@/types/chatTypes";
 import { IUserMiniProfile } from "@/types/userTypes";
 import useCustomSWR from "./customSwr";
 import { ecnf } from "@/utils/env";
 import { useSocket } from "../contextProvider/websocketContext";
 import { useChatContext } from "../contextProvider/chatContext";
+import { AllMessageResponse, ApiResponse } from "@/types/responseType";
+import { useAuth } from "../authComps/authcontext";
+import { useNotification } from "../contextProvider/notificationContext";
 
 export function useMessages({ chatId }: { chatId: string | null }) {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [readReceipts, setReadReceipts] = useState<IMessageReceipt[]>([]);
+  const [attachmentsMap, setAttachmentsMap] = useState<
+    Map<string, AttachmentViewModel>
+  >(new Map());
+  const { showNotification } = useNotification();
 
   const { updateLastActivity } = useChatContext();
   const { socket } = useSocket();
+  const { checkAndRefreshToken } = useAuth();
 
   const limitRef = useRef(50);
 
-  const { data, mutate } = useCustomSWR<{
-    messages: IMessage[];
-    allRecipts: IMessageReceipt[];
-  }>(chatId ? `${ecnf.apiUrl}/chats/${chatId}/messages` : null, {
-    revalidateIfStale: false,
-  });
+  const { data, mutate } = useCustomSWR<AllMessageResponse>(
+    chatId ? `${ecnf.apiUrl}/chats/${chatId}/messages` : null,
+    {
+      revalidateIfStale: false,
+    }
+  );
 
   useEffect(() => {
     if (!data) {
       return;
     }
     setMessages(data.messages);
-    setReadReceipts(data.allRecipts);
+    setReadReceipts(data.allReceipts);
+    setAttachmentsMap(
+      new Map(
+        data.attachments.map<[string, AttachmentViewModel]>((a) => [
+          a.messageId as string,
+          a
+        ])
+      )
+    );
 
   }, [data]);
 
@@ -39,29 +60,33 @@ export function useMessages({ chatId }: { chatId: string | null }) {
       messageId,
       status,
       readBy,
+      fileUrl,
     }: {
       messageId: string;
       status: "sent" | "delivered" | "failed";
       readBy: string[];
+      fileUrl: string | undefined;
     }) => {
       mutate((currentData) => {
         if (!currentData) return currentData;
 
         const readerSet = new Set(readBy);
 
-        const newData: {
-          messages: IMessage[];
-          allRecipts: IMessageReceipt[];
-        } = {
+        const newData: AllMessageResponse = {
+          attachments: fileUrl
+            ? currentData.attachments.map((at) =>
+                at.messageId !== messageId ? at : { ...at, fileUrl: fileUrl }
+              )
+            : currentData.attachments,
           messages: currentData.messages.map((msg) => {
             return msg.messageId !== messageId
               ? msg
               : { ...msg, status: status };
           }),
-          allRecipts:
+          allReceipts:
             status === "failed"
-              ? currentData.allRecipts
-              : currentData.allRecipts.map((or) => {
+              ? currentData.allReceipts
+              : currentData.allReceipts.map((or) => {
                   if (readerSet.has(or.reader.userId)) {
                     return {
                       reader: or.reader,
@@ -85,7 +110,8 @@ export function useMessages({ chatId }: { chatId: string | null }) {
 
   const addMessage = async (
     newMessage: IMessage,
-    currentUser: Omit<IUserMiniProfile, "bio"> | null
+    currentUser: Omit<IUserMiniProfile, "bio"> | null,
+    attachment?: AttachmentViewModel
   ) => {
     if (!data || !currentUser) return;
 
@@ -93,14 +119,25 @@ export function useMessages({ chatId }: { chatId: string | null }) {
       messages.splice(0, messages.length - limitRef.current);
     }
 
+    let originalData: AllMessageResponse | undefined;
     mutate((currentData) => {
       if (!currentData) return currentData;
 
-      const newData: {
-        messages: IMessage[];
-        allRecipts: IMessageReceipt[];
-      } = {
-        allRecipts: currentData.allRecipts.map((r) =>
+      originalData = currentData;
+      const newData: AllMessageResponse = {
+        attachments: attachment
+          ? [
+              ...currentData.attachments,
+              {
+                fileName: attachment.fileName,
+                fileSize: attachment.fileSize,
+                fileType: attachment.fileType,
+                messageId: newMessage.messageId,
+                fileUrl: ""
+              },
+            ]
+          : currentData.attachments,
+        allReceipts: currentData.allReceipts.map((r) =>
           r.reader.userId === currentUser.userId
             ? {
                 ...r,
@@ -109,22 +146,81 @@ export function useMessages({ chatId }: { chatId: string | null }) {
               }
             : r
         ),
-        messages: [...currentData.messages, newMessage],
+        messages: [newMessage, ...currentData.messages],
       };
 
       return newData;
     }, false);
+
+    if (attachment) {
+      try {
+        await uploadFile(attachment, newMessage.messageId);
+      } catch (error) {
+        error instanceof Error && showNotification(error.message, "error");
+        mutate(originalData);
+        console.log(error);
+        return;
+      }
+    }
     // Update the active chat heads to render newMessage content and time
-    updateLastActivity(chatId as string, newMessage);
+    updateLastActivity(chatId as string, newMessage, attachment);
 
     socket?.emit("message:send", {
       chatRoomId: chatId,
       message: newMessage,
+      attachment: attachment
+        ? {
+            fileName: attachment.fileName,
+            fileType: attachment.fileType,
+            fileSize: attachment.fileSize,
+          }
+        : undefined,
     });
   };
 
-
-  const hToggleReaction = (message: IMessage, userId: string, reactionEmoji: string) => {
+  async function uploadFile(
+    attachment: AttachmentViewModel,
+    messageId: string
+  ) {
+    const token = await checkAndRefreshToken();
+    const response = await fetch(`${ecnf.apiUrl}/files`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        attachment: {
+          fileName: attachment.fileName,
+          fileType: attachment.fileType,
+          fileSize: attachment.fileSize,
+        },
+        chatRoomId: chatId,
+        messageId: messageId,
+      }),
+    });
+    const data: ApiResponse<{ url: string; path: string }> =
+      await response.json();
+    if (response.ok) {
+      const res = await fetch(data.data?.url as string, {
+        method: "PUT",
+        headers: {
+          "Content-Type": attachment.fileType,
+        },
+        body: attachment.file,
+      });
+      if (!res.ok) {
+        throw new Error("Failed to send message!");
+      }
+    } else {
+      throw new Error(data.message);
+    }
+  }
+  const hToggleReaction = (
+    message: IMessage,
+    userId: string,
+    reactionEmoji: string
+  ) => {
     const reactionMap = new Map(
       message.MessageReaction.map((reaction) => [reaction.emoji, reaction])
     );
@@ -193,7 +289,7 @@ export function useMessages({ chatId }: { chatId: string | null }) {
             : []
         ),
     };
-  }
+  };
   const toggleReaction = (
     messageId: string,
     reactionEmoji: string,
@@ -201,24 +297,37 @@ export function useMessages({ chatId }: { chatId: string | null }) {
   ) => {
     if (!currentUser?.userId) return;
     const userId = currentUser.userId;
-    let modifiedReactions: IMessage["MessageReaction"] = []
+    let modifiedReactions: IMessage["MessageReaction"] = [];
 
-    mutate(currentData => {
-      if(!currentData) return currentData
-      
+    mutate((currentData) => {
+      if (!currentData) return currentData;
+
       return {
-        allRecipts: currentData.allRecipts,
-        messages: currentData.messages.map(message => {
-          if(message.messageId !== messageId) return message
-          const modifiedMessage = hToggleReaction(message,userId,reactionEmoji)
-          modifiedReactions = modifiedMessage.MessageReaction
+        attachments: currentData.attachments,
+        allReceipts: currentData.allReceipts,
+        messages: currentData.messages.map((message) => {
+          if (message.messageId !== messageId) return message;
+          const modifiedMessage = hToggleReaction(
+            message,
+            userId,
+            reactionEmoji
+          );
+          modifiedReactions = modifiedMessage.MessageReaction;
 
-          return modifiedMessage
-        })
-      }
-    }, false)
+          return modifiedMessage;
+        }),
+      };
+    }, false);
 
-    socket?.emit("message:reaction",{messageId,reactions: modifiedReactions})
+    socket?.emit("message:reaction", {
+      meta: {
+        messageId,
+        reactionType: reactionEmoji,
+        chatRoomId: chatId,
+        username: currentUser.username,
+      },
+      reactions: modifiedReactions,
+    });
   };
 
   const editMessage = (messageId: string, newContent: string) => {
@@ -253,6 +362,7 @@ export function useMessages({ chatId }: { chatId: string | null }) {
   return {
     messages,
     readReceipts,
+    attachmentsMap,
     addMessage,
     toggleReaction,
     editMessage,

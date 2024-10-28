@@ -69,7 +69,7 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
 
 
   if(userProfile.isLoading){
-    return <FullPageLoader className="h-full" />
+    return <FullPageLoader className="" height="100%" width="100%" />
   }
   if (!userProfile.email && !userProfile.isLoading) {
     return <NoUserFound />;

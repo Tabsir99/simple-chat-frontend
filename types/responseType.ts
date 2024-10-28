@@ -1,3 +1,5 @@
+import { AttachmentViewModel, IMessage, IMessageReceipt } from "./chatTypes";
+
 export type ApiResponse<T = any> = {
     success: boolean;
     message?: string
@@ -8,3 +10,9 @@ export type ApiResponse<T = any> = {
     data?: T;
     error?: any;
   };
+
+export type AllMessageResponse = {
+  attachments: AttachmentViewModel[]
+  messages: IMessage[]
+  allReceipts: IMessageReceipt[]
+}

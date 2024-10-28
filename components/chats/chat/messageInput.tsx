@@ -1,12 +1,18 @@
-import { Attachment, IChatHead, IMessage } from "@/types/chatTypes";
+import {
+  IChatHead,
+  IMessage,
+  AttachmentViewModel,
+} from "@/types/chatTypes";
 import { Smile, Paperclip, Send, X } from "lucide-react";
 import {
   Dispatch,
   FormEvent,
   FormEventHandler,
+  MutableRefObject,
   RefObject,
   SetStateAction,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useAttachments } from "@/components/hooks/useAttachments";
@@ -15,25 +21,27 @@ import { GrAttachment } from "react-icons/gr";
 import { formatDate } from "@/utils/utils";
 import { useAuth } from "@/components/authComps/authcontext";
 import { useSocket } from "@/components/contextProvider/websocketContext";
+import EmojiPicker from "../messages/emojiPicker";
 
 export default function MessageInput({
   sendMessage,
   replyingTo = null,
   onCancelReply = () => {},
-  selectedActiveChat
+  selectedActiveChat,
+  attachmentsMap,
 }: {
-  sendMessage: (e: FormEvent<HTMLFormElement>, attachments: any, newMessage: string) => void;
+  sendMessage: (
+    e: FormEvent<HTMLFormElement>,
+    attachments: any,
+    newMessage: string
+  ) => void;
   replyingTo?: IMessage | null;
   onCancelReply?: () => void;
-  selectedActiveChat: IChatHead | undefined
+  selectedActiveChat: IChatHead | undefined;
+  attachmentsMap: Map<string, AttachmentViewModel>;
 }) {
-  const {
-    attachments,
-    fileInputRef,
-    handleFileSelect,
-    removeAttachment,
-    clearAttachments,
-  } = useAttachments();
+  const { attachment, fileInputRef, handleFileSelect, clearAttachments } =
+    useAttachments();
 
   return (
     <div className="px-4 flex flex-col justify-center sticky z-40 bottom-0 items-stretch bg-gray-900 bg-opacity-50 border-t-2 border-gray-700 h-16">
@@ -74,15 +82,12 @@ export default function MessageInput({
             </div>
 
             {/* Attachments */}
-            {replyingTo.Attachment?.length
-              ? replyingTo.Attachment.length > 0 && (
-                  <div className="flex items-center text-xs text-gray-400 mt-1">
-                    <GrAttachment size={18} />
-                    {replyingTo.Attachment.length} Attachment
-                    {replyingTo.Attachment.length > 1 && "s"}
-                  </div>
-                )
-              : null}
+            {replyingTo && attachmentsMap.has(replyingTo.messageId) ? (
+              <div className="flex items-center text-xs text-gray-400 mt-1">
+                <GrAttachment size={18} />
+                Attachment
+              </div>
+            ) : null}
           </div>
 
           {/* Time */}
@@ -100,34 +105,36 @@ export default function MessageInput({
         </div>
       )}
 
-      {attachments.length > 0 && (
+      {attachment && (
         <div className="grid grid-cols-3 h-36 items-start bg-[#2b3238] gap-0 -top-36 z-50 rounded-lg w-[58%] pr-2 right-1 overflow-x-hidden absolute  ">
-          {attachments.map((attachment, index) => (
-            <div
-              key={index}
-              className=" relative group rounded px-1 py-2 flex items-center gap-2 active:scale-95 transition-transform duration-200"
+          <div className=" relative group rounded px-1 py-2 flex items-center gap-2 active:scale-95 transition-transform duration-200">
+            {true && (
+              <Image
+                width={200}
+                height={80}
+                src={attachment.fileUrl as string}
+                alt="attachment"
+                className="object-cover rounded"
+              />
+            )}
+            <button
+              onClick={() => clearAttachments()}
+              className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 rounded-full p-1"
             >
-              {attachment.fileUrl === "image" && (
-                <Image
-                  width={200}
-                  height={80}
-                  src={attachment.fileUrl}
-                  alt="attachment"
-                  className="object-cover rounded"
-                />
-              )}
-              <button
-                onClick={() => removeAttachment(index)}
-                className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 rounded-full p-1"
-              >
-                <X size={12} />
-              </button>
-            </div>
-          ))}
+              <X size={12} />
+            </button>
+          </div>
         </div>
       )}
 
-      <InputForm selectedActiveChat={selectedActiveChat} sendMessage={sendMessage} attachments={attachments} clearAttachments={clearAttachments} fileInputRef={fileInputRef} handleFileSelect={handleFileSelect} />
+      <InputForm
+        selectedActiveChat={selectedActiveChat}
+        sendMessage={sendMessage}
+        attachment={attachment}
+        clearAttachments={clearAttachments}
+        fileInputRef={fileInputRef}
+        handleFileSelect={handleFileSelect}
+      />
     </div>
   );
 }
@@ -135,23 +142,26 @@ export default function MessageInput({
 const InputForm = ({
   fileInputRef,
   handleFileSelect,
-  attachments,
+  attachment,
   clearAttachments,
   sendMessage,
-  selectedActiveChat
+  selectedActiveChat,
 }: {
-  attachments: Attachment[];
+  attachment: AttachmentViewModel | null;
   fileInputRef: RefObject<HTMLInputElement>;
-  handleFileSelect: (files: Array<File>) => void;
-  clearAttachments: () => void
-  sendMessage: (e: FormEvent<HTMLFormElement>, attachments: any, newMessage: string) => void
-  selectedActiveChat: IChatHead | undefined
+  handleFileSelect: (files: File) => void;
+  clearAttachments: () => void;
+  sendMessage: (
+    e: FormEvent<HTMLFormElement>,
+    attachments: any,
+    newMessage: string
+  ) => void;
+  selectedActiveChat: IChatHead | undefined;
 }) => {
-
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const { user } = useAuth()
-  const { socket } = useSocket()
+  const { user } = useAuth();
+  const { socket } = useSocket();
 
   useEffect(() => {
     if (newMessage.length > 0 && !isTyping) {
@@ -182,21 +192,25 @@ const InputForm = ({
     }
   }, [newMessage]);
 
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
   return (
     <>
       <form
         onSubmit={(e) => {
-          e.preventDefault()
+          e.preventDefault();
 
-          sendMessage(e,attachments,newMessage)
-          setNewMessage("")
-          clearAttachments()
+          sendMessage(e, attachment, newMessage);
+          setNewMessage("");
+          clearAttachments();
         }}
         className="flex items-center gap-5 sticky bottom-2"
       >
         <button
           type="button"
           className="text-gray-400 hover:text-white transition-colors"
+          onClick={() => setIsOpen(!isOpen)}
         >
           <Smile size={24} />
         </button>
@@ -204,9 +218,10 @@ const InputForm = ({
         <input
           type="file"
           ref={fileInputRef}
-          onChange={(e) => handleFileSelect(Array.from(e.target.files || []))}
+          onChange={(e) =>
+            handleFileSelect(Array.from(e.target.files || [])[0])
+          }
           className="hidden"
-          multiple
         />
 
         <button
@@ -223,17 +238,44 @@ const InputForm = ({
           onChange={(e) => setNewMessage(e.target.value)}
           value={newMessage}
           placeholder="Type a message..."
-          className="flex-1 bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          ref={inputRef}
+          className="flex-1 bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none 
+          focus:ring-2 focus:ring-blue-500 [letter-spacing:0.01rem]"
         />
 
         <button
           type="submit"
           className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50"
-          disabled={!newMessage.trim() && attachments.length === 0}
+          disabled={!newMessage.trim() && !attachment}
         >
           <Send size={20} />
         </button>
       </form>
+
+      {isOpen && (
+        <EmojiPicker
+          className="absolute -top-[20.5rem] left-1 w-[28rem] "
+          onEmojiSelect={(emoji) => {
+            if (!inputRef.current) return;
+
+            const start = inputRef.current.selectionStart || 0;
+
+            const newText =
+              newMessage.slice(0, start) +
+              " " +
+              emoji +
+              newMessage.slice(start);
+            const newPosition = start + emoji.length + 1;
+            setNewMessage(newText);
+
+            setTimeout(() => {
+              inputRef.current?.focus();
+              inputRef.current?.setSelectionRange(newPosition, newPosition);
+            }, 0);
+          }}
+          onClose={() => setIsOpen(false)}
+        />
+      )}
     </>
   );
 };

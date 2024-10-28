@@ -3,11 +3,11 @@ import Link from "next/link";
 import { formatDate } from "@/utils/utils";
 import { IChatHead } from "@/types/chatTypes";
 import { useParams } from "next/navigation";
-
+import { useChatContext } from "../contextProvider/chatContext";
 
 const ActiveChats = ({ data }: { data: IChatHead }) => {
-  const params = useParams()
-
+  const params = useParams();
+  const { getLastMessage } = useChatContext()  
   return (
     <Link
       href={`/chats/${data.chatRoomId}`}
@@ -18,20 +18,32 @@ const ActiveChats = ({ data }: { data: IChatHead }) => {
           {data.isGroup ? (
             <span className="uppercase text-base text-gray-300">GC</span>
           ) : data.roomImage ? (
-            <img src={data.roomImage} alt="Profile pic" className="w-full h-full rounded-full object-cover" />
+            <img
+              src={data.roomImage}
+              alt="Profile pic"
+              className="w-full h-full rounded-full object-cover"
+            />
           ) : (
-            <span className="uppercase text-base text-gray-300">{data.roomName.slice(0, 2)}</span>
+            <span className="uppercase text-base text-gray-300">
+              {data.roomName.slice(0, 2)}
+            </span>
           )}
         </div>
         <span
           className={`absolute h-3 w-3 border-2 border-gray-700 rounded-full bottom-0.5 right-0.5 ${
-            data.isGroup || data.roomStatus === "online" ? "bg-green-500" : "bg-gray-500"
+            data.isGroup || data.roomStatus === "online"
+              ? "bg-green-500"
+              : "bg-gray-500"
           }`}
         />
       </div>
       <div className="flex-1 min-w-0">
-        <h2 className="text-[18px] text-gray-300 capitalize truncate">{data.roomName}</h2>
-        {data.isTyping && data.chatRoomId !== params.chatId && data.isTyping.length > 0 ? (
+        <h2 className="text-[18px] text-gray-300 capitalize truncate">
+          {data.roomName}
+        </h2>
+        {data.isTyping &&
+        data.chatRoomId !== params.chatId &&
+        data.isTyping.length > 0 ? (
           <div className="flex items-center text-[14px] text-blue-400">
             <span className="mr-2">
               {data.isTyping.length === 1
@@ -39,16 +51,16 @@ const ActiveChats = ({ data }: { data: IChatHead }) => {
                 : `${data.isTyping.length} people are typing`}
             </span>
             <div className="flex gap-1 translate-y-0.5">
-          {[0, 1, 2].map((index) => (
-            <div
-              key={index}
-              className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-typing-dot"
-              style={{
-                animationDelay: `${index * 0.15}s`,
-              }}
-            />
-          ))}
-        </div>
+              {[0, 1, 2].map((index) => (
+                <div
+                  key={index}
+                  className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-typing-dot"
+                  style={{
+                    animationDelay: `${index * 0.15}s`,
+                  }}
+                />
+              ))}
+            </div>
           </div>
         ) : (
           <p
@@ -56,11 +68,11 @@ const ActiveChats = ({ data }: { data: IChatHead }) => {
               data.unreadCount > 0 ? "text-white font-bold" : "text-gray-400"
             }`}
           >
-            {data.lastMessage
-              ? data.lastMessage.length > 26
-                ? data.lastMessage?.slice(0, 26) + "..."
-                : data.lastMessage
-              : "Start messaging..."}
+            {data.lastMessage.content
+              ? data.lastMessage.content.length > 26
+                ? data.lastMessage.content?.slice(0, 26) + "..."
+                : data.lastMessage.content: getLastMessage(data.lastMessage.sender, data.lastMessage.attachmentType)
+            }
           </p>
         )}
       </div>

@@ -39,7 +39,7 @@ const defaultPhrases = [
   "Checking for new messages..."
 ];
 
-const FullPageLoader = ({ loadingPhrases=defaultPhrases, className=" fixed w-screen h-screen " }: { loadingPhrases?: String[] | null, className?: string }) => {
+const FullPageLoader = ({ loadingPhrases=defaultPhrases, className=" fixed ",height="100vh",width="100vw" }: { loadingPhrases?: String[] | null, className?: string, width?: string,height?: string }) => {
   const [displayText, setDisplayText] = useState('');
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -83,7 +83,10 @@ const FullPageLoader = ({ loadingPhrases=defaultPhrases, className=" fixed w-scr
   }, [displayText, currentPhraseIndex, isDeleting, showText]);
 
   return (
-    <div className={" inset-0 flex items-center justify-center bg-gray-900 "+className}>
+    <div className={" inset-0 flex items-center justify-center bg-gray-900 "} style={{
+      width: width,
+      height: height
+    }}>
       <div className="text-center flex flex-col justify-center items-center">
         <CustomSpinner size={96} color="#3B82F6" />
         <div className="h-20 flex items-center justify-center">

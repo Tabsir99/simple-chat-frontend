@@ -5,21 +5,22 @@ import Attachments from "./attachment";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import MessageMenu from "./messageMenu";
 import { formatDate } from "@/utils/utils";
+import { useAuth } from "@/components/authComps/authcontext";
 
 export default function MessageContent({
   message,
   onEdit,
   onDelete,
   setReplyingTo,
-  isSender,
-  isCurrentChatPrivate
+  emojiPickerMessageId,
+  attachmentsMap,
 }: {
   message: IMessage;
   onDelete: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
   setReplyingTo: Dispatch<SetStateAction<IMessage | null>>;
-  isSender: boolean;
-  isCurrentChatPrivate: boolean
+  emojiPickerMessageId: string | null;
+  attachmentsMap: Map<string, any>;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
@@ -28,32 +29,54 @@ export default function MessageContent({
     onEdit(message.messageId, editedContent?.trim());
     setIsEditing(false);
   };
+
+  const currentUser = useAuth().user;
   return (
     <>
       <div
-        id={message.messageId}
+        id={message.messageId + "c"}
         className={`
-                relative pl-4 pr-8 py-3 transition-colors duration-1000 delay-200 w-fit
-                ${!isSender ? " bg-[#2a313e]" : "bg-blue-600 bg-opacity-80 "}
+                relative pl-4 pr-7 py-3 transition-colors duration-1000 delay-200 max-w-[30rem]
+                ${
+                  message.content
+                    ? message.sender?.userId !== currentUser?.userId
+                      ? " bg-[#2a313e]"
+                      : "bg-blue-600 bg-opacity-80 "
+                    : "bg-transparent pr-0"
+                }
                 text-white  rounded-lg
                 ${message.isDeleted ? "opacity-60 cursor-not-allowed" : ""}
+                ${
+                  emojiPickerMessageId === message.messageId
+                    ? message.sender?.userId === currentUser?.userId
+                      ? " border-b-[3px] duration-0 border-blue-400"
+                      : " border-b-[3px] duration-0 border-gray-500"
+                    : ""
+                }
               `}
       >
-        {/* START-------MESSAGE POINTER------START */}
-        {!message.isDeleted && !isSender && (
+        {emojiPickerMessageId === message.messageId && (
           <div
-            id={`pointer-${message.messageId}`}
-            className={
-              "absolute w-[30px] h-[40px] transition-colors duration-1000 delay-200 " +
-              " bg-[#2a313e] rotate-[110deg] left-1 top-5"
-            }
-            style={{
-              borderRadius: "0 0 100% 100% / 0 0 50% 50%",
-              transformOrigin: "top",
-              clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-            }}
+            className={`absolute top-0 left-0 w-full h-full  rounded-lg `}
+            aria-hidden
           />
         )}
+        {/* START-------MESSAGE POINTER------START */}
+        {!message.isDeleted &&
+          message.sender?.userId !== currentUser?.userId && (
+            <div
+              id={`pointer-${message.messageId}`}
+              className={
+                "absolute w-[30px] h-[40px] transition-colors duration-1000 delay-200 " +
+                " bg-[#2a313e] rotate-[110deg] left-1 top-5"
+              }
+              style={{
+                borderRadius: "0 0 100% 100% / 0 0 50% 50%",
+                transformOrigin: "top",
+                clipPath: "polygon(0 0, 100% 0, 50% 100%)",
+              }}
+            />
+          )}
         {/* END-------MESSAGE POINTER------END */}
 
         <MessageMenu
@@ -61,7 +84,6 @@ export default function MessageContent({
           onDelete={onDelete}
           setIsEditing={setIsEditing}
           setReplyingTo={setReplyingTo}
-          isSender={isSender}
         />
 
         {/* Message Content */}
@@ -90,15 +112,14 @@ export default function MessageContent({
                 {" "}
                 {formatDate(message.createdAt)}{" "}
               </span>
-
             </div>
           </div>
         )}
 
         {/* Attachments */}
-        {/* {message.attachments && message.attachments.length > 0 && (
-          <Attachments attachments={message.attachments} />
-        )} */}
+        {!message.isDeleted && attachmentsMap.has(message.messageId) && (
+          <Attachments attachments={attachmentsMap.get(message.messageId)} />
+        )}
       </div>
     </>
   );

@@ -1,5 +1,4 @@
 'use client'
-
 import { createContext, useContext, useState, useEffect } from "react";
 import { Socket, io } from 'socket.io-client'
 import { useAuth } from "../authComps/authcontext";
@@ -7,59 +6,65 @@ import { ecnf } from "@/utils/env";
 
 interface SocketContextType {
   socket: Socket | null
-  isConnected: boolean
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
-  isConnected: false,
 });
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const { accessToken } = useAuth();
+  const { checkAndRefreshToken } = useAuth();
 
   useEffect(() => {
-    const socketInstance = io(ecnf.backendUrl, {
-      path: "/socket.io/", // Match the server path
-      auth: {
-        token: accessToken,
-      },
-      transports: ["websocket", "polling"], // Fixed typo in polling
-      reconnectionAttempts: 5, // Increased for better reliability
-      reconnectionDelay: 3000,
-      secure: process.env.NODE_ENV === "production",
-      autoConnect: true
-    });
+    let socketInstance: Socket;
 
-    // Correct event is 'connect', not 'connection'
-    socketInstance.on("connect", () => {
-      console.log("Connected to socketio server");
-      setIsConnected(true);
-    });
+    const initializeSocket = async () => {
+      try {
+        const token = await checkAndRefreshToken();
+        
+        socketInstance = io(ecnf.backendUrl, {
+          path: "/socket.io/",
+          auth: {
+            token: token,
+          },
+          transports: ["websocket", "polling"],
+          reconnectionAttempts: 5,
+          reconnectionDelay: 5000,
+          secure: process.env.NODE_ENV === "production",
+          autoConnect: true
+        });
 
-    socketInstance.on("connect_error", (error) => {
-      setIsConnected(false);
-    });
+        socketInstance.on("connect", () => {
+          console.log("Connected to socketio server");
+          setSocket(socketInstance);
+        });
 
-    socketInstance.on('disconnect', () => {
-      setIsConnected(false);
-    });
+        socketInstance.on("disconnect", async () => {
+          console.log("Disconnected from socketio server");
+          setSocket(null);
+          
+        });
 
 
-    setSocket(socketInstance);
-    return () => {
-      socketInstance.removeAllListeners()
-      socketInstance.disconnect();
+      } catch (error) {
+        console.error("Error initializing socket:", error);
+      }
     };
-  }, [accessToken]);
 
+    initializeSocket();
+
+    return () => {
+      if (socketInstance) {
+        socketInstance.removeAllListeners();
+        socketInstance.disconnect();
+      }
+    };
+  }, [checkAndRefreshToken]);
 
   return (
-    <SocketContext.Provider value={{ 
-      socket, 
-      isConnected, 
+    <SocketContext.Provider value={{
+      socket,
     }}>
       {children}
     </SocketContext.Provider>

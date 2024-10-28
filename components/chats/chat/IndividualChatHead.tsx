@@ -36,7 +36,6 @@ type MenuAction =
   | { type: "TOGGLE_GROUP_MODAL" }
   | { type: "MUTE" }
   | { type: "LEAVE" }
-  | { type: "FAVORITE" }
   | { type: "BLOCK" }
   | { type: "CREATE_GROUP" }
   | { type: "CLOSE" };
@@ -64,11 +63,6 @@ const createMenuConfig = (
       action: { type: "TOGGLE_MEDIA" },
     },
     {
-      item: "Favorite",
-      icon: <Heart size={18} />,
-      action: { type: "FAVORITE" },
-    },
-    {
       item: "Block",
       icon: <Ban size={18} />,
       action: { type: "BLOCK" },
@@ -84,11 +78,6 @@ const createMenuConfig = (
       item: "Group Info",
       icon: <Info size={18} />,
       action: { type: "TOGGLE_GROUP_MODAL" },
-    },
-    {
-      item: "Favorite",
-      icon: <Heart size={18} />,
-      action: { type: "FAVORITE" },
     },
     {
       item: "Mute",
@@ -315,7 +304,7 @@ const ChatRoomMenu = ({
     <div
       ref={dropdownRef}
       className={
-        "absolute top-full origin-top right-0 mt-2 w-fit border-2 border-gray-700 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5 divide-y divide-gray-700 " +
+        "absolute top-full z-50 origin-top right-0 mt-2 w-fit border-2 border-gray-700 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5 divide-y divide-gray-700 " +
         (isDropdownOpen ? "transition-transform duration-200" : "scale-y-0")
       }
     >

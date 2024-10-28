@@ -20,7 +20,6 @@ interface AuthContextType {
   loading: boolean;
   checkAndRefreshToken: () => Promise<string | null>;
   user: Omit<IUserMiniProfile, "bio"> | null;
-  error: string | null;
 }
 
 interface DecodedToken {
@@ -45,13 +44,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<Omit<IUserMiniProfile, "bio"> | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const refreshRef = useRef(false);
 
   const clearAuthState = useCallback(() => {
     setAccessToken(null);
     setUser(null);
-    setError(null);
   }, []);
 
   const refreshAccessToken = useCallback(async (): Promise<string | null> => {
@@ -80,7 +77,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (response.ok) {
         const { accessToken: newAccessToken } = await response.json();
         setAccessToken(newAccessToken);
-        setError(null);
+        
         return newAccessToken;
       } else if (response.status === 401) {
         throw new Error(AuthError.INVALID_TOKEN);
@@ -91,11 +88,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (error instanceof Error) {
         if (error.message === AuthError.INVALID_TOKEN) {
           clearAuthState();
-          setError(AuthError.INVALID_TOKEN);
           return null;
         }
-      } else {
-        setError(AuthError.UNKNOWN_ERROR);
       }
       clearAuthState();
       return null;
@@ -144,18 +138,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           if (data.data) {
             setUser(data.data.userInfo);
           }
-          setError(null);
+          
         } else if (response.status === 401) {
           throw new Error(AuthError.INVALID_TOKEN);
         } else {
           throw new Error(AuthError.SERVER_ERROR);
         }
       } catch (error) {
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError(AuthError.UNKNOWN_ERROR);
-        }
+       
         if (
           error instanceof Error &&
           error.message === AuthError.INVALID_TOKEN
@@ -182,7 +172,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     loading: loading && !user,
     checkAndRefreshToken,
     user,
-    error,
   };
 
   return (

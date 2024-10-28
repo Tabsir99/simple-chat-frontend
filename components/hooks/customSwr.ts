@@ -15,7 +15,7 @@ const fetcher = async (url: string, token: string): Promise<any> => {
     throw new Error("Network response was not ok");
   } else {
     const data: ApiResponse = await response.json();
-    return data.data
+    return data.data;
   }
 };
 
@@ -30,7 +30,7 @@ const useCustomSWR = <T = any>(
     async (key) => {
       const token = await checkAndRefreshToken();
       if (!token) {
-        throw new Error("No access Token");
+        throw new Error("401");
       }
 
       return fetcher(key, token);
@@ -39,6 +39,12 @@ const useCustomSWR = <T = any>(
       ...config,
       revalidateOnFocus: false,
       dedupingInterval: 4000,
+      shouldRetryOnError: (err) => {
+        if (err instanceof Error && err.message !== "401") {
+          return true;
+        }
+        return false;
+      },
     }
   );
 

@@ -1,57 +1,36 @@
-import { useState, useRef } from 'react';
-import type { Attachment } from '@/types/chatTypes';
+import { useState, useRef } from "react";
+import type { AttachmentViewModel } from "@/types/chatTypes";
+
 
 
 export function useAttachments() {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [attachment, setAttachment] = useState<AttachmentViewModel | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = async (files: File[]) => {
-    const newAttachments: Attachment[] = await Promise.all(
-      files.map(async (file) => {
-        const type = file.type.startsWith("image/")
-          ? "image"
-          : file.type.startsWith("video/")
-          ? "video"
-          : "document"
+  const handleFileSelect = async (file: File) => {
 
-        const url = type === "image" ? URL.createObjectURL(file) : "";
+    const url = URL.createObjectURL(file);
 
-        return {
-          url,
-          type,
-        };
-      })
-    );
-
-    setAttachments(prevAttachments => [...prevAttachments, ...newAttachments]);
-  };
-
-  const removeAttachment = (index: number) => {
-    setAttachments(prevAttachments => {
-      const newAttachments = [...prevAttachments];
-      if (newAttachments[index].url) {
-        URL.revokeObjectURL(newAttachments[index].url);
-      }
-      newAttachments.splice(index, 1);
-      return newAttachments;
+    setAttachment({
+      fileType: file.type as AttachmentViewModel["fileType"],
+      fileName: file.name,
+      fileSize: file.size,
+      fileUrl: url,
+      file: file
     });
   };
 
   const clearAttachments = () => {
-    attachments.forEach(attachment => {
-      if (attachment.url) {
-        URL.revokeObjectURL(attachment.url);
-      }
-    });
-    setAttachments([]);
+    if (attachment) {
+      URL.revokeObjectURL(attachment.fileUrl);
+    }
+    setAttachment(null);
   };
 
   return {
-    attachments,
+    attachment,
     fileInputRef,
     handleFileSelect,
-    removeAttachment,
-    clearAttachments
+    clearAttachments,
   };
 }

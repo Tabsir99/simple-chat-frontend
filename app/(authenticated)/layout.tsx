@@ -9,11 +9,14 @@ import { mutate } from "swr";
 import { ecnf } from "@/utils/env";
 import {
   AttachmentViewModel,
+  IChatHead,
   IMessage,
   TypingEventData,
 } from "@/types/chatTypes";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useParams } from "next/navigation";
+import { ChatRoomMember } from "@/components/chats/chat/groupInfoModal";
+import { Friends } from "@/types/userTypes";
 
 type UserStatusEvent = {
   event: "user:status";
@@ -30,8 +33,16 @@ type FriendAcceptedEvent = {
   event: "friend:accepted";
   data: never;
 };
+type FriendBlockedEvent = {
+  event: "friend:blocked";
+  data: { chatRoomId: string; blockedUserId: string };
+};
 
-type UserEvents = UserStatusEvent | FriendRequestEvent | FriendAcceptedEvent;
+type UserEvents =
+  | UserStatusEvent
+  | FriendRequestEvent
+  | FriendAcceptedEvent
+  | FriendBlockedEvent;
 
 type TypingEvent = {
   event: "user:typing";
@@ -42,7 +53,14 @@ type NewMessageEvent = {
   event: "message:new";
   data: {
     chatRoomId: string;
-    message: IMessage;
+    message: {
+      parentMessage?: IMessage["parentMessage"];
+      content?: string | undefined;
+      messageId: string;
+      createdAt: string;
+      sender?: IMessage["sender"];
+      type?: IMessage["type"];
+    };
     readBy: string[];
     attachment?: AttachmentViewModel;
   };
@@ -75,6 +93,48 @@ type MessageEvents =
   | NewMessageEvent
   | MessageReadEvent
   | ReactionEvent;
+
+type MemberRoleUpdate = {
+  event: "role:update";
+  data: {
+    userId: string;
+    chatRoomId: string;
+    userRole: "admin" | "member";
+  };
+};
+
+type MemberNicknameUpdate = {
+  event: "nickname:update";
+  data: {
+    userId: string;
+    chatRoomId: string;
+    nickname: string;
+  };
+};
+
+type MemberAddEvent = {
+  event: "member:add";
+  data: {
+    userId: string;
+    chatRoomId: string;
+    username: string;
+    profilePicture: string;
+    userStatus: "online" | "offline";
+  };
+};
+
+type MemberRemoveEvent = {
+  event: "member:remove";
+  data: {
+    userId: string;
+    chatRoomId: string;
+  };
+};
+type ChatEvents =
+  | MemberRoleUpdate
+  | MemberNicknameUpdate
+  | MemberAddEvent
+  | MemberRemoveEvent;
 export default function RootAuthLayout({
   children,
 }: {
@@ -87,10 +147,10 @@ export default function RootAuthLayout({
   const { updateActivity } = useRecentActivities();
 
   const param = useParams();
-  const currentChatRef = useRef(param.chatId);
+  const currentChatRef = useRef<string>(param.chatId as string);
 
   useEffect(() => {
-    currentChatRef.current = param.chatId;
+    currentChatRef.current = param.chatId as string;
     if (!socket || !param.chatId || !user) return;
     socket.emit("chat:focus", {
       chatRoomId: param.chatId,
@@ -124,7 +184,7 @@ export default function RootAuthLayout({
           setActiveChats((prevChats) =>
             prevChats
               ? prevChats?.map((chat) => {
-                  if (chat.privateChatMemberId === friendId) {
+                  if (chat.oppositeUserId === friendId) {
                     chatId = chat.chatRoomId;
                     return {
                       ...chat,
@@ -148,7 +208,8 @@ export default function RootAuthLayout({
                 messages: currentData.messages,
                 attachments: currentData.attachments,
               };
-            }
+            },
+            false
           );
           break;
         case "friend:request":
@@ -161,18 +222,92 @@ export default function RootAuthLayout({
           mutate(`${ecnf.apiUrl}/friendships`);
           mutate(`${ecnf.apiUrl}/chats`);
           break;
+        case "friend:blocked":
+          mutate(`${ecnf.apiUrl}/chats`, (current: IChatHead[] | undefined) => {
+            if (!current) return current;
+            return current.map((chatHead) => {
+              if (chatHead.chatRoomId !== data.chatRoomId) return chatHead;
+              return {
+                ...chatHead,
+                blockedUserId: data.blockedUserId,
+              };
+            });
+          });
         default:
           break;
       }
     };
 
-    const chatEventsHandler = ({
-      event,
-      data,
-    }: {
-      event: string;
-      data: any;
-    }) => {};
+    const chatEventsHandler = ({ event, data }: ChatEvents) => {
+      switch (event) {
+        case "role:update":
+          mutate(
+            `${ecnf.apiUrl}/chats/${data.chatRoomId}/members`,
+            (current: ChatRoomMember[] | undefined) => {
+              if (!current) return current;
+              return current.map((mem) => {
+                if (mem.userId !== data.userId) return mem;
+                return {
+                  ...mem,
+                  isAdmin: data.userRole === "admin",
+                };
+              }, false);
+            }
+          );
+          break;
+
+        case "nickname:update":
+          mutate(
+            `${ecnf.apiUrl}/chats/${data.chatRoomId}/members`,
+            (current: ChatRoomMember[] | undefined) => {
+              if (!current) return current;
+              return current.map((mem) => {
+                if (mem.userId !== data.userId) return mem;
+                return {
+                  ...mem,
+                  nickName: data.nickname,
+                };
+              });
+            },
+            false
+          );
+          break;
+
+        case "member:add":
+          mutate(
+            `${ecnf.apiUrl}/chats/${data.chatRoomId}/members`,
+            (current: ChatRoomMember[] | undefined) => {
+              if (!current) return current;
+              return [
+                ...current,
+                {
+                  isAdmin: false,
+                  isCreator: false,
+                  userId: data.userId,
+                  nickName: undefined,
+                  profilePicture: data.profilePicture,
+                  username: data.username,
+                  userStatus: data.userStatus,
+                },
+              ];
+            },
+            false
+          );
+          break;
+
+        case "member:remove":
+          mutate(
+            `${ecnf.apiUrl}/chats/${data.chatRoomId}/members`,
+            (current: ChatRoomMember[] | undefined) => {
+              if (!current) return current;
+              return current.filter((mem) => mem.userId !== data.userId);
+            },
+            false
+          );
+        default:
+          break;
+      }
+    };
 
     const messageEventHandler = ({ event, data }: MessageEvents) => {
       switch (event) {
@@ -209,27 +344,28 @@ export default function RootAuthLayout({
           break;
 
         case "message:new":
-          updateLastActivity(data.chatRoomId, data.message, data.attachment);
-          if (currentChatRef.current !== data.chatRoomId) {
-            if (!currentChatRef.current) {
-              updateActivity("unseenChats", "increment");
-            }
-
-            setActiveChats((prev) => {
-              if (!prev) return prev;
-
-              return prev.map((chat) => {
-                if (chat.chatRoomId === data.chatRoomId) {
-                  return {
-                    ...chat,
-                    unreadCount: chat.unreadCount + 1,
-                  };
-                }
-                return chat;
-              });
-            });
+          console.log("new message arrive,",data.message)
+          const newMessage: IMessage = {
+            content: data.message.content || "",
+            createdAt: data.message.createdAt,
+            messageId: data.message.messageId,
+            sender: data.message.sender || null,
+            type: data.message.type || "user",
+            status: "delivered",
+            isDeleted: false,
+            isEdited: false,
+            parentMessage: data.message.parentMessage || null,
+            MessageReaction: [],
+          };
+          updateLastActivity(
+            data.chatRoomId,
+            newMessage,
+            data.attachment,
+            currentChatRef.current
+          );
+          if (!currentChatRef.current) {
+            updateActivity("unseenChats", "increment");
           }
-
           mutate(
             `${ecnf.apiUrl}/chats/${data.chatRoomId}/messages`,
             (current: AllMessageResponse | undefined) => {
@@ -247,7 +383,7 @@ export default function RootAuthLayout({
                   }
                   return r;
                 }),
-                messages: [data.message, ...current.messages],
+                messages: [newMessage, ...current.messages],
                 attachments: data.attachment
                   ? [
                       ...current.attachments,
@@ -302,7 +438,8 @@ export default function RootAuthLayout({
                 }),
                 attachments: current.attachments,
               };
-            },false
+            },
+            false
           );
 
           if (isSender && !data.isDeleting) {
@@ -313,10 +450,7 @@ export default function RootAuthLayout({
                 return {
                   ...chatHead,
                   unreadCount: chatHead.unreadCount++,
-                  lastMessage: {
-                    ...chatHead.lastMessage,
-                    content: `${data.username} reacted with "${data.reactionType} to your message"`
-                  },
+                  messageContent: `${data.username} reacted with "${data.reactionType} to your message"`,
                 };
               });
             });

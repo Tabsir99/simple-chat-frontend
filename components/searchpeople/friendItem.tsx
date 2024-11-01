@@ -7,23 +7,8 @@ import { useState } from "react";
 import useFriendshipActions from "../hooks/useFriendshipActions";
 import { KeyedMutator } from "swr";
 import { ApiResponse } from "@/types/responseType";
-import { IUserProfile } from "@/types/userTypes";
+import { Friends, IUserProfile } from "@/types/userTypes";
 
-interface FriendItemProps {
-  username: string;
-  status: "accepted" | "pending" | "blocked";
-  profilePicture: string;
-  isCurrentUserSender: boolean;
-  userId: string;
-  mutate: KeyedMutator<{
-    userId: string;
-    username: string;
-    status: "accepted" | "pending" | "blocked";
-    profilePicture: string;
-    isCurrentUserSender: boolean;
-  }[]>
-
-}
 
 export const FriendItem = ({
   username,
@@ -31,18 +16,14 @@ export const FriendItem = ({
   profilePicture,
   isCurrentUserSender,
   userId,
-  mutate
-}: FriendItemProps) => {
+}: Friends) => {
   const [showBlockModal, setShowBlockModal] = useState(false);
-  const { handleFriendshipAction, friendshipStatus } = useFriendshipActions({
-    initFriendshipStatus: status,
-    mutate: mutate
-  });
+  const { handleFriendshipAction } = useFriendshipActions();
 
   const getStatusStyles = (
-    status: "accepted" | "pending" | "blocked" | ""
+    status: Friends["status"]
   ) => {
-    if(!status) return
+    if(status === "canceled") return
 
     const styles = {
       accepted: { dot: "bg-emerald-500", text: "text-emerald-400" },
@@ -52,10 +33,10 @@ export const FriendItem = ({
     return styles[status];
   };
 
-  const statusStyles = getStatusStyles(friendshipStatus);
+  const statusStyles = getStatusStyles(status);
 
   const renderActions = () => {
-    switch (friendshipStatus.toLowerCase()) {
+    switch (status.toLowerCase()) {
       case "pending":
         return (
           <div className="flex gap-2">
@@ -93,7 +74,7 @@ export const FriendItem = ({
     }
   };
 
-  if(!friendshipStatus) return null
+  if(!status) return null
   return (
     <>
       <div className="flex items-center space-x-4 p-4 bg-gray-800 bg-opacity-80 rounded-xl transition-all duration-200">

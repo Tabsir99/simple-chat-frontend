@@ -39,6 +39,7 @@ const useCustomSWR = <T = any>(
       ...config,
       revalidateOnFocus: false,
       dedupingInterval: 4000,
+      errorRetryCount: 1,
       shouldRetryOnError: (err) => {
         if (err instanceof Error && err.message !== "401") {
           return true;

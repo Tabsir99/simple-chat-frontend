@@ -26,6 +26,8 @@ import EmojiPicker from "@/components/chats/messages/emojiPicker";
 import { ecnf } from "@/utils/env";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { mutate } from "swr";
+import BlockedChatUI from "@/components/chats/chat/blockedChat";
+import useFriendshipActions from "@/components/hooks/useFriendshipActions";
 
 export default function ChatRoom() {
   const [replyingTo, setReplyingTo] = useState<IMessage | null>(null);
@@ -44,6 +46,8 @@ export default function ChatRoom() {
   const messagesRef = useRef<(HTMLDivElement | null)[]>([]);
   const { checkAndRefreshToken } = useAuth();
 
+
+  const {handleFriendshipAction} = useFriendshipActions()
   const {
     messages,
     addMessage,
@@ -52,6 +56,8 @@ export default function ChatRoom() {
     toggleReaction,
     readReceipts,
     attachmentsMap,
+    fetchMore,
+    setFetchMore,
   } = useMessages({ chatId: selectedActiveChat?.chatRoomId || null });
 
   const scrollToBottom = () => {
@@ -96,7 +102,6 @@ export default function ChatRoom() {
     scrollToBottom();
   };
 
-
   useEffect(() => {
     if (messagesRef.current.length < 1) return;
 
@@ -104,6 +109,43 @@ export default function ChatRoom() {
       (entry) => {
         entry.forEach(async (el) => {
           if (!el.isIntersecting) return;
+          const lastM = messages[messages.length - 1];
+          if (el.target.id === lastM.messageId) {
+            if (fetchMore.hasMore && !fetchMore.isLoading) {
+              setFetchMore((prev) => ({ ...prev, isLoading: true }));
+
+              const token = await checkAndRefreshToken();
+              const res = await fetch(
+                `${ecnf.apiUrl}/chats/${selectedActiveChat?.chatRoomId}/messages?createdAt=${lastM.createdAt}&messageId=${lastM.messageId}`,
+                {
+                  method: "GET",
+                  cache: "no-cache",
+                  headers: { authorization: `Bearer ${token}` },
+                }
+              );
+              if (res.ok) {
+                const data: ApiResponse<
+                  Omit<AllMessageResponse, "allReceipts">
+                > = await res.json();
+                if (data.data) {
+                  mutate(
+                    `${ecnf.apiUrl}/chats/${selectedActiveChat?.chatRoomId}/messages`,
+                    (current: AllMessageResponse | undefined) => {
+                      if (!current) return current;
+                      return {
+                        ...current,
+                        messages: [
+                          ...current.messages,
+                          ...(data.data?.messages || []),
+                        ],
+                      };
+                    },
+                    false
+                  );
+                }
+              }
+            }
+          }
           if (
             !attachmentsMap.has(el.target.id) ||
             attachmentsMap.get(el.target.id)?.fileUrl
@@ -130,8 +172,8 @@ export default function ChatRoom() {
               (current: AllMessageResponse | undefined) => {
                 if (!current) return current;
                 return {
-                  allReceipts: current.allReceipts, 
-                  messages: current.messages,                  
+                  allReceipts: current.allReceipts,
+                  messages: current.messages,
                   attachments: current.attachments.map((a) =>
                     a.messageId !== el.target.id
                       ? a
@@ -159,7 +201,7 @@ export default function ChatRoom() {
     return () => {
       observer.disconnect();
     };
-  }, [messages.length,attachmentsMap]);
+  }, [messages.length, attachmentsMap, fetchMore]);
 
   useLayoutEffect(() => {
     if (activeChats) {
@@ -186,7 +228,7 @@ export default function ChatRoom() {
         <FullPageLoader
           loadingPhrases={null}
           className="bg-opacity-40"
-          height="100%"
+          height="100vh"
           width="100%"
         />
       ) : (
@@ -200,6 +242,12 @@ export default function ChatRoom() {
                 ref={divRef}
                 className="  py-4 px-2 flex flex-col-reverse gap-3 scroll-smooth overflow-x-hidden overflow-y-auto h-[calc(100vh-8rem)]"
               >
+                {selectedActiveChat.isTyping &&
+                  selectedActiveChat.isTyping.length > 0 && (
+                    <TypingIndicator
+                      typingUsers={selectedActiveChat.isTyping}
+                    />
+                  )}
                 {messages.map((message) => {
                   if (message.type === "system") {
                     return (
@@ -267,21 +315,40 @@ export default function ChatRoom() {
                   );
                 })}
 
-                {selectedActiveChat.isTyping &&
-                  selectedActiveChat.isTyping.length > 0 && (
-                    <TypingIndicator
-                      typingUsers={selectedActiveChat.isTyping}
-                    />
-                  )}
+                {fetchMore.isLoading && (
+                  <FullPageLoader
+                    spinnerSize={70}
+                    width="100%"
+                    className=" bg-transparent"
+                    height="fit-content"
+                    loadingPhrases={null}
+                  />
+                )}
               </div>
 
-              <MessageInput
-                sendMessage={sendMessage}
-                replyingTo={replyingTo}
-                onCancelReply={() => setReplyingTo(null)}
-                selectedActiveChat={selectedActiveChat}
-                attachmentsMap={attachmentsMap}
-              />
+              {selectedActiveChat.blockedUserId ||
+              selectedActiveChat.removedAt ? (
+                <BlockedChatUI
+                  currentUserId={currentUser?.userId || ""}
+                  blockedUserId={selectedActiveChat.blockedUserId || undefined}
+                  removedAt={
+                    selectedActiveChat.removedAt
+                      ? new Date(selectedActiveChat.removedAt)
+                      : undefined
+                  }
+                  onUnblock={async () => {
+                    await handleFriendshipAction("unblock",selectedActiveChat.blockedUserId as string)
+                  }}
+                />
+              ) : (
+                <MessageInput
+                  sendMessage={sendMessage}
+                  replyingTo={replyingTo}
+                  onCancelReply={() => setReplyingTo(null)}
+                  selectedActiveChat={selectedActiveChat}
+                  attachmentsMap={attachmentsMap}
+                />
+              )}
             </div>
           </div>
         </>

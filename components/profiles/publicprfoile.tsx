@@ -30,55 +30,53 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
     totalChats: 0,
     totalFriends: 0,
     totalMessageSent: 0,
-    status: "",
+    status: "canceled",
     isCurrentUserSender: false,
     isCurrentUserBlocked: false,
-    isLoading: true
+    isLoading: true,
   };
   const [userProfile, setUserProfile] = useState<IUserProfile>(defaultProfile);
   const router = useRouter();
 
-  const { data, error, mutate } = useCustomSWR<{
+  const { data, error } = useCustomSWR<{
     userInfo: IUserProfile;
     isOwnProfile: boolean;
-  }>(`${ecnf.apiUrl}/users/${userId}`, {
-    revalidateOnMount: true
-  });
+  }>(`${ecnf.apiUrl}/users/${userId}`, {});
 
   const updateSender = (value: boolean) => {
-    setUserProfile(prev => ({...prev, isCurrentUserSender: value}))
-  }
-
+    setUserProfile((prev) => ({ ...prev, isCurrentUserSender: value }));
+  };
 
   useEffect(() => {
     if (error) {
-      defaultProfile.isLoading = false
-      defaultProfile.isCurrentUserBlocked = true
+      defaultProfile.isLoading = false;
+      defaultProfile.isCurrentUserBlocked = true;
       setUserProfile(defaultProfile);
-      return
+      return;
     }
+
     if (data) {
       if (data.isOwnProfile) {
         return router.push("/profile");
       }
-      data.userInfo.isLoading = false
+      data.userInfo.isLoading = false;
       return setUserProfile(data.userInfo);
     }
-    
-  }, [data,error]);
+  }, [data, error]);
 
-
-  if(userProfile.isLoading){
-    return <FullPageLoader className="" height="100%" width="100%" />
+  if (userProfile.isLoading) {
+    return <FullPageLoader className="" height="100%" width="100%" />;
   }
   if (!userProfile.email && !userProfile.isLoading) {
     return <NoUserFound />;
   }
 
-  if(userProfile.isCurrentUserBlocked){
+  if (userProfile.isCurrentUserBlocked) {
     return (
-    
-    <div className="h-screen bg-gray-900 bg-opacity-80 flex justify-center items-center p-8"><BlockMessage /></div>)
+      <div className="h-screen bg-gray-900 bg-opacity-80 flex justify-center items-center p-8">
+        <BlockMessage />
+      </div>
+    );
   }
 
   return (
@@ -87,7 +85,6 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">User Profile</h1>
-
         </div>
 
         {/* Profile Card */}
@@ -134,12 +131,11 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
 
               {/* Inline Quick Actions */}
               <AddFriendBtn
-                user={{userId, username: userProfile.username}}
+                user={{ userId, username: userProfile.username }}
                 status={userProfile.status}
                 isCurrentUserSender={userProfile.isCurrentUserSender}
                 isCurrentUserBlocked={userProfile.isCurrentUserBlocked}
                 updateSender={updateSender}
-                mutate={mutate}
               />
             </div>
           </div>
@@ -181,8 +177,6 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
 
 export default UserPublicProfile;
 
-
-
 const BlockMessage = () => {
   return (
     <div className="max-w-md w-full mx-auto p-6 rounded-xl bg-gray-800 shadow-lg bg-opacity-50 transform transition-all duration-500 hover:scale-105">
@@ -192,12 +186,13 @@ const BlockMessage = () => {
           <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full animate-ping"></span>
         </div>
       </div>
-      <h2 className="text-2xl font-bold text-center text-white mb-2">Access Restricted</h2>
+      <h2 className="text-2xl font-bold text-center text-white mb-2">
+        Access Restricted
+      </h2>
       <p className="text-gray-300 text-center">
-        You've been blocked by this user. Unable to view their profile or interact at this time.
+        You've been blocked by this user. Unable to view their profile or
+        interact at this time.
       </p>
-
     </div>
   );
 };
-

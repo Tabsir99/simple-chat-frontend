@@ -1,4 +1,10 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   X,
   Users,
@@ -11,9 +17,19 @@ import {
   MessageCircle,
   Crown,
   Shield,
+  User,
+  Star,
+  Check,
 } from "lucide-react";
-import useCustomSWR from "@/components/hooks/customSwr";
+import GroupInfoModalHeader from "./groupInfoModalHeader";
+import MemberActions from "./memberActions";
+import { useAuth } from "@/components/authComps/authcontext";
+import { MemberAction } from "@/types/chatTypes";
+import { KeyedMutator } from "swr";
 import { ecnf } from "@/utils/env";
+import { useParams } from "next/navigation";
+import { useNotification } from "@/components/contextProvider/notificationContext";
+import { useSocket } from "@/components/contextProvider/websocketContext";
 
 // members: [
 //   {
@@ -34,44 +50,53 @@ import { ecnf } from "@/utils/env";
 //   { name: "Olivia Wilson", role: "Developer", status: "online" },
 // ],
 
+export interface ChatRoomMember {
+  username: string;
+  nickName?: string;
+  userStatus: "online" | "offline";
+  isAdmin: boolean;
+  isCreator: boolean;
+  profilePicture?: string;
+  userId: string;
+}
 
 export const GroupInfoModal = ({
   onClose,
-  groupData,
-  selectedChatId
+  roomName,
+  members,
+  mutate,
+  chatRoomId
 }: {
-  isOpen: boolean;
   onClose: () => void;
-  groupData: {
-    roomName: string
-    description: string
-  };
-  selectedChatId: string
+  roomName: string;
+  members: ChatRoomMember[];
+  mutate: KeyedMutator<ChatRoomMember[]>;
+  chatRoomId: string
 }) => {
   const [activeTab, setActiveTab] = useState("members");
   const [searchTerm, setSearchTerm] = useState("");
   const [translateClass, setTranslateClass] = useState("translateX(100%)");
-  
 
-  const {} = useCustomSWR(`${ecnf.apiUrl}/chats/${selectedChatId}?all=`)
+  const filteredMembers: ChatRoomMember[] = members.filter(
+    (member: ChatRoomMember) =>
+      member.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const members = []
-  const filteredMembers: {name: string, role: string, status: string}[] = []
-  // members.filter((member: any) =>
-  //   member.name.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
-
-  const [selectedMember, setSelectedMember] = useState(null);
+  const { user } = useAuth();
 
   const handleAddMember = () => {
     // Implement your add member logic here
     console.log("Add member clicked");
   };
 
-  const handleMemberAction = (action: string, member: any) => {
-    console.log(`${action} clicked for ${member.name}`);
-    setSelectedMember(null);
-  };
+  const [selectedMember, setSelectedMember] = useState<ChatRoomMember | null>(
+    null
+  );
+
+  const isCurrentUserAdmin = useMemo(
+    () => members.some((mem) => mem.userId === user?.userId && mem.isAdmin),
+    [members]
+  );
 
   useEffect(() => {
     setTranslateClass("translateX(0)");
@@ -85,7 +110,7 @@ export const GroupInfoModal = ({
         <div className="flex flex-col h-full">
           {/* Header */}
           <GroupInfoModalHeader
-            groupData={groupData}
+            roomName={roomName || ""}
             activeTab={activeTab}
             onClose={onClose}
             setActiveTab={setActiveTab}
@@ -118,88 +143,23 @@ export const GroupInfoModal = ({
                   </button>
                 </div>
 
-                {filteredMembers.map((member: any, index: number) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between bg-gray-800 p-3 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="relative">
-                        <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-white font-medium">
-                          {member.name.charAt(0)}
-                        </div>
-                        {member.status === "online" && (
-                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-800"></div>
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-white font-medium">
-                          {member.name}
-                        </span>
-                        <p className="text-xs text-gray-400">{member.role}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      {member.isAdmin && (
-                        <span className="text-gray-300 text-[16px] flex items-center gap-1 px-3 py-2 bg-gray-900 rounded-md ">
-                          Admin <Crown size={16} className="text-yellow-500" />
-                        </span>
-                      )}
-                      <div className="relative">
-                        <button
-                          className="text-gray-400 hover:text-white"
-                          onClick={() =>
-                            setSelectedMember(
-                              selectedMember === member ? null : member
-                            )
-                          }
-                        >
-                          <MoreHorizontal size={18} />
-                        </button>
-                        {selectedMember === member && (
-                          <MemberAction
-                            handleMemberAction={handleMemberAction}
-                            member={member}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                {filteredMembers.map((member) => {
+                  return (
+                    <RoomMembers
+                      key={member.userId}
+                      member={member}
+                      mutate={mutate}
+                      selectedMember={selectedMember}
+                      setSelectedMember={setSelectedMember}
+                      isCurrentUserAdmin={isCurrentUserAdmin}
+                      chatRoomId={chatRoomId}
+                    />
+                  );
+                })}
               </div>
             )}
             {activeTab === "media" && (
-              <div className="grid grid-cols-3 gap-2">
-                {/* {groupData.media.map((item: any, index: number) => (
-                  <div
-                    key={index}
-                    className="aspect-square bg-gray-800 rounded-lg overflow-hidden"
-                  >
-                    <img
-                      src={item.url}
-                      alt={`Media ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))} */}
-              </div>
-            )}
-            {activeTab === "links" && (
-              <div className="space-y-2">
-                {/* {groupData.links.map((link: any, index: number) => (
-                  <a
-                    key={index}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block bg-gray-800 rounded-lg p-3 hover:bg-gray-700 transition duration-150"
-                  >
-                    <h3 className="text-white font-medium">{link.title}</h3>
-                    <p className="text-blue-400 text-sm">{link.url}</p>
-                  </a>
-                ))} */}
-              </div>
+              <div className="grid grid-cols-3 gap-2"></div>
             )}
           </div>
 
@@ -215,104 +175,203 @@ export const GroupInfoModal = ({
   );
 };
 
-const GroupInfoModalHeader = ({
-  groupData,
-  onClose,
-  activeTab,
-  setActiveTab,
-}: {
-  groupData: any;
-  onClose: () => void;
-  activeTab: string;
-  setActiveTab: Dispatch<SetStateAction<string>>;
-}) => {
-  const tabs = [
-    { id: "members", label: "Members", icon: <Users size={18} /> },
-    { id: "media", label: "Media", icon: <Image size={18} /> },
-    { id: "links", label: "Links", icon: <Link size={18} /> },
-  ];
-
-  return (
-    <>
-      <div className="flex justify-between items-center p-4 border-b border-gray-700">
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
-            {groupData.name.charAt(0)}
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-white">{groupData.name}</h2>
-            <p className="text-sm text-gray-400">
-              {groupData.members.length} members
-            </p>
-          </div>
-        </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-white">
-          <X size={24} />
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-gray-700">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`flex-1 flex items-center border-b-2 justify-center space-x-2 px-4 py-3 text-sm font-medium ${
-              activeTab === tab.id
-                ? "text-blue-500 border-blue-500"
-                : "text-gray-400 hover:text-white border-transparent"
-            }`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.icon}
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </div>
-    </>
-  );
-};
-
-const MemberAction = ({
+const RoomMembers = ({
   member,
-  handleMemberAction,
+  mutate,
+  selectedMember,
+  setSelectedMember,
+  isCurrentUserAdmin,
+  chatRoomId
+
 }: {
-  member: any;
-  handleMemberAction: (type: string, member: object) => void;
+  member: ChatRoomMember;
+  mutate: KeyedMutator<ChatRoomMember[]>;
+  selectedMember: ChatRoomMember | null;
+  setSelectedMember: Dispatch<SetStateAction<ChatRoomMember | null>>;
+  isCurrentUserAdmin: boolean;
+  chatRoomId: string
 }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [nickName, setNickName] = useState<string>(
+    member.nickName || ""
+  );
+
+
+  const { checkAndRefreshToken } = useAuth();
+  const { chatId } = useParams();
+  const { showNotification } = useNotification();
+  const { socket } = useSocket()
+
+  const handleMemberAction = async (action: MemberAction) => {
+    switch (action) {
+      case "message":
+        break;
+
+      case "admin":
+        const token = await checkAndRefreshToken();
+        const res = await fetch(`${ecnf.apiUrl}/chats/members`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            chatRoomId: chatId,
+            userId: selectedMember?.userId,
+            action: selectedMember?.isAdmin ? "demote" : "promote",
+          }),
+        });
+
+        if (res.ok) {
+          mutate((current) => {
+            if (!current) return current;
+            return current.map((mem) => {
+              if (mem.userId !== selectedMember?.userId) return mem;
+              return {
+                ...mem,
+                isAdmin: !mem.isAdmin,
+              };
+            });
+          }, false);
+        } else {
+          showNotification("Could not perform the action", "error");
+        }
+        setSelectedMember(null);
+        break;
+
+      case "nickname":
+        setIsEditing(true);
+        
+        break;
+
+      case "remove":
+        socket?.emit("member:remove",{
+          chatRoomId: chatRoomId,
+          userId: selectedMember?.userId,
+        })
+        break;
+    }
+  };
+
+  const { user } = useAuth();
   return (
-    <div className="absolute right-0 mt-2 w-56 px-4 rounded-lg overflow-hidden shadow-lg bg-gray-800 ring-1 ring-gray-700 z-10">
-      <div className="py-2" role="menu" aria-orientation="vertical">
-        <button
-          className="flex rounded-md items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-150"
-          onClick={() => handleMemberAction("message", member)}
-        >
-          <MessageCircle size={16} className="mr-3" />
-          <span>Message</span>
-        </button>
-        <button
-          className="flex rounded-md items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-150"
-          onClick={() => handleMemberAction("promote", member)}
-        >
-          {member.isAdmin ? (
-            <>
-              <Shield size={16} className="mr-3 text-red-400" />
-              <span>Demote from Admin</span>
-            </>
+    <div className="flex items-center justify-between bg-gray-800 p-3 rounded-lg relative">
+      <div className="flex items-center space-x-3">
+        <div className="relative">
+          <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-white font-medium">
+            {member.username.charAt(0)}
+          </div>
+          {member.userStatus === "online" ? (
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-800"></div>
           ) : (
-            <>
-              <Crown size={16} className="mr-3 text-yellow-400" />
-              <span>Promote to Admin</span>
-            </>
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-gray-500 rounded-full border-2 border-gray-800"></div>
           )}
-        </button>
-        <div className="border-t border-gray-700 my-1"></div>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-gray-200 capitalize">
+            {member.username}{" "}
+            {member.userId === user?.userId && <span> (You) </span>}
+          </span>
+          {!isEditing ? (
+            <p className="text-xs text-gray-400">{member.nickName}</p>
+          ) : (
+            <div className="flex gap-1 mt-1">
+              <input
+                type="text"
+                value={nickName}
+                onChange={(e) => setNickName(e.target.value)}
+                placeholder="Enter nickname..."
+                className=" w-full text-[16px] max-w-40 px-2 bg-gray-700 rounded-md mr-2 outline-none border-2 border-transparent focus:border-blue-500  "
+              />
+
+              <button
+                onClick={async (e) => {
+                  setIsEditing(false);
+                  e.currentTarget.disabled = true
+
+                  const token = await checkAndRefreshToken();
+                  const res = await fetch(`${ecnf.apiUrl}/chats/members`, {
+                    method: "PUT",
+                    headers: {
+                      "Content-Type": "application/json",
+                      authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                      chatRoomId: chatId,
+                      userId: selectedMember?.userId,
+                      nickname: nickName,
+                      action: "nickname"
+                    }),
+                  });
+
+                  if (res.ok) {
+                    mutate((current) => {
+                      if (!current) return current;
+                      return current.map((mem) => {
+                        if (mem.userId !== selectedMember?.userId) return mem;
+                        return {
+                          ...mem,
+                          nickName: nickName,
+                        };
+                      });
+                    }, false);
+                  } else {
+                    showNotification("Could not perform the action", "error");
+                  }
+                  setSelectedMember(null);
+                }}
+                className="cursor-pointer bg-blue-500 hover:bg-blue-600 rounded-full p-1.5 disabled:cursor-not-allowed"
+              >
+                <Check />
+              </button>
+              <button
+                className="p-1.5 rounded-full hover:bg-gray-700"
+                onClick={() => {
+                  setIsEditing(false);
+                  setNickName(member.nickName || "(Not set)");
+                  setSelectedMember(null);
+                }}
+              >
+                <X />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        {member.isAdmin ? (
+          <span className="text-gray-300 text-[16px] flex items-center gap-1 px-3 py-2 bg-gray-900 rounded-md ">
+            Admin <Crown size={16} className="text-yellow-500" />
+          </span>
+        ) : (
+          <span className="text-gray-300 text-[16px] flex items-center gap-1 px-3 py-2 bg-gray-900 rounded-md ">
+            Member <User size={16} className="text-gray-500" />
+          </span>
+        )}
+        {member.isCreator && (
+          <span className="text-gray-300 text-[16px] flex items-center gap-1 px-3 py-2 bg-gray-900 rounded-md ">
+            Creator <Star size={16} className="text-blue-400" />
+          </span>
+        )}
         <button
-          className="flex rounded-md items-center w-full px-4 py-3 text-sm text-red-400 hover:bg-red-500 hover:text-white transition-colors duration-150"
-          onClick={() => handleMemberAction("remove", member)}
+          className="text-gray-400 hover:text-white py-4 px-2"
+          onClick={() => {
+            setSelectedMember(
+              selectedMember?.userId === member.userId ? null : member
+            );
+          }}
         >
-          <UserMinus size={16} className="mr-3" />
-          <span>Remove from Group</span>
+          <MoreHorizontal size={18} />
         </button>
+        {selectedMember?.userId === member.userId && (
+          <MemberActions
+            handleMemberAction={handleMemberAction}
+            member={member}
+            isCurrentUserAdmin={isCurrentUserAdmin}
+            currentUserId={user?.userId}
+          />
+        )}
       </div>
     </div>
   );

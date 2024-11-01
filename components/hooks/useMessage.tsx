@@ -26,7 +26,7 @@ export function useMessages({ chatId }: { chatId: string | null }) {
   const { socket } = useSocket();
   const { checkAndRefreshToken } = useAuth();
 
-  const limitRef = useRef(50);
+  const [fetchMore, setFetchMore] = useState({ isLoading: false, hasMore: true })
 
   const { data, mutate } = useCustomSWR<AllMessageResponse>(
     chatId ? `${ecnf.apiUrl}/chats/${chatId}/messages` : null,
@@ -39,6 +39,11 @@ export function useMessages({ chatId }: { chatId: string | null }) {
     if (!data) {
       return;
     }
+
+    if(data.messages.length < 50){
+      setFetchMore(prev => ({...prev,hasMore: false}))
+    }
+
     setMessages(data.messages);
     setReadReceipts(data.allReceipts);
     setAttachmentsMap(
@@ -50,7 +55,10 @@ export function useMessages({ chatId }: { chatId: string | null }) {
       )
     );
 
+    setFetchMore(prev => ({...prev,isLoading: false}))
+
   }, [data]);
+
 
   useEffect(() => {
     if (!socket) return;
@@ -60,12 +68,10 @@ export function useMessages({ chatId }: { chatId: string | null }) {
       messageId,
       status,
       readBy,
-      fileUrl,
     }: {
       messageId: string;
       status: "sent" | "delivered" | "failed";
       readBy: string[];
-      fileUrl: string | undefined;
     }) => {
       mutate((currentData) => {
         if (!currentData) return currentData;
@@ -73,11 +79,7 @@ export function useMessages({ chatId }: { chatId: string | null }) {
         const readerSet = new Set(readBy);
 
         const newData: AllMessageResponse = {
-          attachments: fileUrl
-            ? currentData.attachments.map((at) =>
-                at.messageId !== messageId ? at : { ...at, fileUrl: fileUrl }
-              )
-            : currentData.attachments,
+          attachments: currentData.attachments,
           messages: currentData.messages.map((msg) => {
             return msg.messageId !== messageId
               ? msg
@@ -114,10 +116,6 @@ export function useMessages({ chatId }: { chatId: string | null }) {
     attachment?: AttachmentViewModel
   ) => {
     if (!data || !currentUser) return;
-
-    if (messages.length > limitRef.current) {
-      messages.splice(0, messages.length - limitRef.current);
-    }
 
     let originalData: AllMessageResponse | undefined;
     mutate((currentData) => {
@@ -163,11 +161,17 @@ export function useMessages({ chatId }: { chatId: string | null }) {
       }
     }
     // Update the active chat heads to render newMessage content and time
-    updateLastActivity(chatId as string, newMessage, attachment);
+    updateLastActivity(chatId as string, newMessage, attachment, chatId as string);
 
+    const messageToSend: Partial<IMessage> = {
+      ...(newMessage.content && {content: newMessage.content}),
+      sender: newMessage.sender,
+      ...(newMessage.parentMessage && {parentMessage: newMessage.parentMessage}),
+      messageId: newMessage.messageId
+    }
     socket?.emit("message:send", {
       chatRoomId: chatId,
-      message: newMessage,
+      message: messageToSend,
       attachment: attachment
         ? {
             fileName: attachment.fileName,
@@ -363,6 +367,8 @@ export function useMessages({ chatId }: { chatId: string | null }) {
     messages,
     readReceipts,
     attachmentsMap,
+    fetchMore,
+    setFetchMore,
     addMessage,
     toggleReaction,
     editMessage,

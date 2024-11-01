@@ -1,7 +1,3 @@
-export type FriendshipStatus = "pending" | "accepted" | "blocked" | "";
-
-
-
 export interface IUserProfile {
   username: string;
   email: string;
@@ -12,7 +8,7 @@ export interface IUserProfile {
   totalChats: number;
   totalFriends: number;
   totalMessageSent: number;
-  status: "pending"|"accepted"|"blocked"|"",
+  status: Friends["status"],
   isCurrentUserSender: boolean,
   isCurrentUserBlocked?: boolean,
   isLoading?: boolean
@@ -33,3 +29,11 @@ export interface IUserMiniProfile {
 }
 
 
+
+export interface Friends {
+  userId: string;
+  username: string;
+  status: "accepted" | "pending" | "blocked" | "canceled";
+  profilePicture: string;
+  isCurrentUserSender: boolean;
+}

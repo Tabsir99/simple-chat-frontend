@@ -1,46 +1,73 @@
-import React from "react";
+import React, { memo } from "react";
 import Link from "next/link";
 import { formatDate } from "@/utils/utils";
 import { IChatHead } from "@/types/chatTypes";
 import { useParams } from "next/navigation";
 import { useChatContext } from "../contextProvider/chatContext";
 
-const ActiveChats = ({ data }: { data: IChatHead }) => {
+const ActiveChats = memo(({ data }: { data: IChatHead }) => {
   const params = useParams();
-  const { getLastMessage } = useChatContext()  
+  const { getLastMessage } = useChatContext();
+
+  // Check if this chat is currently active
+  const isCurrentChat = params.chatId === data.chatRoomId;
+
   return (
     <Link
       href={`/chats/${data.chatRoomId}`}
-      className="flex items-center w-80 py-3 px-4 bg-[#232b36] rounded-lg transition-all duration-300 ease-in-out hover:bg-[#252f3a]"
+      className={`
+        flex items-center w-80 py-3 px-4 rounded-lg 
+        transition-colors duration-150 ease-out
+        relative
+        ${
+          isCurrentChat
+            ? "bg-[#2c3745] border-l-4 border-blue-500"
+            : "bg-[#232b36] hover:bg-[#252f3a]"
+        }
+      `}
+      scroll={false}
     >
+      {isCurrentChat && (
+        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500 rounded-l-lg" />
+      )}
+
       <div className="relative w-12 h-12 mr-4">
         <div className="w-full h-full border border-gray-600 bg-[#222b35] rounded-full flex justify-center items-center">
           {data.isGroup ? (
             <span className="uppercase text-base text-gray-300">GC</span>
-          ) : data.roomImage ? (
+          ) : data.oppositeProfilePicture ? (
             <img
-              src={data.roomImage}
+              src={data.oppositeProfilePicture}
               alt="Profile pic"
-              className="w-full h-full rounded-full object-cover"
+              className={`w-full h-full rounded-full object-cover 
+                ${isCurrentChat ? "opacity-90" : ""}
+                transition-opacity duration-150 ease-out`}
             />
           ) : (
             <span className="uppercase text-base text-gray-300">
-              {data.roomName.slice(0, 2)}
+              {data.oppositeUsername?.charAt(0)}
             </span>
           )}
         </div>
         <span
-          className={`absolute h-3 w-3 border-2 border-gray-700 rounded-full bottom-0.5 right-0.5 ${
-            data.isGroup || data.roomStatus === "online"
-              ? "bg-green-500"
-              : "bg-gray-500"
-          }`}
+          className={`absolute h-3 w-3 border-2 border-gray-700 rounded-full bottom-0.5 right-0.5 
+            ${
+              data.isGroup || data?.oppositeUserStatus === "online"
+                ? "bg-green-500"
+                : "bg-gray-500"
+            }`}
         />
       </div>
+
       <div className="flex-1 min-w-0">
-        <h2 className="text-[18px] text-gray-300 capitalize truncate">
-          {data.roomName}
+        <h2
+          className={`text-[18px] capitalize truncate
+            text-gray-300
+            transition-colors duration-150 ease-out`}
+        >
+          {data.roomName || data.oppositeUsername}
         </h2>
+
         {data.isTyping &&
         data.chatRoomId !== params.chatId &&
         data.isTyping.length > 0 ? (
@@ -55,39 +82,58 @@ const ActiveChats = ({ data }: { data: IChatHead }) => {
                 <div
                   key={index}
                   className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-typing-dot"
-                  style={{
-                    animationDelay: `${index * 0.15}s`,
-                  }}
+                  style={{ animationDelay: `${index * 0.15}s` }}
                 />
               ))}
             </div>
           </div>
         ) : (
           <p
-            className={`text-[16px] truncate ${
-              data.unreadCount > 0 ? "text-white font-bold" : "text-gray-400"
-            }`}
+            className={`text-[16px] truncate 
+              ${
+                data.unreadCount > 0 && !data.removedAt
+                  ? "text-white font-bold"
+                  : "text-gray-400"
+              }
+              transition-colors duration-150 ease-out`}
           >
-            {data.lastMessage.content
-              ? data.lastMessage.content.length > 26
-                ? data.lastMessage.content?.slice(0, 26) + "..."
-                : data.lastMessage.content: getLastMessage(data.lastMessage.sender, data.lastMessage.attachmentType)
-            }
+            {data.messageContent
+              ? data.messageContent.length > 26
+                ? data.messageContent?.slice(0, 26) + "..."
+                : data.messageContent
+              : getLastMessage(
+                  {
+                    userId: data.senderUserId,
+                    username: data.senderUsername,
+                  },
+                  data.fileType
+                )}
           </p>
         )}
       </div>
+
       <div className="flex flex-col items-end ml-2 min-w-[60px]">
-        <span className="text-[14px] text-gray-400">
+        <span
+          className={`text-[14px] 
+            ${isCurrentChat ? "text-gray-300" : "text-gray-400"}
+            transition-colors duration-150 ease-out`}
+        >
           {data.lastActivity && formatDate(data.lastActivity)}
         </span>
-        {data.unreadCount > 0 && (
-          <span className="bg-blue-600 rounded-full w-5 h-5 flex justify-center items-center text-[12px] mt-1">
+        {data.unreadCount > 0 && !data.removedAt && (
+          <span
+            className={`rounded-full w-5 h-5 flex justify-center items-center text-[12px] mt-1
+              ${isCurrentChat ? "bg-blue-700" : "bg-blue-600"}
+              transition-colors duration-150 ease-out`}
+          >
             {data.unreadCount}
           </span>
         )}
       </div>
     </Link>
   );
-};
+});
+
+ActiveChats.displayName = "ActiveChats";
 
 export default ActiveChats;

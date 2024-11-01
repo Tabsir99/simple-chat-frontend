@@ -52,11 +52,7 @@ export default function ChatSidebar() {
         <hr className="my-4 border-gray-700" />
         {/* Help & Feedback */}
         <div
-          onClick={() => {
-            if (!socket) return;
-            socket.send("Test message");
-            socket.on("message", (e) => console.log(e));
-          }}
+          
           className="mt-4 p-3 w-fit hover:bg-gray-700 rounded-lg cursor-pointer flex items-center justify-center"
         >
           <HelpCircle className="text-gray-300" size={20} aria-label="Help" />

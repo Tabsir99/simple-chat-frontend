@@ -1,10 +1,18 @@
 import { AttachmentViewModel } from "@/types/chatTypes";
-import { Play} from "lucide-react";
-import React, { useState } from "react";
+import { Play } from "lucide-react";
+import React, { ReactEventHandler, RefObject, useState } from "react";
 
-const VideoPlayer = ({ attachments }: { attachments: AttachmentViewModel }) => {
+const VideoPlayer = ({
+  attachments,
+  handleMediaError,
+  ref
+}: {
+  attachments: AttachmentViewModel;
+  handleMediaError: (isVideo: boolean) => void;
+  ref: RefObject<HTMLVideoElement>
+}) => {
   const [isFinished, setIsFinished] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const handlePlay = () => {
     setIsFinished(false);
@@ -22,10 +30,12 @@ const VideoPlayer = ({ attachments }: { attachments: AttachmentViewModel }) => {
           preload="metadata"
           onPlay={handlePlay}
           onEnded={handleEnded}
+          onError={() => handleMediaError(true)}
+          ref={ref}
           onLoadedMetadata={() => setIsLoaded(true)}
           style={{ width: "auto", height: "auto" }}
         >
-          <source src={attachments.fileUrl} />
+          {attachments.fileUrl && <source src={attachments.fileUrl} />}
         </video>
         {isFinished && (
           <button

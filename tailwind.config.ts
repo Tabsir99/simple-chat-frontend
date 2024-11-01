@@ -39,13 +39,14 @@ const config: Config = {
         "slide-left-out": "slide-left-out 0.6s ease forwards",
         "shimmer": 'shimmer 2s infinite',
       },
+      backgroundSize: {
+        '200%': '200% 100%',
+      },
+      backgroundImage: {
+        shimmer: 'linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 100%)',
+      },
     },
-    backgroundSize: {
-      '200%': '200% 100%',
-    },
-    backgroundImage: {
-      shimmer: 'linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 100%)',
-    },
+    
   },
   plugins: [],
 };

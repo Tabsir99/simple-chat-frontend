@@ -22,8 +22,12 @@ interface ChatContextProps {
     chatRoomId: string,
     message: IMessage,
     attachment?: AttachmentViewModel,
+    selectedChatId?: string
   ) => void;
-  getLastMessage: (sender: {userId?: string, username?: string}, fileType?: AttachmentViewModel["fileType"]) => string | undefined
+  getLastMessage: (
+    sender: { userId: string | null; username: string | null },
+    fileType: AttachmentViewModel["fileType"] | null
+  ) => string | undefined;
 }
 const ChatContext = createContext<ChatContextProps | null>(null);
 
@@ -37,26 +41,27 @@ export const useChatContext = () => {
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [activeChats, setActiveChats] = useState<IChatHead[] | null>(null);
-  const userId = useAuth().user?.userId
+  const userId = useAuth().user?.userId;
 
   const { data, error, isLoading } = useCustomSWR<Array<IChatHead>>(
-    userId ?`${ecnf.apiUrl}/chats`:null
+    userId ? `${ecnf.apiUrl}/chats` : null
   );
 
   useEffect(() => {
     setActiveChats(data || null);
   }, [data]);
 
-
-function getFileCategory(mimeType: AttachmentViewModel["fileType"]): "image" | "video" | "audio" | "document" | "other" {
+  function getFileCategory(
+    mimeType: AttachmentViewModel["fileType"]
+  ): "image" | "video" | "audio" | "document" | "other" {
     if (mimeType.startsWith("image/")) {
       return "image";
     }
-    
+
     if (mimeType.startsWith("video/")) {
       return "video";
     }
-    
+
     if (mimeType.startsWith("audio/")) {
       return "audio";
     }
@@ -72,16 +77,20 @@ function getFileCategory(mimeType: AttachmentViewModel["fileType"]): "image" | "
       "text/css",
       "text/csv",
     ]);
-    
+
     if (documentMimeTypes.has(mimeType)) {
       return "document";
     }
 
-    return "other"
-}
-  const getLastMessage = (sender: {userId?: string, username?: string}, fileType?: AttachmentViewModel["fileType"]) => {
+    return "other";
+  }
+  const getLastMessage = (
+    sender: { userId: string | null; username: string | null },
+    fileType: AttachmentViewModel["fileType"] | null
+  ) => {
+
     if (fileType) {
-      const type = getFileCategory(fileType) 
+      const type = getFileCategory(fileType);
       switch (type) {
         case "audio":
           return sender?.userId === userId
@@ -102,7 +111,7 @@ function getFileCategory(mimeType: AttachmentViewModel["fileType"]): "image" | "
             ? "You sent a document"
             : `${sender?.username} sent a document`;
         default:
-          return ""
+          return "";
       }
     }
   };
@@ -110,32 +119,48 @@ function getFileCategory(mimeType: AttachmentViewModel["fileType"]): "image" | "
     chatRoomId: string,
     message: IMessage,
     attachment?: AttachmentViewModel,
+    selectedChatId?: string
   ) => {
     setActiveChats((prevChats) => {
-      return prevChats
-        ? prevChats.map((chat) => {
-            if (chat.chatRoomId !== chatRoomId) return chat;
+      if (!prevChats) return null;
 
-            return {
-              ...chat,
-              lastMessage:{
-                content: message.content.trim() || (getLastMessage({userId: message.sender?.userId,username: message.sender?.username}, attachment?.fileType) as string),
-                sender: {
-                  userId: message.sender?.userId,
-                  username: message.sender?.userId
-                }
-              }
-                ,
-              lastActivity: message.createdAt,
-            };
-          })
-        : null;
+      const newChats: IChatHead[] = [];
+      prevChats.forEach((chat) => {
+        if (chat.chatRoomId !== chatRoomId) return newChats.push(chat);
+
+        newChats.unshift({
+          ...chat,
+          messageContent: message.content.trim() ||
+          (getLastMessage(
+            {
+              userId: message.sender?.userId || null,
+              username: message.sender?.username || null,
+            },
+            attachment?.fileType || null
+          ) as string),
+          senderUserId: message.sender?.userId || null,
+          senderUsername: message.sender?.username || null,
+          lastActivity: message.createdAt,
+          unreadCount: 
+          selectedChatId === chatRoomId
+            ? chat.unreadCount
+            : chat.unreadCount + 1,
+        });
+      });
+
+      return newChats;
     });
   };
 
   return (
     <ChatContext.Provider
-      value={{ activeChats, isLoading, setActiveChats, updateLastActivity,getLastMessage }}
+      value={{
+        activeChats,
+        isLoading,
+        setActiveChats,
+        updateLastActivity,
+        getLastMessage,
+      }}
     >
       {children}
     </ChatContext.Provider>

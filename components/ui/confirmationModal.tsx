@@ -5,13 +5,15 @@ const ConfirmationModal = ({
     onClose,
     title,
     children,
-    onConfirm
+    onConfirm,
+    confirmBtnText="Block User"
   }: {
     isOpen: boolean;
     onClose: () => void;
     title: string;
     children: React.ReactNode;
     onConfirm: () => void
+    confirmBtnText?: string
   }) => {
     if (!isOpen) return null;
   
@@ -35,7 +37,7 @@ const ConfirmationModal = ({
                 onClose()
               }}
             >
-              Block User
+              {confirmBtnText}
             </CustomButton>
           </div>
         </div>

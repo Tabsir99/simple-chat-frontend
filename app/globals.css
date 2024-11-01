@@ -117,11 +117,53 @@ body {
 
 
 
+.blocked-chat-container {
+  padding: 16px;
+  background-color: #1e1e1e;
+  border-top: 1px solid #333;
+}
 
+.blocked-message-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  text-align: center;
+}
 
+.blocked-icon {
+  font-size: 24px;
+  color: #ff4d4d;
+  margin-bottom: 12px;
+}
 
+.blocked-text {
+  color: #cccccc;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
 
+.unblock-button {
+  background-color: #404040;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
 
+.unblock-button:hover {
+  background-color: #505050;
+}
+
+.unblock-button:active {
+  background-color: #353535;
+}
 
 
 

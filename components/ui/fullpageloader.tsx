@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-const CustomSpinner = ({ size = 40, color = '#3B82F6' }) => {
+const CustomSpinner = ({ size = 40, color = "#3B82F6" }) => {
   return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 38 38" 
-      xmlns="http://www.w3.org/2000/svg" 
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 38 38"
+      xmlns="http://www.w3.org/2000/svg"
       stroke={color}
       className="animate-spin-smooth"
     >
@@ -36,11 +36,23 @@ const defaultPhrases = [
   "Syncing your messages...",
   "Preparing your chatroom...",
   "Loading recent conversations...",
-  "Checking for new messages..."
+  "Checking for new messages...",
 ];
 
-const FullPageLoader = ({ loadingPhrases=defaultPhrases, className=" fixed ",height="100vh",width="100vw" }: { loadingPhrases?: String[] | null, className?: string, width?: string,height?: string }) => {
-  const [displayText, setDisplayText] = useState('');
+const FullPageLoader = ({
+  loadingPhrases = defaultPhrases,
+  className = " fixed ",
+  height = "100vh",
+  width = "100vw",
+  spinnerSize=96
+}: {
+  loadingPhrases?: String[] | null;
+  className?: string;
+  width?: string;
+  height?: string;
+  spinnerSize?:number
+}) => {
+  const [displayText, setDisplayText] = useState("");
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showText, setShowText] = useState(false);
@@ -53,7 +65,7 @@ const FullPageLoader = ({ loadingPhrases=defaultPhrases, className=" fixed ",hei
   }, []);
 
   useEffect(() => {
-    if(!loadingPhrases) return
+    if (!loadingPhrases) return;
     if (!showText) return;
     let timer: NodeJS.Timeout;
 
@@ -65,7 +77,9 @@ const FullPageLoader = ({ loadingPhrases=defaultPhrases, className=" fixed ",hei
       } else {
         timer = setTimeout(() => {
           setIsDeleting(false);
-          setCurrentPhraseIndex((prevIndex) => (prevIndex + 1) % loadingPhrases.length);
+          setCurrentPhraseIndex(
+            (prevIndex) => (prevIndex + 1) % loadingPhrases.length
+          );
         }, 500);
       }
     } else {
@@ -83,20 +97,27 @@ const FullPageLoader = ({ loadingPhrases=defaultPhrases, className=" fixed ",hei
   }, [displayText, currentPhraseIndex, isDeleting, showText]);
 
   return (
-    <div className={" inset-0 flex items-center justify-center bg-gray-900 "} style={{
-      width: width,
-      height: height
-    }}>
+    <div
+      className={
+        " inset-0 flex items-center justify-center bg-gray-900 " + className
+      }
+      style={{
+        width: width,
+        height: height,
+      }}
+    >
       <div className="text-center flex flex-col justify-center items-center">
-        <CustomSpinner size={96} color="#3B82F6" />
-        <div className="h-20 flex items-center justify-center">
-          {loadingPhrases && showText && (
+        <CustomSpinner size={spinnerSize} color="#3B82F6" />
+        {loadingPhrases && showText && (
+          <div className="h-20 flex items-center justify-center">
+            
             <p className="mt-6 text-3xl font-bold text-gray-300">
               {displayText}
               <span className="animate-blink">|</span>
             </p>
-          )}
-        </div>
+            
+          </div>
+        )}
       </div>
     </div>
   );

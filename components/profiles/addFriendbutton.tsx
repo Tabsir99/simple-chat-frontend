@@ -9,27 +9,20 @@ import {
 } from "lucide-react";
 import { CustomButton } from "../ui/buttons";
 import useFriendshipActions from "../hooks/useFriendshipActions";
-import { FriendshipStatus, IUserProfile } from "@/types/userTypes";
-import { KeyedMutator } from "swr";
-import { ApiResponse } from "@/types/responseType";
 import ConfirmationModal from "../ui/confirmationModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Friends } from "@/types/userTypes";
 
 interface AddFriendBtnProps {
   user: {
     userId: string | null,
     username: string
   };
-  status: FriendshipStatus;
+  status: Friends["status"];
   isCurrentUserSender: boolean;
   updateSender: (value: boolean) => void;
   isCurrentUserBlocked: boolean | undefined;
-  mutate: KeyedMutator<
-{
-      userInfo: IUserProfile;
-      isOwnProfile: boolean;
-    }
-  >;
+
 }
 
 export default function AddFriendBtn({
@@ -38,12 +31,8 @@ export default function AddFriendBtn({
   isCurrentUserSender,
   updateSender,
   isCurrentUserBlocked,
-  mutate,
 }: AddFriendBtnProps) {
-  const { handleFriendshipAction } = useFriendshipActions({
-    initFriendshipStatus: status,
-    mutate: mutate,
-  });
+  const { handleFriendshipAction } = useFriendshipActions();
 
   const [showBlockModal, setShowBlockModal] = useState(false)
 

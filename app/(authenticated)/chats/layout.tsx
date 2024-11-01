@@ -7,26 +7,33 @@ import { MiniProfileSkeleton } from "@/components/skeletons/skeleton";
 import { BsChatFill } from "react-icons/bs";
 import { useChatContext } from "@/components/contextProvider/chatContext";
 import ActiveChats from "@/components/chats/activeChats";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
-
 
 export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-
   const { activeChats, isLoading } = useChatContext();
-  const { updateActivity } = useRecentActivities()
+  const { updateActivity } = useRecentActivities();
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const filteredChats = useMemo(() => {
+    return activeChats?.filter((chat) => {
+      return (
+        !(chat.chatClearedAt && chat.chatClearedAt > chat.lastActivity) &&
+        (chat.oppositeUsername?.includes(searchTerm) ||
+         chat.roomName?.includes(searchTerm))
+      );
+    });
+  }, [activeChats, searchTerm]);
   useEffect(() => {
-    updateActivity("unseenChats","set",0)
-  },[])
+    updateActivity("unseenChats", "set", 0);
+  }, []);
 
   return (
     <>
-     
       <div className="h-full overflow-hidden bg-[#1b1b1b]  w-screen text-gray-100 flex">
         <ChatSidebar />
         <div className="chat-list px-4 flex flex-col bg-[#1a222d]">
@@ -36,6 +43,7 @@ export default function MainLayout({
             <input
               type="text"
               placeholder="Search chats..."
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full focus:border-gray-600 border-transparent py-3 bg-transparent text-[18px] border-2 pl-10 pr-4 rounded-md text-gray-300 placeholder-gray-400 outline-none"
             />
           </div>
@@ -49,8 +57,8 @@ export default function MainLayout({
                 <MiniProfileSkeleton />
                 <MiniProfileSkeleton />
               </>
-            ) : activeChats?.length && activeChats.length > 0 ? (
-              activeChats.map((chat) => (
+            ) : filteredChats?.length && filteredChats.length > 0 ? (
+              filteredChats.map((chat) => (
                 <ActiveChats data={chat} key={chat.chatRoomId} />
               ))
             ) : (
@@ -68,13 +76,10 @@ export default function MainLayout({
             )}
           </div>
         </div>
-        <section className="bg-[#1d2328] overflow-hidden w-full">{children}</section>
+        <section className="bg-[#1d2328] overflow-hidden w-full">
+          {children}
+        </section>
       </div>
-
     </>
   );
 }
-
-
-
-

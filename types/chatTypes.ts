@@ -1,22 +1,49 @@
+import { ReactNode } from "react";
+
+// export interface IChatHead {
+//   chatRoomId: string;
+//   isGroup: boolean;
+//   roomName: string;
+//   roomImage: string | null;
+//   roomStatus: "online" | "offline";
+//   privateChatMemberId: string | false;
+//   unreadCount: number;
+//   lastMessage: {
+//     content?: string;
+//     attachmentType?: FileType;
+//     sender: {
+//       userId?: string;
+//       username?: string;
+//     };
+//   };
+//   lastActivity: string;
+//   blockedUserId: string | null;
+//   removedAt: string | null
+//   isTyping?: { profilePicture: string; username: string; userId: string }[];
+// }
+
 export interface IChatHead {
   chatRoomId: string;
   isGroup: boolean;
-  roomName: string;
+  roomName: string | null;
   roomImage: string | null;
-  roomStatus: "online" | "offline";
-  privateChatMemberId: string | false;
-  unreadCount: number;
-  lastMessage: {
-    content?: string;
-    attachmentType?: FileType;
-    sender: {
-      userId?: string;
-      username?: string;
-    };
-  };
+  createdBy: string;
   lastActivity: string;
+  blockedUserId: string | null;
+  messageContent: string | null;
+  senderUserId: string | null;
+  senderUsername: string | null;
+  fileType: FileType | null;
+  oppositeUserId: string | null;
+  oppositeUsername: string | null;
+  oppositeUserStatus: string | null;
+  oppositeProfilePicture: string | null;
+  unreadCount: number | 0
+  removedAt: string | null;
+  chatClearedAt: string | null;
   isTyping?: { profilePicture: string; username: string; userId: string }[];
 }
+
 
 export type ChatMembers =
   | {
@@ -43,37 +70,7 @@ export type Reactions = {
   users: string[];
 };
 
-// export type Attachment = {
-//   url: string;
-//   type: "image" | "video" | "document";
-// };
 
-// type Message = {
-//   messageId: string;
-//   content: string;
-//   time: string;
-//   isEdited?: boolean;
-//   isDeleted?: boolean;
-//   status: "sent" | "failed" | "delivered" | "seen";
-//   type: "system" | "user";
-// };
-
-// export interface IMessage extends Message {
-//   reactions: Reactions[];
-
-//   sender: {
-//     senderName: string;
-//     profilePicture: string;
-//     senderId: string;
-//   };
-//   parentMessage?: {
-//     messageId?: string;
-//     content?: string;
-//     senderName?: string;
-//   } | null;
-
-//   attachments?: Attachment[];
-// }
 
 export interface IMessage extends Message {
   MessageReaction: Reactions[];
@@ -148,3 +145,26 @@ export interface IMessageReceipt {
     profilePicture: string;
   };
 }
+
+
+
+export type MenuAction =
+  | { type: "NAVIGATE"; path: string }
+  | { type: "TOGGLE_MEDIA" }
+  | { type: "TOGGLE_GROUP_MODAL" }
+  | { type: "MUTE" }
+  | { type: "LEAVE" }
+  | { type: "BLOCK" }
+  | { type: "CREATE_GROUP" }
+  | { type: "CLOSE" }
+  | { type: "UNBLOCK" }
+  | { type: "DELETE_CHAT"};
+
+// Define menu item interface
+export interface MenuItem {
+  item: string;
+  icon: ReactNode;
+  action: MenuAction;
+}
+
+export type MemberAction = "remove" | "admin" | "nickname" | "message"

@@ -18,79 +18,89 @@ import {
   BellOff,
   LogOut,
   Users,
+  Trash,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MediaModal from "./mediaModal";
 import Image from "next/image";
-import { GroupInfoModal } from "./groupInfoModal";
-import { IChatHead } from "@/types/chatTypes";
+import { ChatRoomMember, GroupInfoModal } from "./groupInfoModal";
+import { IChatHead, MenuItem, MenuAction } from "@/types/chatTypes";
 import { ecnf } from "@/utils/env";
 import { useAuth } from "@/components/authComps/authcontext";
-import { mutate } from "swr";
+import { mutate as globalMutate } from "swr";
 import { useNotification } from "@/components/contextProvider/notificationContext";
-
-type MenuAction =
-  | { type: "NAVIGATE"; path: string }
-  | { type: "TOGGLE_MEDIA" }
-  | { type: "TOGGLE_GROUP_MODAL" }
-  | { type: "MUTE" }
-  | { type: "LEAVE" }
-  | { type: "BLOCK" }
-  | { type: "CREATE_GROUP" }
-  | { type: "CLOSE" };
-
-// Define menu item interface
-interface MenuItem {
-  item: string;
-  icon: ReactNode;
-  action: MenuAction;
-}
+import useCustomSWR from "@/components/hooks/customSwr";
+import useFriendshipActions from "@/components/hooks/useFriendshipActions";
+import ConfirmationModal from "@/components/ui/confirmationModal";
+import { AllMessageResponse } from "@/types/responseType";
+import { useChatContext } from "@/components/contextProvider/chatContext";
 
 // Create menu configurations
 const createMenuConfig = (
-  userId?: string
-): Record<"regular" | "group", MenuItem[]> => ({
-  regular: [
-    {
-      item: "Profile",
-      icon: <User size={18} />,
-      action: { type: "NAVIGATE", path: `/search-people/${userId}` },
-    },
-    {
-      item: "Media",
-      icon: <ImageIcon size={18} />,
-      action: { type: "TOGGLE_MEDIA" },
-    },
-    {
-      item: "Block",
-      icon: <Ban size={18} />,
-      action: { type: "BLOCK" },
-    },
-    {
-      item: "Create Group",
-      icon: <Users size={18} />,
-      action: { type: "CREATE_GROUP" },
-    },
-  ],
-  group: [
-    {
-      item: "Group Info",
-      icon: <Info size={18} />,
-      action: { type: "TOGGLE_GROUP_MODAL" },
-    },
-    {
-      item: "Mute",
-      icon: <BellOff size={18} />,
-      action: { type: "MUTE" },
-    },
-    {
-      item: "Leave Group",
-      icon: <LogOut size={18} />,
-      action: { type: "LEAVE" },
-    },
-  ],
-});
+  userId?: string,
+  removedAt?: string,
+  blockedUserId?: string
+): Record<"regular" | "group", MenuItem[]> => {
+  const isCurrentUserBlocked =
+    blockedUserId && blockedUserId !== userId ? true : false;
+
+  return {
+    regular: [
+      {
+        item: "Profile",
+        icon: <User size={18} />,
+        action: { type: "NAVIGATE", path: `/search-people/${userId}` },
+      },
+      {
+        item: "Media",
+        icon: <ImageIcon size={18} />,
+        action: { type: "TOGGLE_MEDIA" },
+      },
+      ...(isCurrentUserBlocked
+        ? []
+        : [
+            {
+              item: blockedUserId ? "Unblock" : "Block",
+              icon: <Ban />,
+              action: { type: blockedUserId ? "UNBLOCK" : "BLOCK" } as const,
+            },
+          ]),
+      {
+        item: "Create Group",
+        icon: <Users size={18} />,
+        action: { type: "CREATE_GROUP" },
+      },
+      {
+        item: "Delete Chat",
+        icon: <Trash size={18} />,
+        action: { type: "DELETE_CHAT" },
+      },
+    ],
+    group: [
+      ...(!removedAt
+        ? [
+            {
+              item: "Group Info",
+              icon: <Info size={18} />,
+              action: { type: "TOGGLE_GROUP_MODAL" } as const,
+            },
+
+            {
+              item: "Leave Group",
+              icon: <LogOut size={18} />,
+              action: { type: "LEAVE" } as const,
+            },
+          ]
+        : []),
+      {
+        item: "Delete Chat",
+        icon: <Trash size={18} />,
+        action: { type: "DELETE_CHAT" } as const,
+      },
+    ],
+  };
+};
 
 export default function ChatHeader({
   selectedActiveChat,
@@ -99,11 +109,20 @@ export default function ChatHeader({
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-  const [groupModal, setGroupModal] = useState(false);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { checkAndRefreshToken, user } = useAuth();
   const { showNotification } = useNotification();
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const { setActiveChats } = useChatContext()
+
+  const { data, mutate } = useCustomSWR<ChatRoomMember[]>(
+    `${ecnf.apiUrl}/chats/${selectedActiveChat.chatRoomId}/members`,
+    { revalidateIfStale: false }
+  );
+
+  const { handleFriendshipAction } = useFriendshipActions();
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
@@ -118,44 +137,63 @@ export default function ChatHeader({
   };
 
   const closeGroupModal = () => {
-    setGroupModal(false);
+    setIsGroupModalOpen(false);
   };
 
   const handleOptionClick = async (action: MenuAction) => {
-    if (action.type === "NAVIGATE") {
-      return router.push(action.path);
-    }
-    if (action.type === "TOGGLE_MEDIA") {
-      toggleMediaModal();
-    }
-    if (action.type === "TOGGLE_GROUP_MODAL") {
-      setGroupModal(true);
-    }
-    if (action.type === "CREATE_GROUP") {
-      const token = await checkAndRefreshToken();
-      const response = await fetch(`${ecnf.apiUrl}/chats/groups`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify([
-          {
-            userId: user?.userId,
-            username: user?.username,
+    switch (action.type) {
+      case "NAVIGATE":
+        router.push(action.path);
+        break;
+
+      case "TOGGLE_MEDIA":
+        toggleMediaModal();
+        break;
+
+      case "TOGGLE_GROUP_MODAL":
+        setIsGroupModalOpen(true);
+        break;
+
+      case "CREATE_GROUP":
+        const token = await checkAndRefreshToken();
+        const response = await fetch(`${ecnf.apiUrl}/chats/groups`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-          {
-            userId: selectedActiveChat.privateChatMemberId,
-            username: selectedActiveChat.roomName,
-          },
-        ]),
-      });
-      if (response.ok) {
-        mutate(`${ecnf.apiUrl}/chats`);
-      } else {
-        showNotification("Could not create a group", "error");
-      }
+          body: JSON.stringify([
+            {
+              userId: user?.userId,
+              username: user?.username,
+            },
+            {
+              userId: selectedActiveChat.oppositeUserId,
+              username: selectedActiveChat.oppositeUsername,
+            },
+          ]),
+        });
+        if (response.ok) {
+          globalMutate(`${ecnf.apiUrl}/chats`);
+        } else {
+          showNotification("Could not create a group", "error");
+        }
+        break;
+
+      case "BLOCK":
+        handleFriendshipAction("block", selectedActiveChat.oppositeUserId);
+        break;
+
+      case "UNBLOCK":
+        handleFriendshipAction("cancel", selectedActiveChat.oppositeUserId);
+        break;
+
+      case "DELETE_CHAT":
+        setIsConfirmModalOpen(true);
+      default:
+        break;
     }
+
     closeDropdown();
   };
 
@@ -200,28 +238,32 @@ export default function ChatHeader({
               href={
                 selectedActiveChat.isGroup
                   ? "#"
-                  : `/search-people/${selectedActiveChat.privateChatMemberId}`
+                  : `/search-people/${selectedActiveChat.oppositeUserId}`
               }
               className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-gray-400"
             >
               {selectedActiveChat.isGroup ? (
                 <span className="text-[18px] uppercase">GC</span>
-              ) : selectedActiveChat.roomImage ? (
+              ) : selectedActiveChat.oppositeProfilePicture ? (
                 <Image
-                  src={selectedActiveChat.roomImage}
+                  src={selectedActiveChat.oppositeProfilePicture}
                   alt="profile picture"
                 />
               ) : (
                 <span className="text-[18px] uppercase">
-                  {selectedActiveChat.roomName.slice(0, 1)}
+                  {selectedActiveChat.oppositeUsername?.slice(0, 1)}
                 </span>
               )}
             </Link>
             <div className="capitalize">
               <h2 className="text-white text-[18px] font-semibold">
-                {selectedActiveChat.roomName}
+                {selectedActiveChat.isGroup
+                  ? selectedActiveChat.roomName
+                  : selectedActiveChat.oppositeUsername}
               </h2>
-              {selectedActiveChat.roomStatus === "online" ? (
+              {selectedActiveChat.isGroup ? (
+                <p className="text-[14px] text-green-400"> online </p>
+              ) : selectedActiveChat?.oppositeUserStatus === "online" ? (
                 <p className="text-[14px] text-green-400"> online </p>
               ) : (
                 <p className="text-[14px] text-gray-400"> offline </p>
@@ -251,18 +293,28 @@ export default function ChatHeader({
           <MoreVertical size={24} />
         </button>
 
-        {selectedActiveChat?.isGroup ? (
+        {selectedActiveChat && selectedActiveChat.isGroup ? (
           <ChatRoomMenu
             dropdownRef={dropdownRef}
             handleOptionClick={handleOptionClick}
             isDropdownOpen={isDropdownOpen}
             options={
-              createMenuConfig().group
+              createMenuConfig(
+                selectedActiveChat.oppositeUserId as string,
+                selectedActiveChat.removedAt || "",
+                undefined
+              ).group
             }
           />
         ) : (
           <ChatRoomMenu
-            options={createMenuConfig(selectedActiveChat.privateChatMemberId as string).regular}
+            options={
+              createMenuConfig(
+                selectedActiveChat.oppositeUserId as string,
+                undefined,
+                selectedActiveChat.blockedUserId || undefined
+              ).regular
+            }
             dropdownRef={dropdownRef}
             handleOptionClick={handleOptionClick}
             isDropdownOpen={isDropdownOpen}
@@ -270,21 +322,78 @@ export default function ChatHeader({
         )}
       </div>
 
-      {isMediaModalOpen && <MediaModal toggleMediaModal={toggleMediaModal} selectedChatId={selectedActiveChat.chatRoomId} />}
-
-      {groupModal && (
-        <GroupInfoModal
-          isOpen={groupModal}
-          groupData={{
-            roomName: selectedActiveChat.roomName,
-            description: selectedActiveChat.roomName,
-          }}
-          onClose={() => {
-            closeGroupModal();
-          }}
+      {isMediaModalOpen && (
+        <MediaModal
+          toggleMediaModal={toggleMediaModal}
           selectedChatId={selectedActiveChat.chatRoomId}
         />
       )}
+
+      {isGroupModalOpen && (
+        <GroupInfoModal
+          roomName={selectedActiveChat.roomName as string}
+          chatRoomId={selectedActiveChat.chatRoomId}
+          onClose={() => {
+            closeGroupModal();
+          }}
+          members={data || []}
+          mutate={mutate}
+        />
+      )}
+
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => {
+          setIsConfirmModalOpen(false);
+        }}
+        onConfirm={async () => {
+          const token = await checkAndRefreshToken();
+          const res = await fetch(
+            `${ecnf.apiUrl}/chats/${selectedActiveChat.chatRoomId}`,
+            {
+              method: "DELETE",
+              headers: {
+                authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          if (res.ok) {
+            globalMutate(
+              `${ecnf.apiUrl}/chats/${selectedActiveChat.chatRoomId}/messages`,
+              (current: AllMessageResponse | undefined) => {
+                if(!current) return current
+                return {
+                  allReceipts: [],
+                  attachments: [],
+                  messages: []
+                }
+              },false
+            );
+            setActiveChats(prev => {
+              if(!prev) return prev
+              return prev.map(chat => {
+                if(chat.chatRoomId !== selectedActiveChat.chatRoomId) return chat
+                return {
+                  ...chat,
+                  chatClearedAt: new Date().toISOString(),
+                  unreadCount: 0,
+                }
+              })
+            })
+            router.push("/chats")
+            
+            showNotification("Chat cleared!","success")
+          } else {
+            showNotification(
+              "Something went wrong, Could not clear chat",
+              "error"
+            );
+          }
+        }}
+        confirmBtnText="Delete chat"
+        title="Are you sure, You want to clear the chat?"
+        children="Deleting a chat would mean, you lose all the messages and files shared upto this point."
+      />
     </div>
   );
 }

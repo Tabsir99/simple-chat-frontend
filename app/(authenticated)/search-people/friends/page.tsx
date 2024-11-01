@@ -9,6 +9,7 @@ import { useRecentActivities } from "@/components/contextProvider/recentActivity
 import { useAuth } from "@/components/authComps/authcontext";
 import { ecnf } from "@/utils/env";
 import { useSocket } from "@/components/contextProvider/websocketContext";
+import { Friends } from "@/types/userTypes";
 
 export default function FriendList() {
   const [activeTab, setActiveTab] = useState<"friends" | "pending" | "blocked">(
@@ -16,14 +17,8 @@ export default function FriendList() {
   );
   const { socket } = useSocket();
   const {user} = useAuth()
-  const { data, mutate } = useCustomSWR<
-    {
-      userId: string;
-      username: string;
-      status: "accepted" | "pending" | "blocked";
-      profilePicture: string;
-      isCurrentUserSender: boolean;
-    }[]
+  const { data } = useCustomSWR<
+    Friends[]
   >(`${ecnf.apiUrl}/friendships`);
 
   const { activities, updateActivity } = useRecentActivities();
@@ -109,7 +104,7 @@ export default function FriendList() {
     }
 
     return filteredUsers?.map((item) => (
-      <FriendItem key={item.userId} {...item} mutate={mutate} />
+      <FriendItem key={item.userId} {...item} />
     ));
   };
 

@@ -1,6 +1,6 @@
 import { FileIcon, Download, PlayCircle } from "lucide-react";
 import { AttachmentViewModel } from "@/types/chatTypes";
-import { useState } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import VideoPlayer from "./attachments/videoPlayer";
 import AudioPlayer from "./attachments/audioPlayer";
 
@@ -8,8 +8,33 @@ interface AttachmentsProps {
   attachments: AttachmentViewModel;
 }
 
-const Attachments = ({ attachments }: AttachmentsProps) => {
-  if(!attachments.fileUrl) return null
+const Attachments = memo(({ attachments }: AttachmentsProps) => {
+  const [loadAttempts, setLoadAttempts] = useState(0);
+
+  const retryTimeoutRef = useRef<NodeJS.Timeout>();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const handleMediaError = useCallback(
+    (isVideo: boolean) => {
+      if (loadAttempts < 3) {
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+        }
+
+        retryTimeoutRef.current = setTimeout(() => {
+          if (isVideo && videoRef.current) {
+            videoRef.current.load();
+            setLoadAttempts((prev) => prev + 1);
+          }
+          if (!isVideo && audioRef.current) {
+            audioRef.current.load();
+            setLoadAttempts((prev) => prev + 1);
+          }
+        }, 2000);
+      }
+    },
+    [loadAttempts]
+  );
 
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return "0 KB";
@@ -37,6 +62,7 @@ const Attachments = ({ attachments }: AttachmentsProps) => {
         {fileCategory === "image" && (
           <img
             src={attachments.fileUrl}
+            onError={(e) => {}}
             alt={attachments.fileName || "Image attachment"}
             className="max-w-full h-auto rounded-lg"
             loading="lazy"
@@ -44,11 +70,19 @@ const Attachments = ({ attachments }: AttachmentsProps) => {
         )}
 
         {fileCategory === "video" && (
-          <VideoPlayer attachments={attachments} />
+          <VideoPlayer
+            attachments={attachments}
+            ref={videoRef}
+            handleMediaError={handleMediaError}
+          />
         )}
 
         {fileCategory === "audio" && (
-            <AudioPlayer src={attachments.fileUrl} />
+          <AudioPlayer
+            src={attachments.fileUrl}
+            audioRef={audioRef}
+            handleMediaError={handleMediaError}
+          />
         )}
 
         {fileCategory === "document" && (
@@ -82,6 +116,6 @@ const Attachments = ({ attachments }: AttachmentsProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default Attachments;

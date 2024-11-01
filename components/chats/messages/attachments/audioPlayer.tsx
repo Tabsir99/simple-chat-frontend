@@ -1,11 +1,23 @@
-import React, { useState, useRef } from "react";
+import React, {
+  useState,
+  useRef,
+  ReactEventHandler,
+  MutableRefObject,
+} from "react";
 import { Play, Pause } from "lucide-react";
 
-export default function AudioPlayer({ src }: { src: string }) {
+export default function AudioPlayer({
+  src,
+  handleMediaError,
+  audioRef,
+}: {
+  src: string;
+  handleMediaError: (isVideo: boolean) => void;
+  audioRef: MutableRefObject<HTMLAudioElement | null>;
+}) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
 
   const handlePlayPause = () => {
@@ -29,6 +41,7 @@ export default function AudioPlayer({ src }: { src: string }) {
       <audio
         ref={audioRef}
         src={src}
+        onError={() => handleMediaError(false)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
         onTimeUpdate={(e) => {
           setCurrentTime(e.currentTarget.currentTime);
@@ -73,7 +86,9 @@ export default function AudioPlayer({ src }: { src: string }) {
           />
         </div>
         <div className="mt-1 text-xs text-gray-400">
-          {isPlaying || currentTime > 0 ? formatTime(currentTime) : formatTime(duration)}
+          {isPlaying || currentTime > 0
+            ? formatTime(currentTime)
+            : formatTime(duration)}
         </div>
       </div>
     </div>

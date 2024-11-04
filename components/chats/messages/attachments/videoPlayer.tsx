@@ -5,11 +5,11 @@ import React, { ReactEventHandler, RefObject, useState } from "react";
 const VideoPlayer = ({
   attachments,
   handleMediaError,
-  ref
+  ref,
 }: {
   attachments: AttachmentViewModel;
   handleMediaError: (isVideo: boolean) => void;
-  ref: RefObject<HTMLVideoElement>
+  ref: RefObject<HTMLVideoElement>;
 }) => {
   const [isFinished, setIsFinished] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -30,9 +30,16 @@ const VideoPlayer = ({
           preload="metadata"
           onPlay={handlePlay}
           onEnded={handleEnded}
-          onError={() => handleMediaError(true)}
+          onError={() => {
+            handleMediaError(true);
+          }}
           ref={ref}
-          onLoadedMetadata={() => setIsLoaded(true)}
+          onLoadedMetadata={() => {
+            setIsLoaded(true);
+            if (ref.current) {
+              ref.current.currentTime = 0;
+            }
+          }}
           style={{ width: "auto", height: "auto" }}
         >
           {attachments.fileUrl && <source src={attachments.fileUrl} />}

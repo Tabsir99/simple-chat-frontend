@@ -5,14 +5,19 @@ const DB_NAME = "fileStorage";
 const STORE_NAME = "files";
 const DB_VERSION = 1;
 
-interface StoredFile extends File {
+interface StoredFile {
+  blob: Blob;
   key: string;
   chatRoomId: string;
   messageId: string;
 }
 
 interface FileStorage {
-  saveFile: (file: File, chatRoomId: string, messageId: string) => Promise<string>;
+  saveFile: (
+    file: Blob,
+    chatRoomId: string,
+    messageId: string
+  ) => Promise<string>;
   getFileUrl: (key: string) => Promise<string | null>;
   getFileUrlsByChat: (chatRoomId: string) => Promise<StoredFile[]>;
   deleteFile: (key: string) => Promise<void>;
@@ -34,18 +39,23 @@ async function getDb(): Promise<IDBPDatabase> {
 export function useLocalStorage(): FileStorage {
   // Save file and return its key
   const saveFile = useCallback(
-    async (file: File, chatRoomId: string, messageId: string): Promise<string> => {
+    async (
+      file: Blob,
+      chatRoomId: string,
+      messageId: string
+    ): Promise<string> => {
       try {
         const db = await getDb();
-        const key = `${chatRoomId}-${messageId}-${file.name}`;
-        
-        const fileObject: StoredFile = Object.assign(file, {
+        const key = `${chatRoomId}-${messageId}`;
+
+        const fileObject: StoredFile = {
+          blob: file,
           key,
           chatRoomId,
           messageId,
-        });
-
+        };
         await db.put(STORE_NAME, fileObject);
+
         return key;
       } catch (error) {
         console.error("Error saving file:", error);
@@ -56,36 +66,42 @@ export function useLocalStorage(): FileStorage {
   );
 
   // Get file as object URL
-  const getFileUrl = useCallback(async (key: string): Promise<string | null> => {
-    try {
-      const db = await getDb();
-      const file = await db.get(STORE_NAME, key) as File | undefined;
-      
-      if (!file) return null;
-      
-      const url = URL.createObjectURL(file);
-      
-      return url;
-    } catch (error) {
-      console.error("Error getting file:", error);
-      throw new Error("Failed to retrieve file from storage");
-    }
-  }, []);
+  const getFileUrl = useCallback(
+    async (key: string): Promise<string | null> => {
+      try {
+        const db = await getDb();
+        const file: StoredFile = await db.get(STORE_NAME, key);
+
+        if (!file) return null;
+
+        const url = URL.createObjectURL(file.blob);
+
+        return url;
+      } catch (error) {
+        console.error("Error getting file:", error);
+        throw new Error("Failed to retrieve file from storage");
+      }
+    },
+    []
+  );
 
   // Get all files for a chat room
-  const getFileUrlsByChat = useCallback(async (chatRoomId: string): Promise<StoredFile[]> => {
-    try {
-      const db = await getDb();
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const index = tx.store.index("chatRoomId");
-      const files: StoredFile[] = await index.getAll(chatRoomId);
-      
-      return files;
-    } catch (error) {
-      console.error("Error getting files by chat:", error);
-      throw new Error("Failed to retrieve files for chat room");
-    }
-  }, []);
+  const getFileUrlsByChat = useCallback(
+    async (chatRoomId: string): Promise<StoredFile[]> => {
+      try {
+        const db = await getDb();
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const index = tx.store.index("chatRoomId");
+        const files: StoredFile[] = await index.getAll(chatRoomId);
+
+        return files;
+      } catch (error) {
+        console.error("Error getting files by chat:", error);
+        throw new Error("Failed to retrieve files for chat room");
+      }
+    },
+    []
+  );
 
   // Delete file
   const deleteFile = useCallback(async (key: string): Promise<void> => {

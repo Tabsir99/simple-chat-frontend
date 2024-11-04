@@ -25,9 +25,18 @@ function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" style={{ overflow: "hidden" }}>
-      <body className={""} style={{ overflow: "hidden" }}>
-        <main className="bg-[hsl(250,24%,9%)] h-screen min-w-[100vw] overflow-hidden">
+    <html lang="en" style={{ overflow: "hidden", margin: 0, padding: 0 }}>
+      <body
+        style={{ overflow: "hidden", margin: 0, padding: 0 }}
+      >
+        <main
+          className=" overflow-hidden"
+          style={{
+            backgroundColor: "hsl(250,24%,9%)",
+            height: "100vh",
+            minWidth: "100vw",
+          }}
+        >
           {/* <div className="fixed w-screen h-screen pointer-events-none bg-orange-400 bg-opacity-[0.07]"></div> */}
 
           <AuthProvider>

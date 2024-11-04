@@ -44,18 +44,15 @@ export interface IChatHead {
   isTyping?: { profilePicture: string; username: string; userId: string }[];
 }
 
-
-export type ChatMembers =
-  | {
-      memberName: string;
-      isAdmin: boolean;
-      memberPicture: string | null;
-      memberId: string;
-      memberStatus: "online" | "offline";
-      memberNickname: string | null;
-      isCreator: boolean;
-    }[]
-  | undefined;
+export interface ChatRoomMember {
+  username: string;
+  nickName?: string;
+  userStatus: "online" | "offline";
+  isAdmin: boolean;
+  isCreator: boolean;
+  profilePicture?: string;
+  userId: string;
+}
 
 export type TypingEventData = {
   chatRoomId: string;
@@ -168,3 +165,9 @@ export interface MenuItem {
 }
 
 export type MemberAction = "remove" | "admin" | "nickname" | "message"
+
+export interface MinifiedMessage{
+  messageId: string;
+  content: string;
+  createdAt: string;
+}

@@ -1,8 +1,4 @@
-import {
-  IChatHead,
-  IMessage,
-  AttachmentViewModel,
-} from "@/types/chatTypes";
+import { IChatHead, IMessage, AttachmentViewModel } from "@/types/chatTypes";
 import { Smile, Paperclip, Send, X } from "lucide-react";
 import {
   Dispatch,
@@ -22,6 +18,7 @@ import { formatDate } from "@/utils/utils";
 import { useAuth } from "@/components/authComps/authcontext";
 import { useSocket } from "@/components/contextProvider/websocketContext";
 import EmojiPicker from "../messages/emojiPicker";
+import FilePreview from "../messages/attachments/attachmentPreview";
 
 export default function MessageInput({
   sendMessage,
@@ -106,25 +103,10 @@ export default function MessageInput({
       )}
 
       {attachment && (
-        <div className="grid grid-cols-3 h-36 items-start bg-[#2b3238] gap-0 -top-36 z-50 rounded-lg w-[58%] pr-2 right-1 overflow-x-hidden absolute  ">
-          <div className=" relative group rounded px-1 py-2 flex items-center gap-2 active:scale-95 transition-transform duration-200">
-            {true && (
-              <Image
-                width={200}
-                height={80}
-                src={attachment.fileUrl as string}
-                alt="attachment"
-                className="object-cover rounded"
-              />
-            )}
-            <button
-              onClick={() => clearAttachments()}
-              className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 rounded-full p-1"
-            >
-              <X size={12} />
-            </button>
-          </div>
-        </div>
+        <FilePreview
+          attachment={attachment}
+          clearAttachments={clearAttachments}
+        />
       )}
 
       <InputForm

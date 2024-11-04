@@ -161,7 +161,7 @@ export function useMessages({ chatId }: { chatId: string | null }) {
       }
     }
     // Update the active chat heads to render newMessage content and time
-    updateLastActivity(chatId as string, newMessage, attachment, chatId as string);
+    updateLastActivity(chatId as string, newMessage, attachment);
 
     const messageToSend: Partial<IMessage> = {
       ...(newMessage.content && {content: newMessage.content}),

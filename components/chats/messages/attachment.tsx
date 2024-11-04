@@ -11,6 +11,7 @@ interface AttachmentsProps {
 const Attachments = memo(({ attachments }: AttachmentsProps) => {
   const [loadAttempts, setLoadAttempts] = useState(0);
 
+  
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);

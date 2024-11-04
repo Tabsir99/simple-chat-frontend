@@ -149,16 +149,6 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
           {/* Anonymous Chat */}
         </div>
 
-        {/* Activity Stats */}
-
-        <UserStats
-          userStats={{
-            totalChats: userProfile.totalChats,
-            totalFriends: userProfile.totalFriends,
-            totalMessage: userProfile.totalMessageSent,
-          }}
-        />
-
         {/* Add to Group Button */}
         <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8 gap-10 flex justify-stretch items-center">
           <button className="bg-gray-900 w-full hover:bg-gray-700 text-white px-4 py-3 rounded-lg flex items-center justify-center">

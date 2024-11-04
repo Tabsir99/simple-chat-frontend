@@ -28,6 +28,7 @@ import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { mutate } from "swr";
 import BlockedChatUI from "@/components/chats/chat/blockedChat";
 import useFriendshipActions from "@/components/hooks/useFriendshipActions";
+import { useLocalStorage } from "@/components/hooks/useLocalStorage";
 
 export default function ChatRoom() {
   const [replyingTo, setReplyingTo] = useState<IMessage | null>(null);
@@ -46,8 +47,9 @@ export default function ChatRoom() {
   const messagesRef = useRef<(HTMLDivElement | null)[]>([]);
   const { checkAndRefreshToken } = useAuth();
 
+  const { saveFile, getFileUrl } = useLocalStorage();
 
-  const {handleFriendshipAction} = useFriendshipActions()
+  const { handleFriendshipAction } = useFriendshipActions();
   const {
     messages,
     addMessage,
@@ -152,6 +154,29 @@ export default function ChatRoom() {
           )
             return;
 
+          const url = await getFileUrl(
+            `${selectedActiveChat?.chatRoomId}-${el.target.id}`
+          );
+          console.log("url exists,",url)
+          if (url) {
+            mutate(
+              `${ecnf.apiUrl}/chats/${selectedActiveChat?.chatRoomId}/messages`,
+              (current: AllMessageResponse | undefined) => {
+                if (!current) return current;
+                return {
+                  allReceipts: current.allReceipts,
+                  messages: current.messages,
+                  attachments: current.attachments.map((a) =>
+                    a.messageId !== el.target.id
+                      ? a
+                      : { ...a, fileUrl: url as string }
+                  ),
+                };
+              },
+              false
+            );
+            return;
+          }
           const token = await checkAndRefreshToken();
           const response = await fetch(
             `${ecnf.apiUrl}/chats/${selectedActiveChat?.chatRoomId}/messages/${
@@ -167,6 +192,23 @@ export default function ChatRoom() {
           );
           if (response.ok) {
             const data: ApiResponse<string> = await response.json();
+            if (!data.data) return;
+          console.log("url not exists,",data)
+
+            setTimeout(async () => {
+              const res = await fetch(data.data as string);
+              const file = await res.blob();
+              console.log(
+                "Fetching and transforming original response -2nd, blob:",
+                file
+              );
+              await saveFile(
+                file,
+                selectedActiveChat?.chatRoomId as string,
+                el.target.id
+              );
+            },2000);
+
             mutate(
               `${ecnf.apiUrl}/chats/${selectedActiveChat?.chatRoomId}/messages`,
               (current: AllMessageResponse | undefined) => {
@@ -337,7 +379,10 @@ export default function ChatRoom() {
                       : undefined
                   }
                   onUnblock={async () => {
-                    await handleFriendshipAction("unblock",selectedActiveChat.blockedUserId as string)
+                    await handleFriendshipAction(
+                      "unblock",
+                      selectedActiveChat.blockedUserId as string
+                    );
                   }}
                 />
               ) : (

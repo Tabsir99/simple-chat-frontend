@@ -14,8 +14,8 @@ import {
   TypingEventData,
 } from "@/types/chatTypes";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
-import { useParams } from "next/navigation";
-import { ChatRoomMember } from "@/components/chats/chat/groupInfoModal";
+import { useParams, useRouter } from "next/navigation";
+import { ChatRoomMember } from "@/types/chatTypes";
 import { Friends } from "@/types/userTypes";
 
 type UserStatusEvent = {
@@ -55,7 +55,7 @@ type NewMessageEvent = {
     chatRoomId: string;
     message: {
       parentMessage?: IMessage["parentMessage"];
-      content?: string | undefined;
+      content?: string;
       messageId: string;
       createdAt: string;
       sender?: IMessage["sender"];
@@ -115,11 +115,8 @@ type MemberNicknameUpdate = {
 type MemberAddEvent = {
   event: "member:add";
   data: {
-    userId: string;
     chatRoomId: string;
-    username: string;
-    profilePicture: string;
-    userStatus: "online" | "offline";
+    users: string[]
   };
 };
 
@@ -130,6 +127,7 @@ type MemberRemoveEvent = {
     chatRoomId: string;
   };
 };
+
 type ChatEvents =
   | MemberRoleUpdate
   | MemberNicknameUpdate
@@ -145,6 +143,7 @@ export default function RootAuthLayout({
   const { user } = useAuth();
 
   const { updateActivity } = useRecentActivities();
+  const router = useRouter();
 
   const param = useParams();
   const currentChatRef = useRef<string>(param.chatId as string);
@@ -251,8 +250,8 @@ export default function RootAuthLayout({
                   ...mem,
                   isAdmin: data.userRole === "admin",
                 };
-              }, false);
-            }
+              });
+            },false
           );
           break;
 
@@ -274,25 +273,26 @@ export default function RootAuthLayout({
           break;
 
         case "member:add":
+          console.log("Whats up sucker", data)
+
           mutate(
-            `${ecnf.apiUrl}/chats/${data.chatRoomId}/members`,
-            (current: ChatRoomMember[] | undefined) => {
-              if (!current) return current;
-              return [
-                ...current,
-                {
-                  isAdmin: false,
-                  isCreator: false,
-                  userId: data.userId,
-                  nickName: undefined,
-                  profilePicture: data.profilePicture,
-                  username: data.username,
-                  userStatus: data.userStatus,
-                },
-              ];
-            },
-            false
-          );
+            `${ecnf.apiUrl}/chats/${data.chatRoomId}/members`);
+
+          setActiveChats((prev) => {
+            if (!prev) return prev;
+            return prev.map((c) => {
+              if (
+                c.chatRoomId !== data.chatRoomId ||
+                !data.users.includes(user?.userId || "")
+              )
+                return c;
+              return {
+                ...c,
+                removedAt: null,
+              };
+            });
+          });
+          
           break;
 
         case "member:remove":
@@ -304,6 +304,22 @@ export default function RootAuthLayout({
             },
             false
           );
+          setActiveChats((prev) => {
+            if (!prev) return prev;
+            return prev.map((c) => {
+              if (
+                c.chatRoomId !== data.chatRoomId ||
+                user?.userId !== data.userId
+              )
+                return c;
+              return {
+                ...c,
+                removedAt: new Date().toISOString(),
+                unreadCount: 0
+              };
+            });
+          });
+          router.push("/chats");
         default:
           break;
       }
@@ -344,7 +360,6 @@ export default function RootAuthLayout({
           break;
 
         case "message:new":
-          console.log("new message arrive,",data.message)
           const newMessage: IMessage = {
             content: data.message.content || "",
             createdAt: data.message.createdAt,
@@ -357,11 +372,11 @@ export default function RootAuthLayout({
             parentMessage: data.message.parentMessage || null,
             MessageReaction: [],
           };
+        
           updateLastActivity(
             data.chatRoomId,
             newMessage,
             data.attachment,
-            currentChatRef.current
           );
           if (!currentChatRef.current) {
             updateActivity("unseenChats", "increment");

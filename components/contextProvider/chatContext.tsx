@@ -13,6 +13,7 @@ import { AttachmentViewModel, IChatHead, IMessage } from "@/types/chatTypes";
 import useCustomSWR from "../hooks/customSwr";
 import { ecnf } from "@/utils/env";
 import { useAuth } from "../authComps/authcontext";
+import { useParams } from "next/navigation";
 
 interface ChatContextProps {
   activeChats: IChatHead[] | null;
@@ -22,7 +23,6 @@ interface ChatContextProps {
     chatRoomId: string,
     message: IMessage,
     attachment?: AttachmentViewModel,
-    selectedChatId?: string
   ) => void;
   getLastMessage: (
     sender: { userId: string | null; username: string | null },
@@ -46,6 +46,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { data, error, isLoading } = useCustomSWR<Array<IChatHead>>(
     userId ? `${ecnf.apiUrl}/chats` : null
   );
+  const selectedChatId = useParams().chatId
 
   useEffect(() => {
     setActiveChats(data || null);
@@ -119,7 +120,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     chatRoomId: string,
     message: IMessage,
     attachment?: AttachmentViewModel,
-    selectedChatId?: string
+    removedAt?:string
   ) => {
     setActiveChats((prevChats) => {
       if (!prevChats) return null;
@@ -141,6 +142,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           senderUserId: message.sender?.userId || null,
           senderUsername: message.sender?.username || null,
           lastActivity: message.createdAt,
+          removedAt: removedAt?removedAt:chat.removedAt,
           unreadCount: 
           selectedChatId === chatRoomId
             ? chat.unreadCount

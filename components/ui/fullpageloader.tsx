@@ -58,7 +58,9 @@ const FullPageLoader = ({
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
+    console.log("It ran")
     const initialDelay = setTimeout(() => {
+      console.log("TImer run")
       setShowText(true);
     }, 1000);
     return () => clearTimeout(initialDelay);
@@ -99,11 +101,15 @@ const FullPageLoader = ({
   return (
     <div
       className={
-        " inset-0 flex items-center justify-center bg-gray-900 " + className
+        " inset-0 " + className
       }
       style={{
         width: width,
         height: height,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#111827"
       }}
     >
       <div className="text-center flex flex-col justify-center items-center">

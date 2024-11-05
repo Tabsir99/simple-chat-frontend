@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Search, UserPlus, X, Check, AlertCircle } from "lucide-react";
 import { useAuth } from "@/components/authComps/authcontext";
-import { useNotification } from "@/components/contextProvider/notificationContext";
+import { useCommunication } from "@/components/contextProvider/communicationContext";
 import { ecnf } from "@/utils/env";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useParams } from "next/navigation";
@@ -38,7 +38,7 @@ const AddMemberModal = ({ onClose, onAddMembers }: AddMemberModalProps) => {
   const queryRef = useRef("");
 
   const { checkAndRefreshToken } = useAuth();
-  const { showNotification } = useNotification();
+  const { showNotification } = useCommunication();
 
   useEffect(() => {
     // Reset results when search term changes

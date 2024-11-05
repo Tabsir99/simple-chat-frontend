@@ -19,7 +19,6 @@ import { useAuth } from "@/components/authComps/authcontext";
 import { useChatContext } from "@/components/contextProvider/chatContext";
 import { useParams, useRouter } from "next/navigation";
 import FullPageLoader from "@/components/ui/fullpageloader";
-import { useNotification } from "@/components/contextProvider/notificationContext";
 import { v4 as uuid4 } from "uuid";
 import { Bell, Info } from "lucide-react";
 import EmojiPicker from "@/components/chats/messages/emojiPicker";
@@ -29,6 +28,7 @@ import { mutate } from "swr";
 import BlockedChatUI from "@/components/chats/chat/blockedChat";
 import useFriendshipActions from "@/components/hooks/useFriendshipActions";
 import { useLocalStorage } from "@/components/hooks/useLocalStorage";
+import { useCommunication } from "@/components/contextProvider/communicationContext";
 
 export default function ChatRoom() {
   const [replyingTo, setReplyingTo] = useState<IMessage | null>(null);
@@ -37,7 +37,7 @@ export default function ChatRoom() {
   const currentUser = useAuth().user;
 
   const { activeChats } = useChatContext();
-  const { showNotification } = useNotification();
+  const { showNotification } = useCommunication();
 
   const params: { chatId: string } = useParams();
   const router = useRouter();

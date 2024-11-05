@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "@/components/authComps/authcontext";
 import { Friends, IUserProfile } from "@/types/userTypes";
-import { useNotification } from "../contextProvider/notificationContext";
 import { ecnf } from "@/utils/env";
 import { mutate as gMutate } from "swr";
 import { ApiResponse } from "@/types/responseType";
 import { IChatHead } from "@/types/chatTypes";
+import { useCommunication } from "../contextProvider/communicationContext";
 
 type Action = "accept" | "reject" | "block" | "unblock" | "create" | "cancel";
 
@@ -14,7 +14,7 @@ const useFriendshipActions = () => {
   const [loading, setLoading] = useState(false);
 
   const { checkAndRefreshToken } = useAuth();
-  const { showNotification } = useNotification();
+  const { showNotification } = useCommunication();
 
   const handleFriendshipAction = async (action: Action, userId: string | null) => {
     const fetchFunction = async (status: Friends["status"]) => {

@@ -16,9 +16,9 @@ import Image from "next/image";
 import { GrAttachment } from "react-icons/gr";
 import { formatDate } from "@/utils/utils";
 import { useAuth } from "@/components/authComps/authcontext";
-import { useSocket } from "@/components/contextProvider/websocketContext";
 import EmojiPicker from "../messages/emojiPicker";
 import FilePreview from "../messages/attachments/attachmentPreview";
+import { useCommunication } from "@/components/contextProvider/communicationContext";
 
 export default function MessageInput({
   sendMessage,
@@ -143,7 +143,7 @@ const InputForm = ({
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const { user } = useAuth();
-  const { socket } = useSocket();
+  const { socket } = useCommunication()
 
   useEffect(() => {
     if (newMessage.length > 0 && !isTyping) {

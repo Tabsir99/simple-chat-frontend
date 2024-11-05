@@ -1,8 +1,7 @@
 import "./globals.css";
 // import { Inter } from "next/font/google";
 import { AuthProvider } from "@/components/authComps/authcontext";
-import { SocketProvider } from "@/components/contextProvider/websocketContext";
-import { NotificationProvider } from "@/components/contextProvider/notificationContext";
+import { CommunicationProvider } from "@/components/contextProvider/communicationContext";
 import type { Metadata } from "next";
 import { ChatProvider } from "@/components/contextProvider/chatContext";
 import { RecentActivitiesProvider } from "@/components/contextProvider/recentActivityContext";
@@ -26,9 +25,7 @@ function RootLayout({
 }>) {
   return (
     <html lang="en" style={{ overflow: "hidden", margin: 0, padding: 0 }}>
-      <body
-        style={{ overflow: "hidden", margin: 0, padding: 0 }}
-      >
+      <body style={{ overflow: "hidden", margin: 0, padding: 0 }}>
         <main
           className=" overflow-hidden"
           style={{
@@ -40,14 +37,13 @@ function RootLayout({
           {/* <div className="fixed w-screen h-screen pointer-events-none bg-orange-400 bg-opacity-[0.07]"></div> */}
 
           <AuthProvider>
-            <SocketProvider>
-              <ChatProvider>
-                <RecentActivitiesProvider>
-                  {/* Notification Provider is for the notification pop up component context */}
-                  <NotificationProvider>{children} </NotificationProvider>
-                </RecentActivitiesProvider>
-              </ChatProvider>
-            </SocketProvider>
+            <CommunicationProvider>
+                <ChatProvider>
+                  <RecentActivitiesProvider>
+                    {children}
+                  </RecentActivitiesProvider>
+                </ChatProvider>
+            </CommunicationProvider>
           </AuthProvider>
         </main>
       </body>

@@ -32,8 +32,7 @@ import {
 import { KeyedMutator, mutate as gMutate } from "swr";
 import { ecnf } from "@/utils/env";
 import { useParams } from "next/navigation";
-import { useNotification } from "@/components/contextProvider/notificationContext";
-import { useSocket } from "@/components/contextProvider/websocketContext";
+import { useCommunication } from "@/components/contextProvider/communicationContext";
 import AddMemberModal from "./addMemberModal";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useChatContext } from "@/components/contextProvider/chatContext";
@@ -184,7 +183,7 @@ const RoomMembers = ({
 
   const { checkAndRefreshToken } = useAuth();
   const { chatId } = useParams();
-  const { showNotification } = useNotification();
+  const { showNotification } = useCommunication();
   const { updateLastActivity } = useChatContext()
 
   

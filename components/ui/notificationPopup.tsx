@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { AlertCircle, CheckCircle, XCircle, Info, X } from "lucide-react";
+import { NotificationProps } from "../contextProvider/communicationContext";
 
-type NotificationType = "success" | "error" | "warning" | "info";
 
 const notificationTypes = {
   success: {
@@ -24,15 +24,12 @@ const notificationTypes = {
   info: { bgColor: "bg-sky-900", iconColor: "text-sky-400", icon: Info },
 };
 
-export interface NotificationProps {
-  message?: string;
-  type?: NotificationType;
-  onClose?: () => void;
-}
 
 const Notification: React.FC<NotificationProps> = ({
+  notificationId,
   message,
   type,
+  time=5000,
   onClose,
 }) => {
   const { bgColor, iconColor, icon: Icon } = notificationTypes[type || "info"];
@@ -44,8 +41,8 @@ const Notification: React.FC<NotificationProps> = ({
     let innerTimer: NodeJS.Timeout;
     const timer = setTimeout(() => {
       setIsVisible(false);
-      innerTimer = setTimeout(onClose, 500);
-    }, 5000);
+      innerTimer = setTimeout(() => onClose(notificationId), 500);
+    }, time);
 
     return () => {
       clearTimeout(timer);

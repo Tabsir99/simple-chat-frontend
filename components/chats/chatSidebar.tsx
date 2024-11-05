@@ -4,13 +4,11 @@ import { LogOut, HelpCircle } from "lucide-react";
 
 import SideBarNav from "./sidebarnav";
 import Link from "next/link";
-import { useSocket } from "../contextProvider/websocketContext";
 import { ecnf } from "@/utils/env";
 import { useAuth } from "../authComps/authcontext";
 import Image from "next/image";
 
 export default function ChatSidebar() {
-  const { socket } = useSocket();
   const { user } = useAuth();
 
   return (

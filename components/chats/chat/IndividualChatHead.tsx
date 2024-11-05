@@ -19,22 +19,30 @@ import {
   LogOut,
   Users,
   Trash,
+  PhoneCallIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MediaModal from "./mediaModal";
 import Image from "next/image";
 import { GroupInfoModal } from "./groupInfoModal";
-import { IChatHead, MenuItem, MenuAction, ChatRoomMember } from "@/types/chatTypes";
+import {
+  IChatHead,
+  MenuItem,
+  MenuAction,
+  ChatRoomMember,
+} from "@/types/chatTypes";
 import { ecnf } from "@/utils/env";
 import { useAuth } from "@/components/authComps/authcontext";
 import { mutate as globalMutate } from "swr";
-import { useNotification } from "@/components/contextProvider/notificationContext";
+
 import useCustomSWR from "@/components/hooks/customSwr";
 import useFriendshipActions from "@/components/hooks/useFriendshipActions";
 import ConfirmationModal from "@/components/ui/confirmationModal";
 import { AllMessageResponse } from "@/types/responseType";
 import { useChatContext } from "@/components/contextProvider/chatContext";
+import CallControls from "./callButtons";
+import { useCommunication } from "@/components/contextProvider/communicationContext";
 
 // Create menu configurations
 const createMenuConfig = (
@@ -113,9 +121,9 @@ export default function ChatHeader({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { checkAndRefreshToken, user } = useAuth();
-  const { showNotification } = useNotification();
+  const { showNotification } = useCommunication();
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const { setActiveChats } = useChatContext()
+  const { setActiveChats } = useChatContext();
 
   const { data, mutate } = useCustomSWR<ChatRoomMember[]>(
     `${ecnf.apiUrl}/chats/${selectedActiveChat.chatRoomId}/members`,
@@ -272,7 +280,22 @@ export default function ChatHeader({
           </>
         )}
       </div>
+
       <div className="flex items-center space-x-4 relative">
+        <CallControls
+          recipientId={selectedActiveChat.chatRoomId}
+          recipientName={
+            !selectedActiveChat.isGroup
+              ? (selectedActiveChat.oppositeUsername as string)
+              : (selectedActiveChat.roomName as string)
+          }
+          recipientAvatar={
+            !selectedActiveChat.isGroup
+              ? (selectedActiveChat.oppositeProfilePicture as string)
+              : (selectedActiveChat.roomImage as string)
+          }
+        />
+
         <div className="px-2 bg-[#292f36] rounded-md text-[16px] flex justify-center items-center">
           <input
             type="search"
@@ -361,28 +384,30 @@ export default function ChatHeader({
             globalMutate(
               `${ecnf.apiUrl}/chats/${selectedActiveChat.chatRoomId}/messages`,
               (current: AllMessageResponse | undefined) => {
-                if(!current) return current
+                if (!current) return current;
                 return {
                   allReceipts: [],
                   attachments: [],
-                  messages: []
-                }
-              },false
+                  messages: [],
+                };
+              },
+              false
             );
-            setActiveChats(prev => {
-              if(!prev) return prev
-              return prev.map(chat => {
-                if(chat.chatRoomId !== selectedActiveChat.chatRoomId) return chat
+            setActiveChats((prev) => {
+              if (!prev) return prev;
+              return prev.map((chat) => {
+                if (chat.chatRoomId !== selectedActiveChat.chatRoomId)
+                  return chat;
                 return {
                   ...chat,
                   chatClearedAt: new Date().toISOString(),
                   unreadCount: 0,
-                }
-              })
-            })
-            router.push("/chats")
-            
-            showNotification("Chat cleared!","success")
+                };
+              });
+            });
+            router.push("/chats");
+
+            showNotification("Chat cleared!", "success");
           } else {
             showNotification(
               "Something went wrong, Could not clear chat",

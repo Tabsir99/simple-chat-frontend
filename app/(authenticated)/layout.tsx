@@ -1,7 +1,6 @@
 "use client";
 
 import { useChatContext } from "@/components/contextProvider/chatContext";
-import { useSocket } from "@/components/contextProvider/websocketContext";
 import { ProtectedRoute, useAuth } from "@/components/authComps/authcontext";
 import { useCallback, useEffect, useRef } from "react";
 import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
@@ -17,6 +16,8 @@ import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useParams, useRouter } from "next/navigation";
 import { ChatRoomMember } from "@/types/chatTypes";
 import { Friends } from "@/types/userTypes";
+import { useSocketConnection } from "@/components/hooks/useSocket";
+import { useCommunication } from "@/components/contextProvider/communicationContext";
 
 type UserStatusEvent = {
   event: "user:status";
@@ -128,6 +129,37 @@ type MemberRemoveEvent = {
   };
 };
 
+type IncomingCallEvent = {
+  event: "call:incoming",
+  data: {
+    from: RTCSessionDescriptionInit,
+    isVideo: boolean,
+    to: string
+  }
+}
+type CallAnsweredEvent = {
+  event: "call:answered",
+  data: {
+    answer: RTCSessionDescriptionInit
+  }
+}
+
+type CallEndedEvent = {
+  event: "call:ended",
+  data: {
+    callId: string
+  }
+}
+
+type ICECandidateEvent = {
+  event: "ice-candidate",
+  data: {
+    candidate: RTCIceCandidate
+  }
+}
+
+type CallEvents = IncomingCallEvent | CallAnsweredEvent | CallEndedEvent | ICECandidateEvent
+
 type ChatEvents =
   | MemberRoleUpdate
   | MemberNicknameUpdate
@@ -138,9 +170,10 @@ export default function RootAuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { socket } = useSocket();
+
   const { setActiveChats, updateLastActivity } = useChatContext();
   const { user } = useAuth();
+  const { socket } = useCommunication()
 
   const { updateActivity } = useRecentActivities();
   const router = useRouter();
@@ -326,6 +359,7 @@ export default function RootAuthLayout({
     };
 
     const messageEventHandler = ({ event, data }: MessageEvents) => {
+      
       switch (event) {
         case "user:typing":
           setActiveChats((prevChats) => {
@@ -476,15 +510,21 @@ export default function RootAuthLayout({
       }
     };
 
+    const callEventHandler = ({ event, data }: CallEvents) => {
+
+    }
+
     socket.on("userEvent", userEventsHandler);
     socket.on("chatEvent", chatEventsHandler);
     socket.on("messageEvent", messageEventHandler);
+    socket.on("callEvent",callEventHandler)
 
     return () => {
       socket.removeAllListeners();
       socket.off("userEvent");
       socket.off("chatEvent");
       socket.off("messageEvent");
+      socket.off("callEvent")
     };
   }, [socket]);
 

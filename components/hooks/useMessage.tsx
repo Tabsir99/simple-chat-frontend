@@ -8,11 +8,10 @@ import {
 import { IUserMiniProfile } from "@/types/userTypes";
 import useCustomSWR from "./customSwr";
 import { ecnf } from "@/utils/env";
-import { useSocket } from "../contextProvider/websocketContext";
 import { useChatContext } from "../contextProvider/chatContext";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useAuth } from "../authComps/authcontext";
-import { useNotification } from "../contextProvider/notificationContext";
+import { useCommunication } from "../contextProvider/communicationContext";
 
 export function useMessages({ chatId }: { chatId: string | null }) {
   const [messages, setMessages] = useState<IMessage[]>([]);
@@ -20,10 +19,9 @@ export function useMessages({ chatId }: { chatId: string | null }) {
   const [attachmentsMap, setAttachmentsMap] = useState<
     Map<string, AttachmentViewModel>
   >(new Map());
-  const { showNotification } = useNotification();
+  const { showNotification,socket } = useCommunication();
 
   const { updateLastActivity } = useChatContext();
-  const { socket } = useSocket();
   const { checkAndRefreshToken } = useAuth();
 
   const [fetchMore, setFetchMore] = useState({ isLoading: false, hasMore: true })

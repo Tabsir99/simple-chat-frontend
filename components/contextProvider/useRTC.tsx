@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 
 const config: RTCConfiguration = {
@@ -14,15 +14,21 @@ export const useRTC = (socket: Socket | null) => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const pConnection = useRef<RTCPeerConnection | null>(null);
+  const pendingCandidates = useRef<RTCIceCandidate[]>([]);
 
+
+
+  useEffect(() => {
+    console.log("remotestream:",remoteStream)
+  },[remoteStream])
   const getUserMedia = useCallback(async (isVideo: boolean) => {
+    console.log("is it video,",isVideo)
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: isVideo,
       });
       setLocalStream(mediaStream);
-      console.log("Permission granted by the user");
       return mediaStream;
     } catch (error) {
       console.error("Error, permission failed");
@@ -31,7 +37,7 @@ export const useRTC = (socket: Socket | null) => {
   }, []);
 
   const createConnection = useCallback(
-    async (remoteUserId: string, mediaStream: MediaStream) => {
+    async (chatRoomId: string, mediaStream: MediaStream) => {
       const pc = new RTCPeerConnection(config);
       pConnection.current = pc;
 
@@ -43,9 +49,9 @@ export const useRTC = (socket: Socket | null) => {
       };
       pc.onicecandidate = (ev) => {
         if (ev.candidate) {
-          socket?.emit("ice-cadidate", {
-            remoteUserId,
+          socket?.emit("ice-candidate", {
             candidate: ev.candidate,
+            chatRoomId: chatRoomId,
           });
         }
       };
@@ -57,20 +63,30 @@ export const useRTC = (socket: Socket | null) => {
   );
 
   const makeOutgoingCalls = useCallback(
-    async (recipientId: string, isVideo: boolean) => {
+    async (
+      chatRoomId: string,
+      isVideo: boolean,
+      currentUser: any,
+      callId: string
+    ) => {
+      // if(!socket) return
       try {
         const stream = await getUserMedia(isVideo);
-        const pc = await createConnection(recipientId, stream);
+        const pc = await createConnection(chatRoomId, stream);
 
         const offer = await pc.createOffer();
+
         await pc.setLocalDescription(offer);
         socket?.emit("call-offer", {
           offer,
-          to: recipientId,
+          to: chatRoomId,
           isVideo,
+          caller: currentUser,
+          callId,
         });
       } catch (error) {
         console.log("Outgoing call failed");
+        console.log(error);
       }
     },
     [getUserMedia, createConnection, socket]
@@ -78,25 +94,32 @@ export const useRTC = (socket: Socket | null) => {
 
   const handleIncomingCall = useCallback(
     async ({
-      from: callerId,
+      chatRoomId,
       offer,
       isVideo,
     }: {
-      from: string;
+      chatRoomId: string;
       offer: RTCSessionDescriptionInit;
       isVideo: boolean;
     }) => {
       try {
         const stream = await getUserMedia(isVideo);
-        const pc = await createConnection(callerId, stream);
+        const pc = await createConnection(chatRoomId, stream);
 
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
 
+        while (pendingCandidates.current.length > 0) {
+          const candidate = pendingCandidates.current.shift();
+          if (candidate) {
+            await pc.addIceCandidate(candidate);
+          }
+        }
+
         socket?.emit("call-answer", {
           answer,
-          to: callerId,
+          to: chatRoomId,
         });
       } catch (err) {
         console.error("Error handling incoming call:", err);
@@ -112,7 +135,7 @@ export const useRTC = (socket: Socket | null) => {
         if (pConnection.current) {
           await pConnection.current.setRemoteDescription(
             new RTCSessionDescription(answer)
-          );
+          );          
         }
       } catch (err) {
         console.error("Error handling answer:", err);
@@ -123,9 +146,7 @@ export const useRTC = (socket: Socket | null) => {
 
   const handleIceCandidate = useCallback((candidate: RTCIceCandidate) => {
     try {
-      if (pConnection.current) {
-        pConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
-      }
+        pendingCandidates.current.push(new RTCIceCandidate(candidate));
     } catch (err) {
       console.error("Error handling ICE candidate:", err);
     }
@@ -139,9 +160,11 @@ export const useRTC = (socket: Socket | null) => {
 
     if (localStream) {
       localStream.getTracks().forEach((track) => track.stop());
+
       setLocalStream(null);
     }
 
+    pendingCandidates.current = [];
     setRemoteStream(null);
   }, [localStream]);
 
@@ -153,5 +176,7 @@ export const useRTC = (socket: Socket | null) => {
     handleIceCandidate,
     endCall,
     handleAnswer,
+    localStream,
+    remoteStream,
   };
 };

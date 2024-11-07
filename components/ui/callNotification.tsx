@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Phone, Video, X, User2, Maximize2 } from "lucide-react";
-import { CallSession, useCommunication } from "../contextProvider/communicationContext";
-
-
-
-
-
-
+import {
+  CallSession,
+  useCommunication,
+} from "../contextProvider/communicationContext";
+import { useParams } from "next/navigation";
 
 interface MinimizedCallProps {
   callSession: CallSession;
@@ -20,9 +18,11 @@ const MinimizedCall: React.FC<MinimizedCallProps> = ({
   maximizeCallScreen,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const { handleAcceptCall, handleDeclineCall, handleEndCall } = useCommunication();
+  const { handleAcceptCall, handleDeclineCall, handleEndCall } =
+    useCommunication();
 
-  const { caller, recipient, isVideoCall, callId, status } = callSession;
+  const { caller, recipient, isVideoCall, callId, chatRoomId, offer } =
+    callSession;
   const remoteParticipant = isLocalUserCaller ? recipient : caller;
 
   useEffect(() => {
@@ -89,14 +89,16 @@ const MinimizedCall: React.FC<MinimizedCallProps> = ({
             ) : (
               <>
                 <button
-                  onClick={() => handleDeclineCall(callId)}
+                  onClick={() => {
+                    handleDeclineCall(callId, chatRoomId);
+                  }}
                   className="p-3 rounded-full bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white transition-all duration-200 hover:scale-105"
                   aria-label="Decline call"
                 >
                   <X className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => handleAcceptCall(callId)}
+                  onClick={() => handleAcceptCall(callId, offer, isVideoCall, chatRoomId)}
                   className="p-3 rounded-full bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white transition-all duration-200 hover:scale-105 animate-pulse"
                   aria-label="Accept call"
                 >

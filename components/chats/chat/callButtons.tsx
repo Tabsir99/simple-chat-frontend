@@ -5,6 +5,7 @@ import {
   CallParticipant,
   useCommunication,
 } from "@/components/contextProvider/communicationContext";
+import { useParams } from "next/navigation";
 
 interface CallButtonProps {
   icon: LucideIcon;
@@ -73,6 +74,8 @@ const CallControls: React.FC<CallControlsProps> = ({
 }) => {
   const { initiateCall } = useCommunication();
 
+const chatRoomId = useParams().chatId
+
   const handleCall = (isVideo: boolean) => {
     const callSession = {
       callId: uuid4(),
@@ -80,6 +83,7 @@ const CallControls: React.FC<CallControlsProps> = ({
       recipient: recipient,
       isVideoCall: isVideo,
       status: "initiating" as const,
+      chatRoomId: chatRoomId as string,
       startTime: new Date(),
     };
 

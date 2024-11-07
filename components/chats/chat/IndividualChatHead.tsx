@@ -282,19 +282,21 @@ export default function ChatHeader({
       </div>
 
       <div className="flex items-center space-x-4 relative">
-        <CallControls
-          recipientId={selectedActiveChat.chatRoomId}
-          recipientName={
-            !selectedActiveChat.isGroup
-              ? (selectedActiveChat.oppositeUsername as string)
-              : (selectedActiveChat.roomName as string)
-          }
-          recipientAvatar={
-            !selectedActiveChat.isGroup
-              ? (selectedActiveChat.oppositeProfilePicture as string)
-              : (selectedActiveChat.roomImage as string)
-          }
-        />
+        {!selectedActiveChat.isGroup && (
+          <CallControls
+            localUser={{
+              profilePicture: user?.profilePicture || "",
+              userId: user?.userId as string,
+              username: user?.username as string,
+            }}
+            recipient={{
+              profilePicture:
+                selectedActiveChat.oppositeProfilePicture as string,
+              userId: selectedActiveChat.oppositeUserId as string,
+              username: selectedActiveChat.oppositeUsername as string,
+            }}
+          />
+        )}
 
         <div className="px-2 bg-[#292f36] rounded-md text-[16px] flex justify-center items-center">
           <input

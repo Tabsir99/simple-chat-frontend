@@ -3,7 +3,7 @@ import { Search, UserPlus, Users } from 'lucide-react';
 
 export default function SearchPeoplePlaceholder() {
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-gray-900/70 text-gray-300 p-8">
+    <div className="flex flex-col items-center justify-center h-full bg-gray-900/70 text-gray-300 p-8 max-md:hidden">
       <div className="mb-8 relative">
         <Search size={64} className="relative z-10" />
       </div>

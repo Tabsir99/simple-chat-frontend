@@ -37,7 +37,7 @@ export interface CallSession {
   isVideoCall: boolean;
   status: "initiating" | "ringing" | "connected" | "ended";
   chatRoomId: string;
-  offer: RTCSessionDescriptionInit;
+  offer?: RTCSessionDescriptionInit;
   startTime?: Date;
   endTime?: Date;
 }

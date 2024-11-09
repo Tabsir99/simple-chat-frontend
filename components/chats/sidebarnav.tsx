@@ -10,7 +10,7 @@ import { useRecentActivities } from "../contextProvider/recentActivityContext";
 const navItems = [
   { href: "/chats", icon: BsChat, label: "Chats" },
   { href: "/search-people/friends", icon: Users, label: "Friends" },
-  { href: "/search-people", icon: Search, label: "Search People" },
+  { href: "/search-people", icon: Search, label: "Find People" },
 ];
 
 export default function SideBarNav() {
@@ -34,7 +34,7 @@ export default function SideBarNav() {
   };
 
   return (
-    <ul className="gap-3 flex flex-col items-center">
+    <ul className="flex flex-col items-center gap-2 px-1">
       {navItems.map((item) => {
         const alertCount = getAlertCount(item.href);
         const isActive = 
@@ -44,23 +44,39 @@ export default function SideBarNav() {
             !activeRoute.includes("/favorites"));
 
         return (
-          <li
-            key={item.href}
-            className="relative"
-          >
+          <li key={item.href} className=" w-full ">
             <Link 
               href={item.href} 
               className={`
-                flex items-center justify-center w-10 h-10 rounded-xl
-                transition-all duration-300 ease-in-out
+                relative flex items-center justify-center gap-3 p-3 rounded-xl
+                transition-all duration-200 group
                 ${isActive 
-                  ? "bg-blue-500 text-white shadow-lg" 
+                  ? "bg-blue-500 text-white" 
                   : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}
               `}
             >
-              <item.icon size={24} aria-label={item.label} />
+              <item.icon 
+                size={20} 
+                className="min-w-[20px]"
+                aria-label={item.label} 
+              />
+              {/* Label - Hidden on large screens */}
+              <span className="lg:hidden">{item.label}</span>
+              
+              {/* Tooltip - Shown only on large screens on hover */}
+              <span className="hidden lg:block lg:absolute lg:left-16 lg:bg-gray-800 lg:px-2 lg:py-1 lg:rounded lg:text-sm lg:opacity-0 lg:group-hover:opacity-100 lg:pointer-events-none lg:whitespace-nowrap">
+                {item.label}
+              </span>
+
+              {/* Alert Counter */}
               {alertCount > 0 && (
-                <span className="absolute top-0 right-0 flex items-center justify-center w-[22px] h-[18px] text-[12px] font-bold text-white bg-red-500 rounded-full p-2 transform translate-x-1/3 -translate-y-1/3">
+                <span className={`
+                  flex items-center justify-center min-w-[22px] h-[18px] 
+                  text-[12px] font-bold text-white bg-red-500 rounded-full px-1
+                  ${!isActive ? "bg-red-500" : "bg-white text-blue-500"}
+                  lg:absolute lg:top-0 lg:right-0 lg:transform lg:translate-x-1/3 lg:-translate-y-1/3
+                  lg:group-hover:translate-x-1/2
+                `}>
                   {alertCount > 99 ? '99+' : alertCount}
                 </span>
               )}

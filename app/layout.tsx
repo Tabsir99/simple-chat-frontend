@@ -24,10 +24,10 @@ function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" style={{ overflow: "hidden", margin: 0, padding: 0 }}>
-      <body style={{ overflow: "hidden", margin: 0, padding: 0 }}>
+    <html lang="en" style={{ margin: 0, padding: 0 }}>
+      <body style={{ margin: 0, padding: 0 }}>
         <main
-          className=" overflow-hidden"
+          className=" overflow-hidden flex"
           style={{
             backgroundColor: "hsl(250,24%,9%)",
             height: "100vh",

@@ -15,8 +15,12 @@ import {
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useParams, useRouter } from "next/navigation";
 import { ChatRoomMember } from "@/types/chatTypes";
-import { CallParticipant, useCommunication } from "@/components/contextProvider/communicationContext";
+import {
+  CallParticipant,
+  useCommunication,
+} from "@/components/contextProvider/communicationContext";
 import { v4 } from "uuid";
+import ChatSidebar from "@/components/chats/chatSidebar";
 
 type UserStatusEvent = {
   event: "user:status";
@@ -140,7 +144,7 @@ export default function RootAuthLayout({
 }) {
   const { setActiveChats, updateLastActivity } = useChatContext();
   const { user } = useAuth();
-  const { socket, showIncomingCall,handleEndCall } = useCommunication();
+  const { socket, showIncomingCall, handleEndCall } = useCommunication();
 
   const { updateActivity } = useRecentActivities();
   const router = useRouter();
@@ -473,8 +477,6 @@ export default function RootAuthLayout({
       }
     };
 
-    
-
     socket.on("userEvent", userEventsHandler);
     socket.on("chatEvent", chatEventsHandler);
     socket.on("messageEvent", messageEventHandler);
@@ -493,7 +495,10 @@ export default function RootAuthLayout({
 
   return (
     <>
-      <ProtectedRoute>{children}</ProtectedRoute>
+      <ProtectedRoute>
+        {" "}
+        <ChatSidebar /> {children}
+      </ProtectedRoute>
     </>
   );
 }

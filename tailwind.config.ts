@@ -19,6 +19,7 @@ const config: Config = {
       screens: {
         lg2: "870px",
         xs: "560px",
+        xl2: "1200px"
       },
       keyframes: {
         "slide-left-in": {

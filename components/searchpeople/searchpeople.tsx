@@ -7,6 +7,7 @@ import { MiniProfileSkeleton } from "../skeletons/skeleton";
 import { useAuth } from "../authComps/authcontext";
 import Image from "next/image";
 import { ecnf } from "@/utils/env";
+import SearchComp from "../ui/searchComponent";
 
 export default function SearchPeopleComp() {
   const [people, setPeople] = useState<IUserMiniProfile[]>([]);
@@ -45,9 +46,7 @@ export default function SearchPeopleComp() {
       try {
         const token = await checkAndRefreshToken();
         const result = await fetch(
-          `${ecnf.apiUrl}/users?query=${encodeURIComponent(
-            query
-          )}`,
+          `${ecnf.apiUrl}/users?query=${encodeURIComponent(query)}`,
           {
             signal: abortController.current.signal,
             method: "get",
@@ -131,7 +130,7 @@ export default function SearchPeopleComp() {
     if (showMessage.default) {
       return (
         <div
-          className={`text-center p-6 bg-gray-800 bg-opacity-70 rounded-lg w-80 shadow-lg`}
+          className={`text-center p-6 bg-gray-800 bg-opacity-70 rounded-lg w-full shadow-lg`}
         >
           <Users className="mx-auto mb-4 text-blue-400" size={48} />
           <h3 className="text-xl font-semibold text-gray-200 mb-2">
@@ -145,7 +144,7 @@ export default function SearchPeopleComp() {
     } else if (showMessage.warning) {
       return (
         <div
-          className={`text-center p-6 bg-gray-800 bg-opacity-70 rounded-lg w-80 shadow-lg`}
+          className={`text-center p-6 bg-gray-800 bg-opacity-70 rounded-lg w-full shadow-lg`}
         >
           <AlertCircle className="mx-auto mb-4 text-yellow-400" size={48} />
           <h3 className="text-xl font-semibold text-gray-200 mb-2">
@@ -159,7 +158,7 @@ export default function SearchPeopleComp() {
     } else if (showMessage.notFound) {
       return (
         <div
-          className={`text-center p-6 bg-gray-800 bg-opacity-70 rounded-lg w-80 shadow-lg`}
+          className={`text-center p-6 bg-gray-800 bg-opacity-70 rounded-lg w-full shadow-lg`}
         >
           <AlertCircle className="mx-auto mb-4 text-yellow-400" size={48} />
           <h3 className="text-xl font-semibold text-gray-200 mb-2">
@@ -177,28 +176,23 @@ export default function SearchPeopleComp() {
 
   return (
     <>
+      <SearchComp
+        onChange={(e) => {
+          setQuery(e.target.value);
+        }}
+        title="Find People"
+        placeHolder="Search people..."
 
-      <div className="relative mb-6 bg-gray-700 w-80 bg-opacity-50 rounded-md flex items-center">
-        <Search className="absolute left-3" />
-        <input
-          type="text"
-          placeholder="Search chats..."
-          className="w-full focus:border-gray-600 border-transparent py-3 bg-transparent text-[18px] border-2 pl-10 pr-4 rounded-md text-gray-300 placeholder-gray-400 outline-none"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-          }}
-        />
-      </div>
+      />
 
       {/* Optionally show a loading indicator */}
       {isLoading && (
         <>
           {" "}
-          <MiniProfileSkeleton />
-          <MiniProfileSkeleton />
-          <MiniProfileSkeleton />
-          <MiniProfileSkeleton />
+          <MiniProfileSkeleton width="w-full" />
+          <MiniProfileSkeleton width="w-full" />
+          <MiniProfileSkeleton width="w-full" />
+          <MiniProfileSkeleton width="w-full" />
         </>
       )}
 
@@ -209,7 +203,7 @@ export default function SearchPeopleComp() {
         <Link
           key={person.userId}
           href={`/search-people/${person.userId}`}
-          className="flex items-center w-80 py-3 hover:cursor-pointer px-4 bg-[#272f3a] shadow-lg rounded-lg transition-all duration-300 ease-in-out hover:bg-[#272e38]"
+          className="flex items-center w-full py-3 hover:cursor-pointer px-4 bg-[#272f3a] shadow-lg rounded-lg transition-all duration-300 ease-in-out hover:bg-[#272e38]"
         >
           <div className="avatar w-12 h-12 bg-gray-700 rounded-full mr-4 flex justify-center items-center relative overflow-hidden">
             {person.profilePicture ? (

@@ -3,11 +3,9 @@ import PrivateProfile from "@/components/profiles/privateProfile";
 
 export default function PrivateProfilePage() {
   return (
-  <>
-    <div className="flex justify-stretch">
-      <ChatSidebar />
+    <>
+      {/* <ChatSidebar /> */}
       <PrivateProfile />
-    </div>
     </>
   );
 }

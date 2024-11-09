@@ -229,8 +229,12 @@ export default function ChatHeader({
   }, [selectedActiveChat]);
 
   return (
-    <div className="bg-[#1f2329] flex items-center justify-between h-16 px-4 py-2 border-b-2  border-gray-700 relative">
-      <div className="flex items-center space-x-4">
+    <div
+      className="bg-[#1f2329] flex items-center justify-between h-16 px-2 py-2 border-b-2 border-gray-700 relative
+    
+    "
+    >
+      <div className="flex items-center gap-2">
         {!selectedActiveChat ? (
           <>
             <div className="w-10 h-10 rounded-full bg-gray-700 animate-shimmer bg-200% bg-shimmer" />
@@ -264,7 +268,7 @@ export default function ChatHeader({
               )}
             </Link>
             <div className="capitalize">
-              <h2 className="text-white text-[18px] font-semibold">
+              <h2 className="text-white text-[18px]">
                 {selectedActiveChat.isGroup
                   ? selectedActiveChat.roomName
                   : selectedActiveChat.oppositeUsername}
@@ -281,7 +285,7 @@ export default function ChatHeader({
         )}
       </div>
 
-      <div className="flex items-center space-x-4 relative">
+      <div className="flex items-center gap-3 relative">
         {!selectedActiveChat.isGroup && (
           <CallControls
             localUser={{
@@ -298,7 +302,17 @@ export default function ChatHeader({
           />
         )}
 
-        <div className="px-2 bg-[#292f36] rounded-md text-[16px] flex justify-center items-center">
+        <button
+          className="relative -ml-3 group flex items-center justify-center w-10 h-10 rounded-full transition-all 
+          duration-300 bg-gray-700/50 hover:bg-gray-700 border border-gray-700/50 hover:border-gray-600
+          xl:hidden
+          "
+          onClick={() => {}}
+        >
+          <Search className="w-4 h-4" />
+        </button>
+
+        <div className="px-2 bg-[#292f36] rounded-md text-[16px] flex justify-center items-center max-xl:hidden">
           <input
             type="search"
             className="p-2 bg-transparent outline-none"

@@ -1,6 +1,6 @@
-export function MiniProfileSkeleton() {
+export function MiniProfileSkeleton({ width="w-80" }: {width?: string}) {
   return (
-    <div className="flex items-center w-80 py-3 px-4 bg-[#252a32] rounded-lg">
+    <div className={`flex items-center  py-3 px-4 bg-[#252a32] rounded-lg ${width}`}>
       <div className="w-12 h-12 bg-gray-700 rounded-full mr-4 overflow-hidden">
         <div className="w-full h-full bg-shimmer bg-200% animate-shimmer"></div>
       </div>

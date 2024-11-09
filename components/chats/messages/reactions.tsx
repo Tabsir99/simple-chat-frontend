@@ -41,13 +41,13 @@ export const ReactionButton = ({
     <>
       <div
         className={
-          "absolute opacity-0 py-4 group-hover:opacity-100 top-0 -z-10 group-hover:z-30 transition-opacity duration-0 group-hover:duration-300 " +
-          (message.sender?.userId !== currentUser?.userId  ? "left-full" : " right-full ")
+          "absolute opacity-0 group-hover:opacity-100 -bottom-8 max-lg:bg-gray-50 -z-10 group-hover:z-30 transition-opacity duration-0 group-hover:duration-300 "
+          // (message.sender?.userId !== currentUser?.userId  ? "left-full" : " right-full ")
         }
       >
         <div
           className={`
-        inline-flex items-center
+        inline-flex items-end
         bg-gray-800/95 backdrop-blur-sm
         border border-gray-600/50
         rounded-full p-1.5 shadow-lg

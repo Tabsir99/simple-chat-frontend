@@ -101,7 +101,7 @@ export default function MessageContent({
           />
         ) : (
           <div className="flex flex-col gap-2">
-            <p>{message.content.trim()}</p>
+            <p className="text-[18px] max-md:text-[16px]">{message.content.trim()}</p>
 
             <div className="flex justify-between items-end">
               {message.isEdited && (

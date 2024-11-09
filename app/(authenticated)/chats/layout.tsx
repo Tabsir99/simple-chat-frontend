@@ -1,6 +1,5 @@
 "use client";
 
-import ChatSidebar from "@/components/chats/chatSidebar";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { MiniProfileSkeleton } from "@/components/skeletons/skeleton";
@@ -9,6 +8,7 @@ import { useChatContext } from "@/components/contextProvider/chatContext";
 import ActiveChats from "@/components/chats/activeChats";
 import { useEffect, useMemo, useState } from "react";
 import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
+import SearchComp from "@/components/ui/searchComponent";
 
 export default function MainLayout({
   children,
@@ -24,7 +24,7 @@ export default function MainLayout({
       return (
         !(chat.chatClearedAt && chat.chatClearedAt > chat.lastActivity) &&
         (chat.oppositeUsername?.includes(searchTerm) ||
-         chat.roomName?.includes(searchTerm))
+          chat.roomName?.includes(searchTerm))
       );
     });
   }, [activeChats, searchTerm]);
@@ -35,18 +35,14 @@ export default function MainLayout({
   return (
     <>
       <div className="h-full overflow-hidden bg-[#1b1b1b]  w-screen text-gray-100 flex">
-        <ChatSidebar />
         <div className="chat-list px-4 flex flex-col bg-[#1a222d]">
-          <h1 className="text-2xl font-bold pt-4 mb-4"> Chats </h1>
-          <div className="relative mb-6 bg-gray-700 bg-opacity-50 rounded-md flex items-center">
-            <Search className="absolute left-3" />
-            <input
-              type="text"
-              placeholder="Search chats..."
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full focus:border-gray-600 border-transparent py-3 bg-transparent text-[18px] border-2 pl-10 pr-4 rounded-md text-gray-300 placeholder-gray-400 outline-none"
-            />
-          </div>
+          <SearchComp
+            title="chats"
+            placeHolder="Search chats..."
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+            }}
+          />
 
           <div className="flex flex-col gap-3 pr-2 pb-4 overflow-y-auto h-full">
             {isLoading ? (

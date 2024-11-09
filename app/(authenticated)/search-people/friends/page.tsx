@@ -8,18 +8,18 @@ import { CustomButton } from "@/components/ui/buttons";
 import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
 import { useAuth } from "@/components/authComps/authcontext";
 import { ecnf } from "@/utils/env";
-import { useSocket } from "@/components/contextProvider/websocketContext";
+
 import { Friends } from "@/types/userTypes";
+import { useCommunication } from "@/components/contextProvider/communicationContext";
 
 export default function FriendList() {
   const [activeTab, setActiveTab] = useState<"friends" | "pending" | "blocked">(
     "friends"
   );
-  const { socket } = useSocket();
-  const {user} = useAuth()
-  const { data } = useCustomSWR<
-    Friends[]
-  >(`${ecnf.apiUrl}/friendships`);
+
+  const { socket } = useCommunication();
+  const { user } = useAuth();
+  const { data } = useCustomSWR<Friends[]>(`${ecnf.apiUrl}/friendships`);
 
   const { activities, updateActivity } = useRecentActivities();
   const [tabs, setTabs] = useState<
@@ -52,37 +52,43 @@ export default function FriendList() {
 
   useEffect(() => {
     if (!socket || !user) return;
-  
+
     let shouldEmit = false;
-  
+
     if (activeTab === "friends" && activities.acceptedFriendRequests > 0) {
       updateActivity("acceptedFriendRequests", "set", 0);
       shouldEmit = true;
     }
-  
+
     if (activeTab === "pending" && activities.friendRequests > 0) {
       updateActivity("friendRequests", "set", 0);
       shouldEmit = true;
     }
-  
+
     if (shouldEmit) {
-      socket.emit("activity:reset", {type: "friends", userId: user.userId});
+      socket.emit("activity:reset", { type: "friends", userId: user.userId });
     }
-  }, [socket, activeTab, user, activities.acceptedFriendRequests, activities.friendRequests]);
+  }, [
+    socket,
+    activeTab,
+    user,
+    activities.acceptedFriendRequests,
+    activities.friendRequests,
+  ]);
 
   useEffect(() => {
-    setTabs(prev => {
-      return prev.map(t => {
-        if(t.id === "friends"){
-          return {...t,count: activities.acceptedFriendRequests}
+    setTabs((prev) => {
+      return prev.map((t) => {
+        if (t.id === "friends") {
+          return { ...t, count: activities.acceptedFriendRequests };
         }
-        if(t.id === "pending"){
-          return {...t,count: activities.friendRequests}
+        if (t.id === "pending") {
+          return { ...t, count: activities.friendRequests };
         }
-        return t
-      })
-    })
-  },[activities.acceptedFriendRequests,activities.friendRequests])
+        return t;
+      });
+    });
+  }, [activities.acceptedFriendRequests, activities.friendRequests]);
 
   const renderConnections = () => {
     const filteredUsers = data?.filter((user) => {
@@ -110,9 +116,9 @@ export default function FriendList() {
 
   return (
     <div className="bg-gray-900/70 p-6 h-full w-full border-l-2 border-gray-800">
-      <h2 className="text-2xl font-bold mb-6 text-white">Friends List</h2>
+      <h2 className="text-2xl font-bold mb-6 pt-0 text-white max-lg:pl-10">Friends List</h2>
 
-      <div className="flex space-x-4 mb-6">
+      <div className="flex gap-4 mb-6 flex-wrap">
         {tabs.map((tab) => (
           <CustomButton
             key={tab.id}

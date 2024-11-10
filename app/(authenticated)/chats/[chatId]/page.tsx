@@ -18,7 +18,7 @@ import { useMessages } from "@/components/shared/hooks/chat/useMessage";
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
 import { useParams, useRouter } from "next/navigation";
-import FullPageLoader from "@/components/ui/fullpageloader";
+import FullPageLoader from "@/components/shared/ui/organisms/fullpageloader";
 import { v4 as uuid4 } from "uuid";
 import { Bell, Info } from "lucide-react";
 import EmojiPicker from "@/components/chats/messages/emojiPicker";
@@ -26,8 +26,8 @@ import { ecnf } from "@/utils/env";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { mutate } from "swr";
 import BlockedChatUI from "@/components/chats/chat/blockedChat";
-import useFriendshipActions from "@/components/shared/hooks/friendShip/useFriendshipActions";
-import { useLocalStorage } from "@/components/hooks/useLocalStorage";
+import { useLocalStorage } from "@/components/shared/hooks/storage/useLocalStorage";
+import useFriendshipActions from "@/components/shared/hooks/userProfile/useFriendshipActions";
 import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 
 export default function ChatRoom() {

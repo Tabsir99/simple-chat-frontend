@@ -18,10 +18,10 @@ import { NotificationProps, useNotification } from "../../hooks/common/useNotifi
 import { useSocketConnection } from "../../hooks/chat/useSocket";
 
 import SingleCallUI from "../../../ui/singleCall";
-import MinimizedCall from "@/components/ui/callNotification";
+import MinimizedCall from "@/components/shared/ui/organisms/popup/callNotification";
 
 const NotificationPopUp = dynamic(
-  () => import("@/components/ui/notificationPopup"),
+  () => import("@/components/shared/ui/organisms/popup/notificationPopup"),
   { ssr: false }
 );
 export interface CallParticipant {

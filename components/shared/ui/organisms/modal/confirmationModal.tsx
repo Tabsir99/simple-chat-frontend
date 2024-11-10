@@ -1,5 +1,4 @@
-import { CustomButton } from "./buttons";
-
+import { CustomButton } from "../../atoms/Button/customButton";
 const ConfirmationModal = ({
     isOpen,
     onClose,

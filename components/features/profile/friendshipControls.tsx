@@ -7,13 +7,13 @@ import {
   Shield,
   UserPlus2,
 } from "lucide-react";
-import { CustomButton } from "../ui/buttons";
-import useFriendshipActions from "../shared/hooks/friendShip/useFriendshipActions";
-import ConfirmationModal from "../ui/confirmationModal";
+import { CustomButton } from "../../shared/ui/atoms/Button/customButton";
+import useFriendshipActions from "../../shared/hooks/userProfile/useFriendshipActions";
+import ConfirmationModal from "../../shared/ui/organisms/modal/confirmationModal";
 import { useEffect, useState } from "react";
 import { Friends } from "@/types/userTypes";
 
-interface AddFriendBtnProps {
+interface FriendShipControlsProps {
   user: {
     userId: string | null,
     username: string
@@ -25,13 +25,13 @@ interface AddFriendBtnProps {
 
 }
 
-export default function AddFriendBtn({
+export default function FriendShipControls({
   user,
   status,
   isCurrentUserSender,
   updateSender,
   isCurrentUserBlocked,
-}: AddFriendBtnProps) {
+}: FriendShipControlsProps) {
   const { handleFriendshipAction } = useFriendshipActions();
 
   const [showBlockModal, setShowBlockModal] = useState(false)

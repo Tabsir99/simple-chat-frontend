@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 
-const MessageSenderAvatar = ({
+const ProfilePicture = ({
     senderName,
     profilePicture,
   }: {

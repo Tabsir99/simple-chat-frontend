@@ -17,7 +17,6 @@ export interface IUserProfile {
 export interface IIsEditing {
   username: boolean;
   bio: boolean;
-  title: boolean;
 }
 
 

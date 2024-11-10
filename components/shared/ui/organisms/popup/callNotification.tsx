@@ -3,7 +3,7 @@ import { Phone, Video, X, User2, Maximize2 } from "lucide-react";
 import {
   CallSession,
   useCommunication,
-} from "../shared/contexts/communication/communicationContext";
+} from "../../../contexts/communication/communicationContext";
 import { useParams } from "next/navigation";
 
 interface MinimizedCallProps {
@@ -98,7 +98,7 @@ const MinimizedCall: React.FC<MinimizedCallProps> = ({
                   <X className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => handleAcceptCall(callId, offer, isVideoCall, chatRoomId)}
+                  onClick={() => handleAcceptCall(callId, offer!, isVideoCall, chatRoomId)}
                   className="p-3 rounded-full bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white transition-all duration-200 hover:scale-105 animate-pulse"
                   aria-label="Accept call"
                 >

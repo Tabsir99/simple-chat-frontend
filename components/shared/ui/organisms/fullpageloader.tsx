@@ -1,35 +1,5 @@
 import { useState, useEffect } from "react";
-
-const CustomSpinner = ({ size = 40, color = "#3B82F6" }) => {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 38 38"
-      xmlns="http://www.w3.org/2000/svg"
-      stroke={color}
-      className="animate-spin-smooth"
-    >
-      <style>
-        {`
-          @keyframes smoothSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-          .animate-spin-smooth {
-            animation: smoothSpin 1s linear infinite;
-          }
-        `}
-      </style>
-      <g fill="none" fillRule="evenodd">
-        <g transform="translate(1 1)" strokeWidth="2">
-          <circle strokeOpacity=".5" cx="18" cy="18" r="18" />
-          <path d="M36 18c0-9.94-8.06-18-18-18" />
-        </g>
-      </g>
-    </svg>
-  );
-};
+import CustomSpinner from "../atoms/spinner";
 
 const defaultPhrases = [
   "Connecting to chat servers...",
@@ -44,13 +14,13 @@ const FullPageLoader = ({
   className = " fixed ",
   height = "100vh",
   width = "100vw",
-  spinnerSize=96
+  spinnerSize = 96,
 }: {
   loadingPhrases?: String[] | null;
   className?: string;
   width?: string;
   height?: string;
-  spinnerSize?:number
+  spinnerSize?: number;
 }) => {
   const [displayText, setDisplayText] = useState("");
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
@@ -58,9 +28,9 @@ const FullPageLoader = ({
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
-    console.log("It ran")
+    console.log("It ran");
     const initialDelay = setTimeout(() => {
-      console.log("TImer run")
+      console.log("TImer run");
       setShowText(true);
     }, 1000);
     return () => clearTimeout(initialDelay);
@@ -100,28 +70,24 @@ const FullPageLoader = ({
 
   return (
     <div
-      className={
-        " inset-0 " + className
-      }
+      className={" inset-0 " + className}
       style={{
         width: width,
         height: height,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#111827"
+        backgroundColor: "#111827",
       }}
     >
       <div className="text-center flex flex-col justify-center items-center">
         <CustomSpinner size={spinnerSize} color="#3B82F6" />
         {loadingPhrases && showText && (
           <div className="h-20 flex items-center justify-center">
-            
             <p className="mt-6 text-3xl font-bold text-gray-300">
               {displayText}
               <span className="animate-blink">|</span>
             </p>
-            
           </div>
         )}
       </div>

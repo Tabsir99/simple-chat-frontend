@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { CustomButton } from "../ui/buttons";
-import ConfirmationModal from "../ui/confirmationModal";
+import { CustomButton } from "../shared/ui/atoms/Button/customButton";
+import ConfirmationModal from "../shared/ui/organisms/modal/confirmationModal";
 import Image from "next/image";
 import { Ban, Check, Shield, X } from "lucide-react";
 import { useState } from "react";
-import useFriendshipActions from "../shared/hooks/friendShip/useFriendshipActions";
+import useFriendshipActions from "../shared/hooks/userProfile/useFriendshipActions";
 import { KeyedMutator } from "swr";
 import { ApiResponse } from "@/types/responseType";
 import { Friends, IUserProfile } from "@/types/userTypes";

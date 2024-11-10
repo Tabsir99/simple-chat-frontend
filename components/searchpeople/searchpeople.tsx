@@ -3,11 +3,11 @@ import { IUserMiniProfile } from "@/types/userTypes";
 import { AlertCircle, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
-import { MiniProfileSkeleton } from "../skeletons/skeleton";
+import { MiniProfileSkeleton } from "../shared/ui/atoms/skeleton";
 import { useAuth } from "../shared/contexts/auth/authcontext";
 import Image from "next/image";
 import { ecnf } from "@/utils/env";
-import SearchComp from "../ui/searchComponent";
+import SearchComp from "../shared/ui/atoms/searchComponent/searchComponent";
 
 export default function SearchPeopleComp() {
   const [people, setPeople] = useState<IUserMiniProfile[]>([]);

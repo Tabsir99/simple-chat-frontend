@@ -12,7 +12,7 @@ import {
   Share2,
   LucideIcon,
 } from "lucide-react";
-import { useAuth } from "../authComps/authcontext";
+import { useAuth } from "../shared/contexts/auth/authcontext";
 
 interface SingleCallProps {
   remoteUser: {

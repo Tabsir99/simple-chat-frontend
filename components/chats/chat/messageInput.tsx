@@ -11,14 +11,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { useAttachments } from "@/components/hooks/useAttachments";
+import { useAttachments } from "@/components/shared/hooks/chat/useAttachments";
 import Image from "next/image";
 import { GrAttachment } from "react-icons/gr";
 import { formatDate } from "@/utils/utils";
-import { useAuth } from "@/components/authComps/authcontext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import EmojiPicker from "../messages/emojiPicker";
 import FilePreview from "../messages/attachments/attachmentPreview";
-import { useCommunication } from "@/components/contextProvider/communicationContext";
+import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 
 export default function MessageInput({
   sendMessage,
@@ -129,153 +129,6 @@ export default function MessageInput({
   );
 }
 
-const InputForm = ({
-  fileInputRef,
-  handleFileSelect,
-  attachment,
-  clearAttachments,
-  sendMessage,
-  selectedActiveChat,
-}: {
-  attachment: AttachmentViewModel | null;
-  fileInputRef: RefObject<HTMLInputElement>;
-  handleFileSelect: (files: File) => void;
-  clearAttachments: () => void;
-  sendMessage: (
-    e: FormEvent<HTMLFormElement>,
-    attachments: any,
-    newMessage: string
-  ) => void;
-  selectedActiveChat: IChatHead | undefined;
-}) => {
-  const [newMessage, setNewMessage] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const { user } = useAuth();
-  const { socket } = useCommunication();
-
-  useEffect(() => {
-    if (newMessage.length > 0 && !isTyping) {
-      setIsTyping(true);
-      if (socket) {
-        socket.emit("user:typing", {
-          username: user?.username,
-          userId: user?.userId,
-          profilePicture: user?.profilePicture,
-          isStarting: true,
-
-          chatRoomId: selectedActiveChat?.chatRoomId,
-        });
-      }
-    }
-    if (newMessage.length === 0 && isTyping) {
-      setIsTyping(false);
-      if (socket) {
-        socket.emit("user:typing", {
-          username: user?.username,
-          profilePicture: user?.profilePicture,
-          userId: user?.userId,
-          isStarting: false,
-
-          chatRoomId: selectedActiveChat?.chatRoomId,
-        });
-      }
-    }
-  }, [newMessage]);
-
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const inputRef = useRef<HTMLTextAreaElement | null>(null);
-
-  return (
-    <>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-
-          sendMessage(e, attachment, newMessage);
-          setNewMessage("");
-          clearAttachments();
-        }}
-        className="flex items-center gap-5 max-xs:gap-1"
-      >
-        <button
-          type="button"
-          className="text-gray-400 hover:text-white transition-colors"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <Smile size={24} />
-        </button>
-
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={(e) =>
-            handleFileSelect(Array.from(e.target.files || [])[0])
-          }
-          className="hidden"
-        />
-
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="text-gray-400 hover:text-white transition-colors"
-        >
-          <Paperclip size={24} />
-        </button>
-
-        <div className="flex-1 rounded-md relative h-full self-end py-2 ">
-          <textarea
-            id="msgInput"
-            onChange={(e) => {
-              setNewMessage(e.target.value);
-
-              e.target.style.height = "auto";
-              e.target.style.height = `${e.target.scrollHeight}px`;
-            }}
-            value={newMessage}
-            placeholder="Type a message..."
-            ref={inputRef}
-            className=" bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none w-full 
-          focus:ring-2 focus:ring-blue-500 [letter-spacing:0.01rem] max-h-[250px] resize-none absolute translate-y-1  bottom-0"
-            rows={1}
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50"
-          disabled={!newMessage.trim() && !attachment}
-        >
-          <Send size={20} />
-        </button>
-      </form>
-
-      {isOpen && (
-        <EmojiPicker
-          className="absolute -top-[20.5rem] left-1 w-[28rem] "
-          onEmojiSelect={(emoji) => {
-            if (!inputRef.current) return;
-
-            const start = inputRef.current.selectionStart || 0;
-
-            const newText =
-              newMessage.slice(0, start) +
-              " " +
-              emoji +
-              newMessage.slice(start);
-            const newPosition = start + emoji.length + 1;
-            setNewMessage(newText);
-
-            setTimeout(() => {
-              inputRef.current?.focus();
-              inputRef.current?.setSelectionRange(newPosition, newPosition);
-            }, 0);
-          }}
-          onClose={() => setIsOpen(false)}
-        />
-      )}
-    </>
-  );
-};
 
 import { Mic, Square } from "lucide-react";
 

@@ -5,7 +5,7 @@ import { Dispatch, Fragment, MutableRefObject, SetStateAction, useEffect, useMem
 import { ReactionButton, ReactionDisplay } from "./reactions";
 import MessageContent from "./messageContent";
 import { IUserMiniProfile } from "@/types/userTypes";
-import { useAuth } from "@/components/authComps/authcontext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 
 export default function MessageContainer({
   message,

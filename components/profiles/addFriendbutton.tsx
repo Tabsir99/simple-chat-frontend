@@ -8,7 +8,7 @@ import {
   UserPlus2,
 } from "lucide-react";
 import { CustomButton } from "../ui/buttons";
-import useFriendshipActions from "../hooks/useFriendshipActions";
+import useFriendshipActions from "../shared/hooks/friendShip/useFriendshipActions";
 import ConfirmationModal from "../ui/confirmationModal";
 import { useEffect, useState } from "react";
 import { Friends } from "@/types/userTypes";

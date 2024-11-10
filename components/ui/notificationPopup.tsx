@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { AlertCircle, CheckCircle, XCircle, Info, X } from "lucide-react";
-import { NotificationProps } from "../contextProvider/communicationContext";
+import { NotificationProps } from "../shared/contexts/communication/communicationContext";
 
 
 const notificationTypes = {

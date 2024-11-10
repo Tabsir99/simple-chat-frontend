@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useAuth } from "@/components/authComps/authcontext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import { Friends, IUserProfile } from "@/types/userTypes";
 import { ecnf } from "@/utils/env";
 import { mutate as gMutate } from "swr";
 import { ApiResponse } from "@/types/responseType";
 import { IChatHead } from "@/types/chatTypes";
-import { useCommunication } from "../contextProvider/communicationContext";
+import { useCommunication } from "../../contexts/communication/communicationContext";
 
 type Action = "accept" | "reject" | "block" | "unblock" | "create" | "cancel";
 

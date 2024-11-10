@@ -1,6 +1,6 @@
 "use client";
 import useSWR, { SWRConfiguration } from "swr";
-import { useAuth } from "@/components/authComps/authcontext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import { ApiResponse } from "@/types/responseType";
 
 const fetcher = async (url: string, token: string): Promise<any> => {

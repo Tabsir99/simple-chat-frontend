@@ -11,7 +11,7 @@ import {
   MessageSquare,
   UserPlus,
 } from "lucide-react";
-import useCustomSWR from "../hooks/customSwr";
+import useCustomSWR from "../shared/hooks/common/customSwr";
 import { IUserProfile } from "@/types/userTypes";
 import { useEffect, useState } from "react";
 import Image from "next/image";

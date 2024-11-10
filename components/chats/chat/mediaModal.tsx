@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { XCircle, Image, Link, File } from 'lucide-react';
-import useCustomSWR from '@/components/hooks/customSwr';
+import useCustomSWR from '@/components/shared/hooks/common/customSwr';
 import { ecnf } from '@/utils/env';
 import { Attachment } from '@/types/chatTypes';
 

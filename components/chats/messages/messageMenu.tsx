@@ -1,7 +1,7 @@
 import { MoreVertical, Reply, Pencil, Trash } from "lucide-react";
 import { IMessage } from "@/types/chatTypes";
 import { Dispatch, SetStateAction, useState } from "react";
-import { useAuth } from "@/components/authComps/authcontext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 
 export default function MessageMenu({
   message,

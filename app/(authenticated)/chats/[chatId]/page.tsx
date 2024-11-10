@@ -14,9 +14,9 @@ import MessageContainer, {
 } from "@/components/chats/messages/messageContainer";
 import TypingIndicator from "@/components/chats/messages/typeIndicator";
 import { IChatHead, IMessage, AttachmentViewModel } from "@/types/chatTypes";
-import { useMessages } from "@/components/hooks/useMessage";
-import { useAuth } from "@/components/authComps/authcontext";
-import { useChatContext } from "@/components/contextProvider/chatContext";
+import { useMessages } from "@/components/shared/hooks/chat/useMessage";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
+import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
 import { useParams, useRouter } from "next/navigation";
 import FullPageLoader from "@/components/ui/fullpageloader";
 import { v4 as uuid4 } from "uuid";
@@ -26,9 +26,9 @@ import { ecnf } from "@/utils/env";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { mutate } from "swr";
 import BlockedChatUI from "@/components/chats/chat/blockedChat";
-import useFriendshipActions from "@/components/hooks/useFriendshipActions";
+import useFriendshipActions from "@/components/shared/hooks/friendShip/useFriendshipActions";
 import { useLocalStorage } from "@/components/hooks/useLocalStorage";
-import { useCommunication } from "@/components/contextProvider/communicationContext";
+import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 
 export default function ChatRoom() {
   const [replyingTo, setReplyingTo] = useState<IMessage | null>(null);

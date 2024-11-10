@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Search, UserPlus, X, Check, AlertCircle } from "lucide-react";
-import { useAuth } from "@/components/authComps/authcontext";
-import { useCommunication } from "@/components/contextProvider/communicationContext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
+import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 import { ecnf } from "@/utils/env";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useParams } from "next/navigation";
 import { mutate } from "swr";
 import { ChatRoomMember, IMessage, MinifiedMessage } from "@/types/chatTypes";
-import { useChatContext } from "@/components/contextProvider/chatContext";
+import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
 
 interface AddMemberModalProps {
   onClose: () => void;

@@ -4,7 +4,7 @@ import ConfirmationModal from "../ui/confirmationModal";
 import Image from "next/image";
 import { Ban, Check, Shield, X } from "lucide-react";
 import { useState } from "react";
-import useFriendshipActions from "../hooks/useFriendshipActions";
+import useFriendshipActions from "../shared/hooks/friendShip/useFriendshipActions";
 import { KeyedMutator } from "swr";
 import { ApiResponse } from "@/types/responseType";
 import { Friends, IUserProfile } from "@/types/userTypes";

@@ -4,7 +4,7 @@ import { AlertCircle, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { MiniProfileSkeleton } from "../skeletons/skeleton";
-import { useAuth } from "../authComps/authcontext";
+import { useAuth } from "../shared/contexts/auth/authcontext";
 import Image from "next/image";
 import { ecnf } from "@/utils/env";
 import SearchComp from "../ui/searchComponent";

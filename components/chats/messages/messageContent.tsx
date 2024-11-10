@@ -5,7 +5,7 @@ import Attachments from "./attachment";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import MessageMenu from "./messageMenu";
 import { formatDate } from "@/utils/utils";
-import { useAuth } from "@/components/authComps/authcontext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 
 export default function MessageContent({
   message,

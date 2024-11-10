@@ -36,16 +36,16 @@ import {
   ChatRoomMember,
 } from "@/types/chatTypes";
 import { ecnf } from "@/utils/env";
-import { useAuth } from "@/components/authComps/authcontext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import { mutate as globalMutate } from "swr";
 
-import useCustomSWR from "@/components/hooks/customSwr";
-import useFriendshipActions from "@/components/hooks/useFriendshipActions";
+import useCustomSWR from "@/components/shared/hooks/common/customSwr";
+import useFriendshipActions from "@/components/shared/hooks/friendShip/useFriendshipActions";
 import ConfirmationModal from "@/components/ui/confirmationModal";
 import { AllMessageResponse } from "@/types/responseType";
-import { useChatContext } from "@/components/contextProvider/chatContext";
+import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
 import CallControls from "./callButtons";
-import { useCommunication } from "@/components/contextProvider/communicationContext";
+import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 import { FaLongArrowAltLeft } from "react-icons/fa";
 
 // Create menu configurations

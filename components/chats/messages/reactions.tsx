@@ -1,4 +1,4 @@
-import { useAuth } from "@/components/authComps/authcontext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import { IMessage } from "@/types/chatTypes";
 import { IUserMiniProfile } from "@/types/userTypes";
 import { Plus } from "lucide-react";

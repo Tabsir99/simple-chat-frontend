@@ -3,7 +3,7 @@ import { Phone, Video, X, User2, Maximize2 } from "lucide-react";
 import {
   CallSession,
   useCommunication,
-} from "../contextProvider/communicationContext";
+} from "../shared/contexts/communication/communicationContext";
 import { useParams } from "next/navigation";
 
 interface MinimizedCallProps {

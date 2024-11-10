@@ -1,10 +1,10 @@
 import "./globals.css";
 // import { Inter } from "next/font/google";
-import { AuthProvider } from "@/components/authComps/authcontext";
-import { CommunicationProvider } from "@/components/contextProvider/communicationContext";
+import { AuthProvider } from "@/components/shared/contexts/auth/authcontext";
+import { CommunicationProvider } from "@/components/shared/contexts/communication/communicationContext";
 import type { Metadata } from "next";
-import { ChatProvider } from "@/components/contextProvider/chatContext";
-import { RecentActivitiesProvider } from "@/components/contextProvider/recentActivityContext";
+import { ChatProvider } from "@/components/shared/contexts/chat/chatContext";
+import { RecentActivitiesProvider } from "@/components/shared/contexts/chat/recentActivityContext";
 
 // const interFont = Inter({
 //   weight: ["400", "700"],

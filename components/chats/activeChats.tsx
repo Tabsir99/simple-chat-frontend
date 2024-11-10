@@ -3,7 +3,7 @@ import Link from "next/link";
 import { formatDate } from "@/utils/utils";
 import { IChatHead } from "@/types/chatTypes";
 import { useParams } from "next/navigation";
-import { useChatContext } from "../contextProvider/chatContext";
+import { useChatContext } from "../shared/contexts/chat/chatContext";
 
 const ActiveChats = memo(({ data }: { data: IChatHead }) => {
   const params = useParams();

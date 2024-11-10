@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 import { ecnf } from "@/utils/env";
-import { useAuth } from "../authComps/authcontext";
-import { NotificationType } from "./useNotification";
+import { useAuth } from "../../contexts/auth/authcontext";
+import { NotificationType } from "../common/useNotification";
 
 export const useSocketConnection = (
   showNotification: (

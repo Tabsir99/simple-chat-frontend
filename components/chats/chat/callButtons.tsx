@@ -5,7 +5,7 @@ import {
   CallParticipant,
   CallSession,
   useCommunication,
-} from "@/components/contextProvider/communicationContext";
+} from "@/components/shared/contexts/communication/communicationContext";
 import { useParams } from "next/navigation";
 
 interface CallButtonProps {

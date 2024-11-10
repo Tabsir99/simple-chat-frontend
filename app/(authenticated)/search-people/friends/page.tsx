@@ -1,16 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Users, UserPlus, UserX } from "lucide-react";
-import useCustomSWR from "@/components/hooks/customSwr";
+import useCustomSWR from "@/components/shared/hooks/common/customSwr";
 import { NoConnectionsMessage } from "@/components/searchpeople/noConnections";
 import { FriendItem } from "@/components/searchpeople/friendItem";
 import { CustomButton } from "@/components/ui/buttons";
-import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
-import { useAuth } from "@/components/authComps/authcontext";
+import { useRecentActivities } from "@/components/shared/contexts/chat/recentActivityContext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import { ecnf } from "@/utils/env";
 
 import { Friends } from "@/types/userTypes";
-import { useCommunication } from "@/components/contextProvider/communicationContext";
+import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 
 export default function FriendList() {
   const [activeTab, setActiveTab] = useState<"friends" | "pending" | "blocked">(

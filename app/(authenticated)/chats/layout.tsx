@@ -4,10 +4,10 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { MiniProfileSkeleton } from "@/components/skeletons/skeleton";
 import { BsChatFill } from "react-icons/bs";
-import { useChatContext } from "@/components/contextProvider/chatContext";
+import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
 import ActiveChats from "@/components/chats/activeChats";
 import { useEffect, useMemo, useState } from "react";
-import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
+import { useRecentActivities } from "@/components/shared/contexts/chat/recentActivityContext";
 import SearchComp from "@/components/ui/searchComponent";
 import { useParams } from "next/navigation";
 

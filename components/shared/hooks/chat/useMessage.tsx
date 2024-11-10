@@ -6,12 +6,12 @@ import {
   Reactions,
 } from "@/types/chatTypes";
 import { IUserMiniProfile } from "@/types/userTypes";
-import useCustomSWR from "./customSwr";
+import useCustomSWR from "../common/customSwr";
 import { ecnf } from "@/utils/env";
-import { useChatContext } from "../contextProvider/chatContext";
+import { useChatContext } from "../../contexts/chat/chatContext";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
-import { useAuth } from "../authComps/authcontext";
-import { useCommunication } from "../contextProvider/communicationContext";
+import { useAuth } from "../../contexts/auth/authcontext";
+import { useCommunication } from "../../contexts/communication/communicationContext";
 
 export function useMessages({ chatId }: { chatId: string | null }) {
   const [messages, setMessages] = useState<IMessage[]>([]);

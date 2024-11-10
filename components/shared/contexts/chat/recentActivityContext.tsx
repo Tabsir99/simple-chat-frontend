@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import { useAuth } from "../authComps/authcontext";
+import { useAuth } from "../auth/authcontext";
 import { ecnf } from "@/utils/env";
 import { usePathname } from "next/navigation";
 

@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import GroupInfoModalHeader from "./groupInfoModalHeader";
 import MemberActions from "./memberActions";
-import { useAuth } from "@/components/authComps/authcontext";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import {
   ChatRoomMember,
   MemberAction,
@@ -32,10 +32,10 @@ import {
 import { KeyedMutator, mutate as gMutate } from "swr";
 import { ecnf } from "@/utils/env";
 import { useParams } from "next/navigation";
-import { useCommunication } from "@/components/contextProvider/communicationContext";
+import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 import AddMemberModal from "./addMemberModal";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
-import { useChatContext } from "@/components/contextProvider/chatContext";
+import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
 
 
 export const GroupInfoModal = ({

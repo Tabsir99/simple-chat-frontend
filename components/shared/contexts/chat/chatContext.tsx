@@ -10,9 +10,9 @@ import {
   useEffect,
 } from "react";
 import { AttachmentViewModel, IChatHead, IMessage } from "@/types/chatTypes";
-import useCustomSWR from "../hooks/customSwr";
+import useCustomSWR from "../../hooks/common/customSwr";
 import { ecnf } from "@/utils/env";
-import { useAuth } from "../authComps/authcontext";
+import { useAuth } from "../auth/authcontext";
 import { useParams } from "next/navigation";
 
 interface ChatContextProps {

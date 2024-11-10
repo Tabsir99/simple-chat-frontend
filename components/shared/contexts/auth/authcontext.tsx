@@ -10,7 +10,7 @@ import {
 } from "react";
 import { jwtDecode } from "jwt-decode";
 import { IUserMiniProfile } from "@/types/userTypes";
-import FullPageLoader from "../ui/fullpageloader";
+import FullPageLoader from "../../../ui/fullpageloader";
 import { useRouter } from "next/navigation";
 import { ApiResponse } from "@/types/responseType";
 import { ecnf } from "@/utils/env";

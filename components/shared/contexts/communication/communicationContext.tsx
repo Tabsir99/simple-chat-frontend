@@ -10,14 +10,14 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import { v4 as uuid4 } from "uuid";
-import { useRTC } from "./useRTC";
-import { useAuth } from "../authComps/authcontext";
+import { useRTC } from "../../hooks/chat/useRTC";
+import { useAuth } from "../auth/authcontext";
 import { Socket, io } from "socket.io-client";
 import { ecnf } from "@/utils/env";
-import { NotificationProps, useNotification } from "../hooks/useNotification";
-import { useSocketConnection } from "../hooks/useSocket";
+import { NotificationProps, useNotification } from "../../hooks/common/useNotification";
+import { useSocketConnection } from "../../hooks/chat/useSocket";
 
-import SingleCallUI from "../ui/singleCall";
+import SingleCallUI from "../../../ui/singleCall";
 import MinimizedCall from "@/components/ui/callNotification";
 
 const NotificationPopUp = dynamic(

@@ -1,9 +1,9 @@
 "use client";
 
-import { useChatContext } from "@/components/contextProvider/chatContext";
-import { ProtectedRoute, useAuth } from "@/components/authComps/authcontext";
+import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
+import { ProtectedRoute, useAuth } from "@/components/shared/contexts/auth/authcontext";
 import { useCallback, useEffect, useRef } from "react";
-import { useRecentActivities } from "@/components/contextProvider/recentActivityContext";
+import { useRecentActivities } from "@/components/shared/contexts/chat/recentActivityContext";
 import { mutate } from "swr";
 import { ecnf } from "@/utils/env";
 import {
@@ -18,7 +18,7 @@ import { ChatRoomMember } from "@/types/chatTypes";
 import {
   CallParticipant,
   useCommunication,
-} from "@/components/contextProvider/communicationContext";
+} from "@/components/shared/contexts/communication/communicationContext";
 import { v4 } from "uuid";
 import ChatSidebar from "@/components/chats/chatSidebar";
 
@@ -191,7 +191,7 @@ export default function RootAuthLayout({
                     chatId = chat.chatRoomId;
                     return {
                       ...chat,
-                      roomStatus: status,
+                      oppositeUserStatus: status
                     };
                   }
                   return chat;

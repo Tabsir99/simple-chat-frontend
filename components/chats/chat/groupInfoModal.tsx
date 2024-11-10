@@ -89,7 +89,7 @@ export const GroupInfoModal = ({
           onAddMembers={() => {}}
         />
       )}
-      <div className="fixed w-screen h-screen z-50 bg-black bg-opacity-60 left-0 top-0">
+      <div className="fixed w-screen h-[100dvh] z-50 bg-black bg-opacity-60 left-0 top-0">
         <div
           className="fixed inset-y-0 right-0 w-[40rem] border-l-2 border-gray-700 bg-gray-900 shadow-lg transform transition-transform duration-300 z-50"
           style={{ transform: translateClass }}

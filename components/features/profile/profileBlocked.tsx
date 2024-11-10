@@ -1,7 +1,7 @@
 import { ShieldOff } from "lucide-react";
 
 const BlockMessage = () => (
-  <div className="h-screen bg-gradient-to-br overflow-y-auto from-gray-900 to-gray-800 flex justify-center items-center p-4">
+  <div className="h-[100dvh] bg-gradient-to-br overflow-y-auto from-gray-900 to-gray-800 flex justify-center items-center p-4">
     <div className="max-w-md w-full mx-auto p-8 rounded-xl bg-gray-800 shadow-xl backdrop-blur-lg bg-opacity-50">
       <div className="flex flex-col items-center gap-4">
         <div className="relative">

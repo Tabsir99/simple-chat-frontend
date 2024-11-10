@@ -4,7 +4,7 @@ import { Ban } from "lucide-react";
 
 const NoUserFound = () => {
   return (
-    <div className="h-screen bg-gray-900 text-gray-100 flex items-center justify-center p-8">
+    <div className="h-[100dvh] bg-gray-900 text-gray-100 flex items-center justify-center p-8">
       <div className="max-w-2xl mx-auto text-center">
         <div className="bg-gray-800 rounded-lg shadow-lg p-8">
           {/* Icon */}

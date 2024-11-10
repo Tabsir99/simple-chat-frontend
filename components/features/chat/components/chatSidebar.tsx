@@ -4,7 +4,7 @@ import { LogOut, HelpCircle, Menu } from "lucide-react";
 import SideBarNav from "./sidebarnav";
 import Link from "next/link";
 import { ecnf } from "@/utils/env";
-import { useAuth } from "../shared/contexts/auth/authcontext";
+import { useAuth } from "../../../shared/contexts/auth/authcontext";
 import Image from "next/image";
 import { useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
@@ -60,7 +60,7 @@ export default function ChatSidebar() {
       {/* Sidebar */}
       <aside
         ref={sidebarRef}
-        className="min-w-[65px]  border-r border-gray-700/40 h-screen bg-[#1e242c]
+        className="min-w-[65px]  border-r border-gray-700/40 h-[100dvh] bg-[#1e242c]
          text-white flex flex-col items-center overflow-y-auto overflow-x-hidden py-6 transition-all 
          duration-300 ease-in-out fixed lg:relative max-lg:w-[250px] max-lg:-translate-x-full max-lg:z-40"
       >

@@ -1,6 +1,6 @@
 "use client";
 import ChatHeader from "@/components/chats/chat/IndividualChatHead";
-import MessageInput from "@/components/chats/chat/messageInput";
+import MessageInput from "@/components/features/chat/messaging/messageInput/messageInput";
 import {
   useState,
   useEffect,
@@ -12,7 +12,7 @@ import {
 import MessageContainer, {
   MessageRecipt,
 } from "@/components/chats/messages/messageContainer";
-import TypingIndicator from "@/components/chats/messages/typeIndicator";
+import TypingIndicator from "@/components/features/chat/messaging/typeIndicator";
 import { IChatHead, IMessage, AttachmentViewModel } from "@/types/chatTypes";
 import { useMessages } from "@/components/shared/hooks/chat/useMessage";
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";
@@ -21,11 +21,11 @@ import { useParams, useRouter } from "next/navigation";
 import FullPageLoader from "@/components/shared/ui/organisms/fullpageloader";
 import { v4 as uuid4 } from "uuid";
 import { Bell, Info } from "lucide-react";
-import EmojiPicker from "@/components/chats/messages/emojiPicker";
+import EmojiPicker from "@/components/features/chat/reactions/emojiPicker";
 import { ecnf } from "@/utils/env";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { mutate } from "swr";
-import BlockedChatUI from "@/components/chats/chat/blockedChat";
+import BlockedChatUI from "@/components/features/chat/components/blockedChat";
 import { useLocalStorage } from "@/components/shared/hooks/storage/useLocalStorage";
 import useFriendshipActions from "@/components/shared/hooks/userProfile/useFriendshipActions";
 import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
@@ -271,7 +271,7 @@ export default function ChatRoom() {
         <FullPageLoader
           loadingPhrases={null}
           className="bg-opacity-40"
-          height="100vh"
+          height="100dvh"
           width="100%"
         />
       ) : (

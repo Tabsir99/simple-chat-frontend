@@ -12,7 +12,7 @@ const defaultPhrases = [
 const FullPageLoader = ({
   loadingPhrases = defaultPhrases,
   className = " fixed ",
-  height = "100vh",
+  height = "100dvh",
   width = "100vw",
   spinnerSize = 96,
 }: {

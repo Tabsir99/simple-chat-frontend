@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import MediaModal from "./mediaModal";
+import MediaModal from "../../features/chat/modals/mediaModal";
 import Image from "next/image";
 import { GroupInfoModal } from "./groupInfoModal";
 import {
@@ -45,7 +45,7 @@ import useFriendshipActions from "@/components/shared/hooks/userProfile/useFrien
 
 import { AllMessageResponse } from "@/types/responseType";
 import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
-import CallControls from "./callButtons";
+import CallControls from "../../features/chat/components/callButtons";
 import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 import { FaLongArrowAltLeft } from "react-icons/fa";
 

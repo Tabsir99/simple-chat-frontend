@@ -1,9 +1,9 @@
 import { IMessage } from "@/types/chatTypes";
 import { BanIcon, Check, X } from "lucide-react";
 import Image from "next/image";
-import Attachments from "./attachment";
+import Attachments from "../../features/chat/attachments/attachmentDisplay";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import MessageMenu from "./messageMenu";
+import MessageMenu from "../../features/chat/messaging/messageMenu";
 import { formatDate } from "@/utils/utils";
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 

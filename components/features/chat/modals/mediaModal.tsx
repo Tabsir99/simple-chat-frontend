@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { XCircle, Image, Link, File } from 'lucide-react';
 import useCustomSWR from '@/components/shared/hooks/common/customSwr';
 import { ecnf } from '@/utils/env';
-import { Attachment } from '@/types/chatTypes';
 
 interface TabButtonProps {
   active: boolean;
@@ -46,20 +45,20 @@ export default function MediaModal({ toggleMediaModal,selectedChatId }: MediaMod
 
   const {} = useCustomSWR(`${ecnf.apiUrl}/chats/${selectedChatId}?all=`)
 
-  const mediaItems: Attachment[] = [
+  const mediaItems: any = [
     { type: 'image', url: 'Image1.jpg' },
     { type: 'image', url: 'Image2.png' },
   ];
 
-  const filteredItems = mediaItems.filter((item) => {
+  const filteredItems = mediaItems.filter((item: any) => {
     if (activeTab === 'media') return item.type === 'image' || item.type === "video";
     if (activeTab === 'links') return item.type === 'document'
     return false;
   });
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex h-screen items-center justify-center p-4">
-      <div className="bg-gray-900 rounded-lg w-full max-w-4xl min-h-[90vh] overflow-hidden flex flex-col shadow-lg border border-gray-800">
+    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex h-[100dvh] items-center justify-center p-4">
+      <div className="bg-gray-900 rounded-lg w-full max-w-4xl min-h-[90dvh] overflow-hidden flex flex-col shadow-lg border border-gray-800">
         <div className="flex justify-between items-center p-6 border-b border-gray-800">
           <h2 className="text-2xl font-bold text-blue-300">Shared Content</h2>
           <button onClick={toggleMediaModal} className="text-gray-400 hover:text-blue-300 transition-colors">
@@ -79,7 +78,7 @@ export default function MediaModal({ toggleMediaModal,selectedChatId }: MediaMod
         </div>
         <div className="flex-grow overflow-y-auto p-6 bg-gradient-to-b from-gray-900 to-gray-800">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {filteredItems.map((item, index) => (
+            {filteredItems.map((item: any, index: any) => (
               <MediaItem
                 key={index}
                 icon={

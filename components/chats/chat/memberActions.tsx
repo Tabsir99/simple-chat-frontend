@@ -1,17 +1,16 @@
 import { Crown, MessageCircle, Pencil, Shield, UserMinus } from "lucide-react";
-import { ChatRoomMember } from "./groupInfoModal";
-import { MemberAction } from "@/types/chatTypes";
+import { ChatRoomMember, MemberAction } from "@/types/chatTypes";
 
 const MemberActions = ({
   member,
   handleMemberAction,
   isCurrentUserAdmin,
-  currentUserId
+  currentUserId,
 }: {
   member: ChatRoomMember;
   handleMemberAction: (type: MemberAction) => void;
   isCurrentUserAdmin: boolean;
-  currentUserId: string | undefined
+  currentUserId: string | undefined;
 }) => {
   return (
     <div className="absolute right-10 py-2 top-4 w-56 px-4 rounded-lg overflow-hidden shadow-lg bg-gray-800 ring-1 ring-gray-700 z-10">

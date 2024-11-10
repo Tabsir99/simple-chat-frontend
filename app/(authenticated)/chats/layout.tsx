@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MiniProfileSkeleton } from "@/components/shared/ui/atoms/skeleton";
 import { BsChatFill } from "react-icons/bs";
 import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
-import ActiveChats from "@/components/chats/activeChats";
+import ActiveChats from "@/components/features/chat/components/activeChats";
 import { useEffect, useMemo, useState } from "react";
 import { useRecentActivities } from "@/components/shared/contexts/chat/recentActivityContext";
 import SearchComp from "@/components/shared/ui/atoms/searchComponent/searchComponent";

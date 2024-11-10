@@ -1,8 +1,8 @@
 import { FileIcon, Download, PlayCircle } from "lucide-react";
 import { AttachmentViewModel } from "@/types/chatTypes";
 import { memo, useCallback, useRef, useState } from "react";
-import VideoPlayer from "./attachments/videoPlayer";
-import AudioPlayer from "./attachments/audioPlayer";
+import VideoPlayer from "./videoPlayer";
+import AudioPlayer from "./audioPlayer";
 
 interface AttachmentsProps {
   attachments: AttachmentViewModel;

@@ -20,7 +20,7 @@ import {
   useCommunication,
 } from "@/components/shared/contexts/communication/communicationContext";
 import { v4 } from "uuid";
-import ChatSidebar from "@/components/chats/chatSidebar";
+import ChatSidebar from "@/components/features/chat/components/chatSidebar";
 
 type UserStatusEvent = {
   event: "user:status";

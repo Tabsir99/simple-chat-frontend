@@ -25,12 +25,12 @@ function RootLayout({
 }>) {
   return (
     <html lang="en" style={{ margin: 0, padding: 0 }}>
-      <body style={{ margin: 0, padding: 0 }}>
+      <body style={{ margin: 0, padding: 0 }} >
         <main
           className=" overflow-hidden flex"
           style={{
             backgroundColor: "hsl(250,24%,9%)",
-            height: "100vh",
+            height: "100dvh",
             minWidth: "100vw",
           }}
         >

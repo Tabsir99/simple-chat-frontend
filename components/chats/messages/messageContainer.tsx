@@ -2,7 +2,7 @@ import { IMessage, IMessageReceipt } from "@/types/chatTypes";
 import { ArrowUpLeft } from "lucide-react";
 import Image from "next/image";
 import { Dispatch, Fragment, MutableRefObject, SetStateAction, useEffect, useMemo } from "react";
-import { ReactionButton, ReactionDisplay } from "./reactions";
+import { ReactionButton, ReactionDisplay } from "../../features/chat/reactions/reactionDisplay";
 import MessageContent from "./messageContent";
 import { IUserMiniProfile } from "@/types/userTypes";
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";

@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import NoUserFound from "./nouser";
 import { useRouter } from "next/navigation";
-import AddFriendBtn from "./friendshipControls";
+import AddFriendBtn from "../connections/friendshipControls";
 import UserStats from "./userstats";
 import FullPageLoader from "../../shared/ui/organisms/fullpageloader";
 import { ecnf } from "@/utils/env";
@@ -67,7 +67,7 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
 
   if (userProfile.isLoading) {
     return (
-      <FullPageLoader className="min-h-screen" height="100%" width="100%" />
+      <FullPageLoader className="min-h-[100dvh]" height="100%" width="100%" />
     );
   }
 
@@ -82,7 +82,7 @@ const UserPublicProfile = ({ userId }: { userId: string | null }) => {
   }
 
   return (
-    <div className="h-screen overflow-y-scroll bg-gradient-to-br  from-gray-900 to-gray-800 text-gray-100 py-8 px-4 sm:px-6 lg:px-1 xl2:px-8 ">
+    <div className="h-[100dvh] overflow-y-scroll bg-gradient-to-br  from-gray-900 to-gray-800 text-gray-100 py-8 px-4 sm:px-6 lg:px-1 xl2:px-8 ">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Stats Overview */}
 

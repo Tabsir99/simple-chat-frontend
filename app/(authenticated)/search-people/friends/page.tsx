@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { Users, UserPlus, UserX } from "lucide-react";
 import useCustomSWR from "@/components/shared/hooks/common/customSwr";
-import { NoConnectionsMessage } from "@/components/searchpeople/noConnections";
-import { FriendItem } from "@/components/searchpeople/friendItem";
+import { NoConnectionsMessage } from "@/components/features/connections/noConnections";
+import { FriendItem } from "@/components/features/connections/friendItem";
 import { CustomButton } from "@/components/shared/ui/atoms/Button/customButton";
 import { useRecentActivities } from "@/components/shared/contexts/chat/recentActivityContext";
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";

@@ -47,7 +47,7 @@ export default function AuthComponent() {
 
     setIsLoading(true);
 
-    const response = await fetch(`${ecnf.apiUrl}/send-verification-email`, {
+    const response = await fetch(`${ecnf.apiUrl}/auth/send-verification-email`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -72,7 +72,7 @@ export default function AuthComponent() {
     <PublicRoute>
       <div
         className={
-          "container relative min-w-[100vw] bg-gray-900 min-h-screen overflow-hidden max-lg2:min-h-[800px] max-lg2:h-screen "
+          "container relative min-w-[100vw] bg-gray-900 min-h-[100dvh] overflow-hidden max-lg2:min-h-[800px] "
         }
       >
         <div className="forms-container absolute w-full h-full top-0 left-0">

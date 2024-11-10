@@ -25,7 +25,7 @@ export default function PrivateProfile() {
     return <FullPageLoader className="" width="100%" height="100%" />;
   }
   return (
-    <div className="min-h-screen w-full bg-gray-900 text-white p-4 sm:p-6 lg:p-8 overflow-y-auto">
+    <div className="min-h-[100dvh] w-full bg-gray-900 text-white p-4 sm:p-6 lg:p-8 overflow-y-auto">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header Section */}
         <div className="flex justify-between items-center gap-3 max-lg:pl-12 h-12">

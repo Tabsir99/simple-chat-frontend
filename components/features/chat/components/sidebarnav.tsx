@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BsChat } from "react-icons/bs";
-import { useRecentActivities } from "../shared/contexts/chat/recentActivityContext";
+import { useRecentActivities } from "../../../shared/contexts/chat/recentActivityContext";
 
 const navItems = [
   { href: "/chats", icon: BsChat, label: "Chats" },

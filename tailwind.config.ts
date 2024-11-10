@@ -17,9 +17,9 @@ const config: Config = {
         mono: ["var(--font-geist-mono)"],
       },
       screens: {
-        lg2: "870px",
+        lg2: "880px",
         xs: "560px",
-        xl2: "1200px"
+        xl2: "1200px",
       },
       keyframes: {
         "slide-left-in": {

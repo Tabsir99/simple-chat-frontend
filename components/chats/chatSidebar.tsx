@@ -7,10 +7,12 @@ import { ecnf } from "@/utils/env";
 import { useAuth } from "../authComps/authcontext";
 import Image from "next/image";
 import { useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function ChatSidebar() {
   const { user } = useAuth();
   const sidebarRef = useRef<HTMLElement | null>(null);
+  const pathName = usePathname()
 
   // Close sidebar when clicking outside
   useEffect(() => {
@@ -45,15 +47,15 @@ export default function ChatSidebar() {
   return (
     <>
       {/* Mobile Toggle Button */}
-      <button
+      {<button
         onClick={() => {
           sidebarRef.current?.classList.toggle("max-lg:-translate-x-full");
         }}
-        className="p-2 rounded-lg z-10 fixed top-4 left-4 lg:hidden bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:ring-gray-600 text-gray-100 transition-all duration-200"
+        className={`p-2 ${pathName.startsWith("/chats/") && "max-lg2:hidden"} rounded-lg z-10 fixed top-4 left-4 lg:hidden bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:ring-gray-600 text-gray-100 transition-all duration-200`}
         aria-label="Toggle Sidebar"
       >
         <Menu className="w-6 h-6" />
-      </button>
+      </button>}
 
       {/* Sidebar */}
       <aside

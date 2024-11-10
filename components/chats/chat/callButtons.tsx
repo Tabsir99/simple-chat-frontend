@@ -27,10 +27,10 @@ const CallButton: React.FC<CallButtonProps> = ({
   variant = "default",
 }) => {
   const baseStyles =
-    "relative group flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300";
+    "relative group flex items-center justify-center p-3 max-xs:p-2 rounded-full transition-all duration-300";
   const variantStyles = {
     default:
-      "bg-gray-700/50 hover:bg-gray-700 border border-gray-700/50 hover:border-gray-600",
+      " hover:bg-gray-700 xs:border-gray-700 xs:border ",
     accept:
       "bg-green-600/90 hover:bg-green-500 border border-green-500/50 hover:border-green-400",
     decline:
@@ -48,7 +48,7 @@ const CallButton: React.FC<CallButtonProps> = ({
         `}
         aria-label={label}
       >
-        <Icon className="w-4 h-4 text-white" />
+        <Icon className="w-5 h-5 text-gray-400" />
       </button>
     </div>
   );
@@ -77,7 +77,7 @@ const chatRoomId = useParams().chatId
   };
 
   return (
-    <div className="flex items-center gap-2 p-2">
+    <div className="flex items-center gap-2 p-2 max-xs:gap-0 max-xs:p-0">
       <CallButton
         icon={Phone}
         label="Voice Call"

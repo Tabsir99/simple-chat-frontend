@@ -16,13 +16,13 @@ const ActiveChats = memo(({ data }: { data: IChatHead }) => {
     <Link
       href={`/chats/${data.chatRoomId}`}
       className={`
-        flex items-center w-80 py-3 px-4 rounded-lg 
+        flex items-center w-80 max-lg:w-72 max-lg2:w-full py-3 px-2 rounded-lg 
         transition-colors duration-150 ease-out
         relative
         ${
           isCurrentChat
-            ? "bg-[#2c3745] border-l-4 border-blue-500"
-            : "bg-[#232b36] hover:bg-[#252f3a]"
+            ? "bg-[#2c3745] bg-transparent border-l-4 border-blue-500"
+            : "bg-[#232b36] bg-transparent hover:bg-[#252f3a]"
         }
       `}
       scroll={false}
@@ -59,14 +59,24 @@ const ActiveChats = memo(({ data }: { data: IChatHead }) => {
         />
       </div>
 
-      <div className="flex-1 min-w-0">
-        <h2
-          className={`text-[18px] capitalize truncate
+      <div className="min-w-0 flex-1">
+        <div className="flex w-full justify-between mb-1">
+          <h2
+            className={`text-[18px] capitalize truncate
             text-gray-300
             transition-colors duration-150 ease-out`}
-        >
-          {data.roomName || data.oppositeUsername}
-        </h2>
+          >
+            {data.roomName || data.oppositeUsername}
+          </h2>
+
+          <span
+            className={`text-[14px] 
+            ${isCurrentChat ? "text-gray-300" : "text-gray-400"}
+            transition-colors duration-150 ease-out`}
+          >
+            {data.lastActivity && formatDate(data.lastActivity)}
+          </span>
+        </div>
 
         {data.isTyping &&
         data.chatRoomId !== params.chatId &&
@@ -89,7 +99,7 @@ const ActiveChats = memo(({ data }: { data: IChatHead }) => {
           </div>
         ) : (
           <p
-            className={`text-[16px] truncate 
+            className={`text-[16px] truncate pr-6 
               ${
                 data.unreadCount > 0 && !data.removedAt
                   ? "text-white font-bold"
@@ -98,9 +108,7 @@ const ActiveChats = memo(({ data }: { data: IChatHead }) => {
               transition-colors duration-150 ease-out`}
           >
             {data.messageContent
-              ? data.messageContent.length > 26
-                ? data.messageContent?.slice(0, 26) + "..."
-                : data.messageContent
+              ? data.messageContent
               : getLastMessage(
                   {
                     userId: data.senderUserId,
@@ -112,17 +120,10 @@ const ActiveChats = memo(({ data }: { data: IChatHead }) => {
         )}
       </div>
 
-      <div className="flex flex-col items-end ml-2 min-w-[60px]">
-        <span
-          className={`text-[14px] 
-            ${isCurrentChat ? "text-gray-300" : "text-gray-400"}
-            transition-colors duration-150 ease-out`}
-        >
-          {data.lastActivity && formatDate(data.lastActivity)}
-        </span>
+      <div className="absolute bottom-4 right-2">
         {data.unreadCount > 0 && !data.removedAt && (
           <span
-            className={`rounded-full w-5 h-5 flex justify-center items-center text-[12px] mt-1
+            className={`rounded-full w-5 h-5 flex justify-center items-center text-[12px]
               ${isCurrentChat ? "bg-blue-700" : "bg-blue-600"}
               transition-colors duration-150 ease-out`}
           >

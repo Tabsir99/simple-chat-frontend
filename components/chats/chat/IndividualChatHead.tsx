@@ -20,6 +20,9 @@ import {
   Users,
   Trash,
   PhoneCallIcon,
+  ArrowLeft,
+  ArrowLeftToLine,
+  ArrowLeftCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -43,6 +46,7 @@ import { AllMessageResponse } from "@/types/responseType";
 import { useChatContext } from "@/components/contextProvider/chatContext";
 import CallControls from "./callButtons";
 import { useCommunication } from "@/components/contextProvider/communicationContext";
+import { FaLongArrowAltLeft } from "react-icons/fa";
 
 // Create menu configurations
 const createMenuConfig = (
@@ -230,11 +234,11 @@ export default function ChatHeader({
 
   return (
     <div
-      className="bg-[#1f2329] flex items-center justify-between h-16 px-2 py-2 border-b-2 border-gray-700 relative
+      className="bg-[#1f2329] flex items-center justify-between px-2 max-xs:px-0 py-2 border-b-2 border-gray-700 relative
     
     "
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 max-xs:gap-0.5">
         {!selectedActiveChat ? (
           <>
             <div className="w-10 h-10 rounded-full bg-gray-700 animate-shimmer bg-200% bg-shimmer" />
@@ -245,14 +249,31 @@ export default function ChatHeader({
           </>
         ) : (
           <>
-            {" "}
+            <button
+              className=" flex items-center justify-center w-5 h-5 rounded-full border-gray-700/50 bg-[#232b36]/50 hover:bg-[#2c3745]/80
+                          backdrop-blur-sm transition-all duration-200 ease-out
+                          active:scale-95
+                          hover:border-gray-600"
+              aria-label="Go back"
+              onClick={() => {
+                router.push("/chats")
+              }}
+            >
+              <ArrowLeft
+                className="
+                      w-5 h-5 
+                      scale-x-125
+                      text-gray-400 
+                      transition-all duration-200 ease-out"
+              />
+            </button>
             <Link
               href={
                 selectedActiveChat.isGroup
                   ? "#"
                   : `/search-people/${selectedActiveChat.oppositeUserId}`
               }
-              className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-gray-400"
+              className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center text-gray-400"
             >
               {selectedActiveChat.isGroup ? (
                 <span className="text-[18px] uppercase">GC</span>
@@ -267,25 +288,25 @@ export default function ChatHeader({
                 </span>
               )}
             </Link>
-            <div className="capitalize">
-              <h2 className="text-white text-[18px]">
+            <div className="capitalize text-[14px] max-xs:text-[12px] max-xs:ml-1 ">
+              <h2 className="text-white text-[18px] max-xs:text-[16px] ">
                 {selectedActiveChat.isGroup
                   ? selectedActiveChat.roomName
                   : selectedActiveChat.oppositeUsername}
               </h2>
               {selectedActiveChat.isGroup ? (
-                <p className="text-[14px] text-green-400"> online </p>
+                <p className=" text-green-400"> online </p>
               ) : selectedActiveChat?.oppositeUserStatus === "online" ? (
-                <p className="text-[14px] text-green-400"> online </p>
+                <p className=" text-green-400"> online </p>
               ) : (
-                <p className="text-[14px] text-gray-400"> offline </p>
+                <p className=" text-gray-400"> offline </p>
               )}
             </div>
           </>
         )}
       </div>
 
-      <div className="flex items-center gap-3 relative">
+      <div className="flex items-center gap-3 max-xs:gap-0 justify-center relative">
         {!selectedActiveChat.isGroup && (
           <CallControls
             localUser={{
@@ -303,11 +324,13 @@ export default function ChatHeader({
         )}
 
         <button
-          className="relative -ml-3 group flex items-center justify-center w-10 h-10 rounded-full transition-all 
-          duration-300 bg-gray-700/50 hover:bg-gray-700 border border-gray-700/50 hover:border-gray-600
-          xl:hidden
+          className="relative -ml-3 group flex items-center justify-center p-3 rounded-full transition-all 
+          duration-300 hover:bg-gray-700 xs:border-gray-700 xs:border
+          xl:hidden max-sm:hidden
           "
-          onClick={() => {}}
+          onClick={() => {
+
+          }}
         >
           <Search className="w-4 h-4" />
         </button>
@@ -326,7 +349,7 @@ export default function ChatHeader({
           </button>
         </div>
         <button
-          className="text-gray-400 hover:text-white transition-colors duration-200 focus:outline-none"
+          className="text-gray-400 p-2 rounded-full hover:text-white transition-colors duration-200 focus:outline-none"
           onClick={toggleDropdown}
         >
           <MoreVertical size={24} />

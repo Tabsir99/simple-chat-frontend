@@ -115,10 +115,10 @@ export default function FriendList() {
   };
 
   return (
-    <div className="bg-gray-900/70 p-6 h-full w-full border-l-2 border-gray-800">
-      <h2 className="text-2xl font-bold mb-6 pt-0 text-white max-lg:pl-10">Friends List</h2>
+    <div className="bg-gray-900/70 py-6 px-2 h-full w-full border-l-2 border-gray-800">
+      <h2 className="text-2xl font-bold mb-6 pt-0 text-white max-lg:pl-14">Friends List</h2>
 
-      <div className="flex gap-4 mb-6 flex-wrap">
+      <div className="flex gap-4 mb-6 flex-wrap justify-stretch">
         {tabs.map((tab) => (
           <CustomButton
             key={tab.id}
@@ -137,7 +137,7 @@ export default function FriendList() {
         ))}
       </div>
 
-      <div className="gap-3 grid grid-cols-2 items-center">
+      <div className="gap-3 grid grid-cols-2 max-md:grid-cols-1 items-center">
         {data?.length === 0 ? (
           <NoConnectionsMessage type={activeTab} />
         ) : (

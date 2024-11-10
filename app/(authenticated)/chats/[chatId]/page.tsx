@@ -68,11 +68,9 @@ export default function ChatRoom() {
   };
 
   const sendMessage = async (
-    e: FormEvent<HTMLFormElement>,
     attachment: AttachmentViewModel | null,
     newMessage: string
   ) => {
-    e.preventDefault();
     if (!newMessage.trim() && !attachment)
       return showNotification("Message is too short!");
 
@@ -157,7 +155,7 @@ export default function ChatRoom() {
           const url = await getFileUrl(
             `${selectedActiveChat?.chatRoomId}-${el.target.id}`
           );
-          console.log("url exists,",url)
+          console.log("url exists,", url);
           if (url) {
             mutate(
               `${ecnf.apiUrl}/chats/${selectedActiveChat?.chatRoomId}/messages`,
@@ -193,7 +191,7 @@ export default function ChatRoom() {
           if (response.ok) {
             const data: ApiResponse<string> = await response.json();
             if (!data.data) return;
-          console.log("url not exists,",data)
+            console.log("url not exists,", data);
 
             setTimeout(async () => {
               const res = await fetch(data.data as string);
@@ -207,7 +205,7 @@ export default function ChatRoom() {
                 selectedActiveChat?.chatRoomId as string,
                 el.target.id
               );
-            },2000);
+            }, 2000);
 
             mutate(
               `${ecnf.apiUrl}/chats/${selectedActiveChat?.chatRoomId}/messages`,
@@ -265,7 +263,10 @@ export default function ChatRoom() {
   const [currentMessageSender, setCurrentMessageSender] = useState(false);
 
   return (
-    <section className=" w-full flex flex-col border-l-2 border-gray-700 overflow-hidden relative">
+    <section
+      className=" w-full grid grid-rows-[75px_1fr_70px] border h-[100dvh] border-l-2 border-gray-800 max-sm:border-none
+     overflow-hidden relative  "
+    >
       {!selectedActiveChat ? (
         <FullPageLoader
           loadingPhrases={null}
@@ -277,12 +278,12 @@ export default function ChatRoom() {
         <>
           <ChatHeader selectedActiveChat={selectedActiveChat} />
 
-          <div>
             {/* Main Chat */}
             <div className="flex flex-col overflow-hidden">
               <div
                 ref={divRef}
-                className="  py-4 px-2 flex flex-col-reverse gap-3 scroll-smooth overflow-x-hidden overflow-y-auto h-[calc(100vh-8rem)]"
+                className="  py-4 px-2 flex flex-col-reverse gap-3 scroll-smooth overflow-x-hidden overflow-y-auto  
+                "
               >
                 {selectedActiveChat.isTyping &&
                   selectedActiveChat.isTyping.length > 0 && (
@@ -367,36 +368,35 @@ export default function ChatRoom() {
                   />
                 )}
               </div>
-
-              {selectedActiveChat.blockedUserId ||
-              selectedActiveChat.removedAt ? (
-                <BlockedChatUI
-                  currentUserId={currentUser?.userId || ""}
-                  blockedUserId={selectedActiveChat.blockedUserId || undefined}
-                  removedAt={
-                    selectedActiveChat.removedAt
-                      ? new Date(selectedActiveChat.removedAt)
-                      : undefined
-                  }
-                  onUnblock={async () => {
-                    await handleFriendshipAction(
-                      "unblock",
-                      selectedActiveChat.blockedUserId as string
-                    );
-                  }}
-                />
-              ) : (
-                <MessageInput
-                  sendMessage={sendMessage}
-                  replyingTo={replyingTo}
-                  onCancelReply={() => setReplyingTo(null)}
-                  selectedActiveChat={selectedActiveChat}
-                  attachmentsMap={attachmentsMap}
-                />
-              )}
             </div>
-          </div>
         </>
+      )}
+
+      {!selectedActiveChat ? null : selectedActiveChat.blockedUserId ||
+        selectedActiveChat.removedAt ? (
+        <BlockedChatUI
+          currentUserId={currentUser?.userId || ""}
+          blockedUserId={selectedActiveChat.blockedUserId || undefined}
+          removedAt={
+            selectedActiveChat.removedAt
+              ? new Date(selectedActiveChat.removedAt)
+              : undefined
+          }
+          onUnblock={async () => {
+            await handleFriendshipAction(
+              "unblock",
+              selectedActiveChat.blockedUserId as string
+            );
+          }}
+        />
+      ) : (
+        <MessageInput
+          sendMessage={sendMessage}
+          replyingTo={replyingTo}
+          onCancelReply={() => setReplyingTo(null)}
+          selectedActiveChat={selectedActiveChat}
+          attachmentsMap={attachmentsMap}
+        />
       )}
       {emojiPickerMessageId && (
         <EmojiPicker

@@ -77,7 +77,7 @@ export const FriendItem = ({
   if(!status) return null
   return (
     <>
-      <div className="flex items-center space-x-4 p-4 bg-gray-800 bg-opacity-80 rounded-xl transition-all duration-200">
+      <div className="flex items-center gap-4 py-4 px-3 bg-gray-800 bg-opacity-80 rounded-xl transition-all duration-200">
         <div className="relative">
           <Link
             href={`/search-people/${userId}`}

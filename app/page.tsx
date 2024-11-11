@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import FormContent from "@/components/features/auth/formContent";
 import { PublicRoute } from "@/components/shared/contexts/auth/authcontext";
 import { ecnf } from "@/utils/env";
+import AuthSuccess from "@/components/features/auth/AuthSuccess";
 
 export default function AuthComponent() {
   const [showResponse, setShowResponse] = useState({
@@ -17,16 +18,6 @@ export default function AuthComponent() {
   const [formData, setFormData] = useState({
     email: "",
   });
-
-  useEffect(() => {
-    const handleMessage = () => {
-      window.location.assign("/chats");
-    };
-    const channel = new BroadcastChannel("c1");
-    channel.addEventListener("message", handleMessage, { once: true });
-
-    return () => channel.close();
-  }, []);
 
   const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -72,7 +63,7 @@ export default function AuthComponent() {
     <PublicRoute>
       <div
         className={
-          "container relative min-w-[100vw] bg-gray-900 min-h-[100dvh] overflow-hidden max-lg2:min-h-[800px] "
+          "container relative min-w-[100vw] bg-gray-900 min-h-[100dvh] overflow-hidden "
         }
       >
         <div className="forms-container absolute w-full h-full top-0 left-0">
@@ -117,6 +108,8 @@ export default function AuthComponent() {
         </div>
 
         <SocialTexts />
+
+        <AuthSuccess />
       </div>
     </PublicRoute>
   );

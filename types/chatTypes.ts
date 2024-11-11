@@ -126,7 +126,7 @@ interface User {
   userId: string;
 }
 
-interface ParentMessage {
+export interface ParentMessage {
   messageId: string;
   sender: {
     username: string;

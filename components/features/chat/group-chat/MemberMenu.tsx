@@ -1,7 +1,7 @@
 import { Crown, MessageCircle, Pencil, Shield, UserMinus } from "lucide-react";
 import { ChatRoomMember, MemberAction } from "@/types/chatTypes";
 
-const MemberActions = ({
+const MemberMenu = ({
   member,
   handleMemberAction,
   isCurrentUserAdmin,
@@ -66,4 +66,4 @@ const MemberActions = ({
   );
 };
 
-export default MemberActions;
+export default MemberMenu;

@@ -1,3 +1,5 @@
+import { IMessage } from "@/types/chatTypes";
+
 export const formatDate = (isoString: string) => {
   const date = new Date(isoString);
   const now = new Date();
@@ -26,8 +28,7 @@ export const formatDate = (isoString: string) => {
   }
 };
 
-
-export function debounce <T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -35,5 +36,26 @@ export function debounce <T extends (...args: any[]) => any>(
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
+  };
+}
+
+export function buildSystemMessage({
+  content,
+  createdAt,
+  messageId,
+}: {
+  content: string;
+  createdAt: string;
+  messageId: string;
+}): IMessage {
+  return {
+    content: content,
+    createdAt: createdAt,
+    messageId: messageId,
+    type: "system" as const,
+    sender: null,
+    status: "delivered" as const,
+    MessageReaction: [],
+    parentMessage: null,
   };
 }

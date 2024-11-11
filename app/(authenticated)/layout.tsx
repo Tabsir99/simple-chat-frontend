@@ -489,14 +489,9 @@ export default function RootAuthLayout({
     };
   }, [socket]);
 
-  // (async () => {
-  // const s = await navigator
-  // })()
-
   return (
     <>
       <ProtectedRoute>
-        {" "}
         <ChatSidebar /> {children}
       </ProtectedRoute>
     </>

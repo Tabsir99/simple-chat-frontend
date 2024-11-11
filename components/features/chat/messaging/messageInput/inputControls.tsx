@@ -13,7 +13,7 @@ export const InputControls = ({
 }: InputControlsProps) => {
   return (
     <>
-      <div className="flex items-center gap-4 relative z-40 pt-2">
+      <div className="flex items-center gap-4 relative z-40 pt-1">
         <button
           type="button"
           onClick={() => setShowEmojis(!showEmojis)}
@@ -37,17 +37,14 @@ export const InputControls = ({
 interface InputSubmitControlsProps {
   shouldShowSend: boolean;
   isRecording: boolean;
-  handleDynamicButtonClick: () => void;
 }
 export const InputSubmitControls = ({
-  handleDynamicButtonClick,
   isRecording,
   shouldShowSend,
 }: InputSubmitControlsProps) => {
   return (
     <button
-      type={shouldShowSend ? "submit" : "button"}
-      onClick={handleDynamicButtonClick}
+      type="submit"
       className={`p-2 self-center rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 ${
         shouldShowSend
           ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg"

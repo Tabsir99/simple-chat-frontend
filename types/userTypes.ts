@@ -8,10 +8,10 @@ export interface IUserProfile {
   totalChats: number;
   totalFriends: number;
   totalMessageSent: number;
-  status: Friends["status"],
-  isCurrentUserSender: boolean,
-  isCurrentUserBlocked?: boolean,
-  isLoading?: boolean
+  status: Friends["status"];
+  isCurrentUserSender: boolean;
+  isCurrentUserBlocked?: boolean;
+  isLoading?: boolean;
 }
 
 export interface IIsEditing {
@@ -19,15 +19,11 @@ export interface IIsEditing {
   bio: boolean;
 }
 
-
 export interface IUserMiniProfile {
-  userId: string;              // Unique identifier for the user
-  username: string;           // Name of the user
-  bio: string;            // Biography of the user
-  profilePicture: string;  // URL or path to the profile picture
+  userId: string;
+  username: string;
+  profilePicture: string;
 }
-
-
 
 export interface Friends {
   userId: string;

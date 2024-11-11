@@ -1,16 +1,18 @@
 import { Image, Link, Users, X } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 
-const GroupInfoModalHeader = ({
+const GroupModalHead = ({
   roomName,
   onClose,
   activeTab,
   setActiveTab,
+  totalMembers=2,
 }: {
   roomName: string;
   onClose: () => void;
   activeTab: string;
   setActiveTab: Dispatch<SetStateAction<string>>;
+  totalMembers: number
 }) => {
   const tabs = [
     { id: "members", label: "Members", icon: <Users size={18} /> },
@@ -27,7 +29,7 @@ const GroupInfoModalHeader = ({
           <div>
             <h2 className="text-xl capitalize text-white">{roomName}</h2>
             <p className="text-sm text-gray-400">
-              {/* {groupData.members.length} members */}
+              {totalMembers} members
             </p>
           </div>
         </div>
@@ -57,4 +59,4 @@ const GroupInfoModalHeader = ({
   );
 };
 
-export default GroupInfoModalHeader;
+export default GroupModalHead;

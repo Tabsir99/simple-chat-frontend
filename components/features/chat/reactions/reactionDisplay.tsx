@@ -1,30 +1,20 @@
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import { IMessage } from "@/types/chatTypes";
-import { IUserMiniProfile } from "@/types/userTypes";
 import { Plus } from "lucide-react";
 
 interface ReactionComponentProps {
   message: IMessage;
-  toggleReaction: (
-    messageId: string,
-    emoji: string,
-    currentUser: Omit<IUserMiniProfile, "bio"> | null
-  ) => void;
-
+  toggleReaction: (messageId: string, emoji: string) => void;
 }
 
 interface ReactionButtonProps extends ReactionComponentProps {
-  emojiPicker: {
-    emojiPickerMessageId: string | null
-    handleEmojiPickerToggle: () => void
-  }
+  handleEmojiPickerToggle: () => void;
 }
-
 
 export const ReactionButton = ({
   message,
   toggleReaction,
-  emojiPicker
+  handleEmojiPickerToggle,
 }: ReactionButtonProps) => {
   const REACTION_EMOJIS = [
     { emoji: "👍", id: "thumbs_up" },
@@ -36,7 +26,7 @@ export const ReactionButton = ({
     { emoji: "🎉", id: "party" },
   ];
 
-  const currentUser = useAuth().user
+  const currentUser = useAuth().user;
   return (
     <>
       <div
@@ -46,21 +36,19 @@ export const ReactionButton = ({
         }
       >
         <div
-          className={`
-        inline-flex items-end
-        bg-gray-800/95 backdrop-blur-sm
-        border border-gray-600/50
-        rounded-full p-1.5 shadow-lg
-        transform transition-transform duration-200
-        ${message.sender?.userId !== currentUser?.userId  ? "" : "flex-row-reverse"}
+          className={`inline-flex items-end bg-gray-800/95 backdrop-blur-sm border border-gray-600/50
+            rounded-full p-1.5 shadow-lg transform transition-transform duration-200
+        ${
+          message.sender?.userId !== currentUser?.userId
+            ? ""
+            : "flex-row-reverse"
+        }
       `}
         >
           {REACTION_EMOJIS.map((emoji) => (
             <button
               key={emoji.id}
-              onClick={() =>
-                toggleReaction(message.messageId, emoji.emoji, currentUser)
-              }
+              onClick={() => toggleReaction(message.messageId, emoji.emoji)}
               className=" relative w-9 flex justify-center items-center h-9 rounded-full bg-none border-none cursor-pointer transition hover:duration-150 duration-75 ease-linear active:scale-90 hover:-translate-y-1 hover:bg-gray-600"
               title={emoji.id}
             >
@@ -71,7 +59,7 @@ export const ReactionButton = ({
           <div className="w-px h-6 bg-gray-600/50 mx-0.5" />
 
           <button
-            onClick={() => emojiPicker.handleEmojiPickerToggle()}
+            onClick={() => handleEmojiPickerToggle()}
             className={`
             relative
             w-8 h-8 flex justify-center items-center
@@ -96,15 +84,14 @@ export const ReactionDisplay = ({
   message,
   toggleReaction,
 }: ReactionComponentProps) => {
-
-  const currentUser = useAuth().user
+  const currentUser = useAuth().user;
   return (
     <>
       {message.MessageReaction.map((reaction, index) => (
         <button
           key={`${reaction.emoji}-${index}`}
           onClick={() => {
-            toggleReaction(message.messageId, reaction.emoji, currentUser);
+            toggleReaction(message.messageId, reaction.emoji);
           }}
           className={`
             flex items-center justify-center gap-1 border border-gray-600 bg-[#313740] w-7 h-7 rounded-full
@@ -117,7 +104,6 @@ export const ReactionDisplay = ({
             }
           `}
         >
-
           <span className="text-[16px]">{reaction.emoji} </span>
           {reaction.users.length > 1 && (
             <span className="text-[12px] text-gray-400">

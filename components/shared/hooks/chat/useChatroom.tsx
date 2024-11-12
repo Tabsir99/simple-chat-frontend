@@ -1,4 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  MutableRefObject,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useAuth } from "../../contexts/auth/authcontext";
 import { useLocalStorage } from "../storage/useLocalStorage";
 import { ecnf } from "@/utils/env";
@@ -10,11 +16,13 @@ import { useCommunication } from "../../contexts/communication/communicationCont
 import useMessageData from "./message/useMessageData";
 
 export default function useChatRoom() {
-  const messagesRef = useRef<(HTMLDivElement | null)[]>([]);
+  // console.log(messagesRef.current.length, "from ref")
+
   const { checkAndRefreshToken } = useAuth();
 
   const { saveFile, getFileUrl } = useLocalStorage();
-  const chatRoomId = useParams().chatId as string;
+  const [selectedActiveChat, setSelectedActiveChat] =
+    useState<IChatHead | null>(null);
   const { showNotification } = useCommunication();
   const {
     attachmentsMap,
@@ -23,20 +31,19 @@ export default function useChatRoom() {
     setFetchMore,
     readReceipts,
     mutate,
-  } = useMessageData();
+  } = useMessageData(selectedActiveChat?.chatRoomId);
 
   const router = useRouter();
-
-  const [selectedActiveChat, setSelectedActiveChat] =
-    useState<IChatHead | null>(null);
+  const chatRoomId = useParams().chatId;
 
   useEffect(() => {
-    if (messagesRef.current.length < 1) return;
+    if (messages.length < 1) return;
 
     const observer = new IntersectionObserver(
       (entry) => {
         entry.forEach(async (el) => {
           if (!el.isIntersecting) return;
+
           const lastM = messages[messages.length - 1];
           if (el.target.id === lastM.messageId) {
             if (fetchMore.hasMore && !fetchMore.isLoading) {
@@ -70,14 +77,10 @@ export default function useChatRoom() {
               }
             }
           }
-          if (
-            !attachmentsMap.has(el.target.id) ||
-            attachmentsMap.get(el.target.id)?.fileUrl
-          )
-            return;
+
+          if (attachmentsMap.get(el.target.id)?.fileUrl) return;
 
           const url = await getFileUrl(`${chatRoomId}-${el.target.id}`);
-          console.log("url exists,", url);
           if (url) {
             mutate((current: AllMessageResponse | undefined) => {
               if (!current) return current;
@@ -109,13 +112,12 @@ export default function useChatRoom() {
           if (response.ok) {
             const data: ApiResponse<string> = await response.json();
             if (!data.data) return;
-            console.log("url not exists,", data);
 
             setTimeout(async () => {
               const res = await fetch(data.data as string);
               const file = await res.blob();
               console.log(
-                "Fetching and transforming original response -2nd, blob:",
+                "Fetching file as url doesnt exist in localstorage. blob:",
                 file
               );
               await saveFile(file, chatRoomId as string, el.target.id);
@@ -143,10 +145,15 @@ export default function useChatRoom() {
       }
     );
 
-    messagesRef.current.forEach((msg) => {
-      if (!msg) return;
-      observer.observe(msg);
-    });
+    for (const [key] of attachmentsMap) {
+      const msgToObserve = document.getElementById(key);
+      if (msgToObserve) observer.observe(msgToObserve);
+    }
+
+    const oldestMessage = document.getElementById(
+      messages[messages.length - 1].messageId
+    );
+    if (oldestMessage) observer.observe(oldestMessage);
 
     return () => {
       observer.disconnect();

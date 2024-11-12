@@ -1,7 +1,7 @@
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import Avatar from "@/components/shared/ui/atoms/profileAvatar/profileAvatar";
 import { IMessage, IMessageReceipt } from "@/types/chatTypes";
-import { Fragment, useMemo } from "react";
+import { Fragment, useEffect, useMemo } from "react";
 
 const MessageRecipt = ({
     allReadRecipts,
@@ -36,6 +36,9 @@ const MessageRecipt = ({
       [allReadRecipts, currentUserId, messageId]
     );
   
+    // useEffect(() => {
+    //   console.log(allReadRecipts)
+    // },[])
     return (
       <div
         className={` flex items-center justify-end text-xs text-gray-400

@@ -16,6 +16,8 @@ const FilePreview = ({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  console.log("does renders");
+
   const renderPreview = () => {
     if (attachment.fileType.startsWith("image")) {
       return (
@@ -30,7 +32,10 @@ const FilePreview = ({
     if (attachment.fileType.startsWith("video")) {
       return (
         <div className=" rounded-md overflow-hidden relative">
-            <Play className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 p-1 rounded-full bg-opacity-70" size={35} />
+          <Play
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 p-1 rounded-full bg-opacity-70"
+            size={35}
+          />
           <video src={attachment.fileUrl} height={200} width={300} />
         </div>
       );
@@ -74,12 +79,12 @@ const FilePreview = ({
   };
 
   return (
-    <div className=" w-fit min-h-[200px] -top-20 relative  rounded px-1 py-2 flex flex-col-reverse items-center gap-2 active:scale-95 transition-transform duration-200">
+    <div className=" w-fit -translate-y-full top-0 absolute rounded px-1 py-2 flex flex-col-reverse items-center gap-2 active:scale-95 transition-transform duration-200">
       {renderPreview()}
 
       <button
         onClick={() => clearAttachments()}
-        className="absolute top-0 right-0 bg-red-500 hover:bg-red-700 rounded-full p-1"
+        className="absolute top-0 right-0 bg-red-500 hover:bg-red-700 rounded-full p-1.5"
       >
         <X size={16} />
       </button>

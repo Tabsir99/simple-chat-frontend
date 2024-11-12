@@ -1,5 +1,12 @@
-import { IMessage } from "@/types/chatTypes";
-import { Dispatch, MutableRefObject, SetStateAction, useState } from "react";
+import { AttachmentViewModel, IMessage } from "@/types/chatTypes";
+import {
+  Dispatch,
+  MutableRefObject,
+  SetStateAction,
+  memo,
+  useEffect,
+  useState,
+} from "react";
 import { ReactionButton, ReactionDisplay } from "../reactions/reactionDisplay";
 import { IUserMiniProfile } from "@/types/userTypes";
 import Avatar from "@/components/shared/ui/atoms/profileAvatar/profileAvatar";
@@ -10,25 +17,20 @@ import { BanIcon } from "lucide-react";
 import MessageMenu from "@/components/features/chat/messaging/messageMenu";
 import EmojiPicker from "../reactions/emojiPicker";
 
-export default function MessageContainer({
+export function MessageContainer({
   message,
   toggleReaction,
   onDelete,
   onEdit,
   setReplyingTo,
-  attachmentsMap,
-  messagesRef,
+  attachment,
   isCurrentUserSender,
+  emojiPickerMessageId,
 }: MessageContainerProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState(message.content);
 
-  const [emojiPickerMessageId, setEmojiPickerMessageId] = useState<
-    string | null
-  >(null);
-
-  const handleEdit = () => {
-    onEdit(message.messageId, editedContent?.trim());
+  const handleEdit = (editedContent: string) => {
+    onEdit(message.messageId, editedContent.trim());
     setIsEditing(false);
   };
 
@@ -36,7 +38,7 @@ export default function MessageContainer({
     <>
       <div
         className={
-          "flex max-w-[30rem] relative text-pretty group items-start gap-4 break-all hyphens-auto "
+          "messageContainer flex max-w-[30rem] relative text-pretty group items-start gap-4 break-all hyphens-auto "
         }
       >
         {isCurrentUserSender || (
@@ -46,12 +48,15 @@ export default function MessageContainer({
           />
         )}
 
+        <MessageMenu
+          message={message}
+          onDelete={onDelete}
+          setIsEditing={setIsEditing}
+          setReplyingTo={setReplyingTo}
+        />
         <div>
           <div
             id={message.messageId}
-            ref={(el) => {
-              messagesRef.current.push(el);
-            }}
             className={`relative pl-4 pr-7 py-3 transition-colors duration-1000 delay-200 text-white rounded-lg
                 ${
                   message.content
@@ -87,13 +92,6 @@ export default function MessageContainer({
             )}
             {/* END-------MESSAGE POINTER------END */}
 
-            <MessageMenu
-              message={message}
-              onDelete={onDelete}
-              setIsEditing={setIsEditing}
-              setReplyingTo={setReplyingTo}
-            />
-
             {/* Message Content */}
 
             {message.isDeleted ? (
@@ -102,10 +100,9 @@ export default function MessageContainer({
               </p>
             ) : isEditing ? (
               <MessageEdit
-                editedContent={editedContent}
                 handleEdit={handleEdit}
-                setEditedContent={setEditedContent}
                 setIsEditing={setIsEditing}
+                initmsg={message.content || ""}
               />
             ) : (
               <div className="flex flex-col gap-2">
@@ -127,56 +124,24 @@ export default function MessageContainer({
             )}
 
             {/* Attachments */}
-            {!message.isDeleted && attachmentsMap.has(message.messageId) && (
-              <Attachments
-                attachments={attachmentsMap.get(message.messageId)}
-              />
-            )}
-          </div>
-
-          {!message.isDeleted && (
-            <ReactionButton
-              message={message}
-              toggleReaction={toggleReaction}
-              handleEmojiPickerToggle={() => {
-                setEmojiPickerMessageId((prev) => (prev ? null : message.messageId));
-              }}
-            />
-          )}
-
-          <div
-            className={`flex flex-wrap items-end gap-0.5 px-1 absolute w-full -bottom-5 ${
-              isCurrentUserSender ? "  justify-end" : " justify-start "
-            }`}
-          >
-            {message.MessageReaction.length > 0 && (
-              <ReactionDisplay
-                message={message}
-                toggleReaction={toggleReaction}
-              />
+            {!message.isDeleted && attachment && (
+              <Attachments attachments={attachment} />
             )}
           </div>
         </div>
       </div>
-
-      {emojiPickerMessageId && (
-        <EmojiPicker
-          onClose={() => {
-            setEmojiPickerMessageId(null);
-          }}
-          onEmojiSelect={(emoji) => {
-            toggleReaction(emojiPickerMessageId, emoji);
-            setEmojiPickerMessageId(null);
-          }}
-          className={
-            "absolute w-80 bottom-16 border-2 border-gray-700 bg-gray-900 z-50 rounded-md py-0 " +
-            (isCurrentUserSender ? "left-0" : "right-2")
-          }
-        />
-      )}
     </>
   );
 }
+
+export default memo(MessageContainer, (prev, next) => {
+  const shouldRerender =
+    prev.message.MessageReaction !== next.message.MessageReaction ||
+    prev.attachment !== next.attachment ||
+    prev.message.content !== next.message.content;
+
+  return !shouldRerender;
+});
 
 interface MessageContainerProps {
   message: IMessage;
@@ -184,7 +149,7 @@ interface MessageContainerProps {
   onDelete: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
   setReplyingTo: Dispatch<SetStateAction<IMessage | null>>;
-  attachmentsMap: Map<string, any>;
-  messagesRef: MutableRefObject<(HTMLDivElement | null)[]>;
+  attachment?: AttachmentViewModel;
   isCurrentUserSender: boolean;
+  emojiPickerMessageId: string | null;
 }

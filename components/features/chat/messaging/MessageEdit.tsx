@@ -1,16 +1,14 @@
 import { Check, X } from "lucide-react";
-import { Dispatch, SetStateAction, useEffect, useRef } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 const MessageEdit = ({
-  editedContent,
-  setEditedContent,
   setIsEditing,
   handleEdit,
+  initmsg
 }: {
-  editedContent: string;
-  setEditedContent: Dispatch<SetStateAction<string>>;
   setIsEditing: Dispatch<SetStateAction<boolean>>;
-  handleEdit: () => void;
+  handleEdit: (editedContent: string) => void;
+  initmsg: string
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -19,7 +17,10 @@ const MessageEdit = ({
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [editedContent]);
+  }, []);
+
+  const [editedContent, setEditedContent] = useState(initmsg);
+
 
   return (
     <div className="flex flex-col gap-2">
@@ -39,7 +40,9 @@ const MessageEdit = ({
           <X size={20} />
         </button>
         <button
-          onClick={handleEdit}
+          onClick={() => {
+            handleEdit(editedContent)
+          }}
           className="p-2 bg-blue-500 hover:bg-blue-600 rounded-full transition-colors duration-200"
         >
           <Check size={20} />

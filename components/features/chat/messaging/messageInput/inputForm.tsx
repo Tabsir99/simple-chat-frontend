@@ -20,9 +20,9 @@ const MessageInputForm = ({
   attachment,
   clearAttachments,
   fileInputRef,
+  handleFileSelect
 }: MessageInputFormProps) => {
   const {
-    handleFileChange,
     handleFileClick,
     isRecording,
     newMessage,
@@ -57,7 +57,7 @@ const MessageInputForm = ({
     }
   };
   return (
-    <div className="relative h-full w-full pl-4 flex max-sm:pl-0 max-sm:pr-1 gap-1 pr-2">
+    <div className="relative border h-full w-full pl-4 flex max-sm:pl-0 max-sm:pr-1 gap-1 pr-2">
       {/* Main Input Container */}
       <form
         ref={formRef}
@@ -112,7 +112,10 @@ const MessageInputForm = ({
       <input
         type="file"
         ref={fileInputRef}
-        onChange={handleFileChange}
+        onChange={(e) => {
+          if(!e.target.files) return
+          handleFileSelect(e.target.files[0])
+        }}
         className="hidden"
         accept="image/*,video/*,audio/*"
       />

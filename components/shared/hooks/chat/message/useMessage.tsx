@@ -1,8 +1,5 @@
 import { useRef, useState } from "react";
-import {
-  IMessage,
-  AttachmentViewModel,
-} from "@/types/chatTypes";
+import { IMessage, AttachmentViewModel } from "@/types/chatTypes";
 import { IUserMiniProfile } from "@/types/userTypes";
 import { ecnf } from "@/utils/env";
 import { useChatContext } from "../../../contexts/chat/chatContext";
@@ -16,14 +13,11 @@ import { v4 } from "uuid";
 import { KeyedMutator } from "swr";
 
 export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
-  
-
   const chatId = useParams().chatId;
   const [replyingTo, setReplyingTo] = useState<IMessage | null>(null);
   const currentUser = useAuth().user;
 
   const divRef = useRef<HTMLDivElement>(null);
-  
 
   const { showNotification, socket } = useCommunication();
   const { updateLastActivity } = useChatContext();
@@ -32,11 +26,9 @@ export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
     chatId: chatId as string,
     socket,
     mutate,
-    currentUser
+    currentUser,
   });
-  useMessageSocket({ socket,mutate });
-
- 
+  useMessageSocket({ socket, mutate });
 
   const addMessage = async (
     newMessage: IMessage,
@@ -152,32 +144,59 @@ export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
   }
 
   const editMessage = (messageId: string, newContent: string) => {
-    // setMessages((prevMessages) =>
-    //   prevMessages.map((msg) => {
-    //     if (msg.messageId === messageId) {
-    //       return {
-    //         ...msg,
-    //         content: newContent,
-    //         isEdited: true,
-    //       };
-    //     }
-    //     return msg;
-    //   })
-    // );
+    mutate((current) => {
+      if (!current) return current;
+      return {
+        allReceipts: current.allReceipts,
+        attachments: current.attachments,
+        messages: current.messages.map((msg) => {
+          if(msg.parentMessage?.messageId === messageId){
+            return {
+              ...msg,
+              parentMessage: {
+                content: newContent,
+                messageId: msg.parentMessage.messageId,
+                sender: msg.parentMessage.sender
+              }
+            }
+          }
+          if (msg.messageId !== messageId) return msg;
+          return {
+            ...msg,
+            content: newContent,
+            isEdited: true,
+          };
+        }),
+      };
+    }, false);
   };
 
   const deleteMessage = (messageId: string) => {
-    // setMessages((prevMessages) =>
-    //   prevMessages.map((msg) => {
-    //     if (msg.messageId === messageId) {
-    //       return {
-    //         ...msg,
-    //         isDeleted: true,
-    //       };
-    //     }
-    //     return msg;
-    //   })
-    // );
+    mutate((current) => {
+      if (!current) return current;
+      return {
+        allReceipts: current.allReceipts,
+        attachments: current.attachments,
+        messages: current.messages.map((msg) => {
+          if(msg.parentMessage?.messageId === messageId){
+            return {
+              ...msg,
+              parentMessage: {
+                content: "This message was deleted",
+                messageId: msg.parentMessage.messageId,
+                sender: msg.parentMessage.sender
+              }
+            }
+          }
+          if (msg.messageId !== messageId) return msg;
+          return {
+            ...msg,
+            content: "",
+            isDeleted: true,
+          };
+        }),
+      };
+    },false);
   };
 
   const scrollToBottom = () => {
@@ -216,7 +235,7 @@ export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
 
     addMessage(newMsg, currentUser, attachment || undefined);
     setReplyingTo(null);
-    scrollToBottom()
+    scrollToBottom();
   };
   return {
     sendMessage,
@@ -227,6 +246,6 @@ export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
     replyingTo,
     setReplyingTo,
 
-    divRef
+    divRef,
   };
 }

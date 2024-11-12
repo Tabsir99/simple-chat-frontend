@@ -9,7 +9,7 @@ import useCustomSWR from "../../common/customSwr";
 import { ecnf } from "@/utils/env";
 import { useParams } from "next/navigation";
 
-export default function useMessageData() {
+export default function useMessageData(chatId?: string) {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [readReceipts, setReadReceipts] = useState<IMessageReceipt[]>([]);
   const [attachmentsMap, setAttachmentsMap] = useState<
@@ -19,8 +19,6 @@ export default function useMessageData() {
     isLoading: false,
     hasMore: true,
   });
-
-  const chatId = useParams().chatId;
 
   const { data, mutate } = useCustomSWR<AllMessageResponse>(
     chatId ? `${ecnf.apiUrl}/chats/${chatId}/messages` : null,

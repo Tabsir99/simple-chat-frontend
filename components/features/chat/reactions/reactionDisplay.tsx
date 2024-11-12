@@ -31,8 +31,10 @@ export const ReactionButton = ({
     <>
       <div
         className={
-          "absolute opacity-0 group-hover:opacity-100 -bottom-8 max-lg:bg-gray-50 -z-10 group-hover:z-30 transition-opacity duration-0 group-hover:duration-300 "
-          // (message.sender?.userId !== currentUser?.userId  ? "left-full" : " right-full ")
+          "reactionButton opacity-0 pointer-events-none transition-opacity duration-200 absolute -bottom-0 max-lg:bg-gray-50 " +
+          (message.sender?.userId !== currentUser?.userId
+            ? "left-0"
+            : " right-0 ")
         }
       >
         <div
@@ -87,13 +89,18 @@ export const ReactionDisplay = ({
   const currentUser = useAuth().user;
   return (
     <>
-      {message.MessageReaction.map((reaction, index) => (
-        <button
-          key={`${reaction.emoji}-${index}`}
-          onClick={() => {
-            toggleReaction(message.messageId, reaction.emoji);
-          }}
-          className={`
+      <div
+        className={`flex flex-wrap items-end gap-0.5 px-1 absolute bottom-4 justify-end ${
+        ""  // isCurrentUserSender ? "  justify-end" : " justify-start "
+        }`}
+      >
+        {message.MessageReaction.map((reaction, index) => (
+          <button
+            key={`${reaction.emoji}-${index}`}
+            onClick={() => {
+              toggleReaction(message.messageId, reaction.emoji);
+            }}
+            className={`
             flex items-center justify-center gap-1 border border-gray-600 bg-[#313740] w-7 h-7 rounded-full
             hover:bg-gray-700 transition active:scale-90
             animate-[scaleIn_0.2s_ease-out]
@@ -103,15 +110,16 @@ export const ReactionDisplay = ({
                 : ""
             }
           `}
-        >
-          <span className="text-[16px]">{reaction.emoji} </span>
-          {reaction.users.length > 1 && (
-            <span className="text-[12px] text-gray-400">
-              {reaction.users.length}
-            </span>
-          )}
-        </button>
-      ))}
+          >
+            <span className="text-[16px]">{reaction.emoji} </span>
+            {reaction.users.length > 1 && (
+              <span className="text-[12px] text-gray-400">
+                {reaction.users.length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
     </>
   );
 };

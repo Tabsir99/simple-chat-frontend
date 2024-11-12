@@ -225,3 +225,8 @@ body {
 
 
 
+.messageContainer:hover + .reactionButton, .reactionButton:hover {
+  opacity: 1;
+  pointer-events: all;
+}
+

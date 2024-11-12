@@ -58,7 +58,7 @@ const Attachments = memo(({ attachments }: AttachmentsProps) => {
   const fileCategory = getFileCategory(attachments.fileType);
 
   return (
-    <div className="mt-2 space-y-2 w-full flex flex-col">
+    <div className="mt-2 space-y-2 max-w-[360px] flex flex-col">
       <div className="rounded-lg overflow-hidden border-gray-200 dark:border-gray-700">
         {fileCategory === "image" && (
           <img

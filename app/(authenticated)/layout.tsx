@@ -1,7 +1,10 @@
 "use client";
 
 import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
-import { ProtectedRoute, useAuth } from "@/components/shared/contexts/auth/authcontext";
+import {
+  ProtectedRoute,
+  useAuth,
+} from "@/components/shared/contexts/auth/authcontext";
 import { useCallback, useEffect, useRef } from "react";
 import { useRecentActivities } from "@/components/shared/contexts/chat/recentActivityContext";
 import { mutate } from "swr";
@@ -183,15 +186,15 @@ export default function RootAuthLayout({
       switch (event) {
         case "user:status":
           const { friendId, status } = data;
-          let chatId: string | undefined;
+          let chatIds: string[] = [];
           setActiveChats((prevChats) =>
             prevChats
               ? prevChats?.map((chat) => {
                   if (chat.oppositeUserId === friendId) {
-                    chatId = chat.chatRoomId;
+                    chatIds.push(chat.chatRoomId);
                     return {
                       ...chat,
-                      oppositeUserStatus: status
+                      oppositeUserStatus: status,
                     };
                   }
                   return chat;
@@ -199,22 +202,26 @@ export default function RootAuthLayout({
               : null
           );
 
-          mutate(
-            `${ecnf.apiUrl}/chats/${chatId}/messages`,
-            (currentData: AllMessageResponse | undefined) => {
-              if (!currentData) return currentData;
+          for (let i = 0; i < chatIds.length; i++) {
+            mutate(
+              `${ecnf.apiUrl}/chats/${chatIds[i]}/messages`,
+              (currentData: AllMessageResponse | undefined) => {
+                if (!currentData) return currentData;
 
-              currentData.messages[currentData.messages.length - 1].status =
-                "delivered";
-              return {
-                allReceipts: currentData.allReceipts,
-                messages: currentData.messages,
-                attachments: currentData.attachments,
-              };
-            },
-            false
-          );
+                currentData.messages[currentData.messages.length - 1].status =
+                  "delivered";
+
+                return {
+                  allReceipts: currentData.allReceipts,
+                  messages: currentData.messages,
+                  attachments: currentData.attachments,
+                };
+              },
+              false
+            );
+          }
           break;
+          
         case "friend:request":
           updateActivity("friendRequests", "increment");
           mutate(`${ecnf.apiUrl}/friendships`);
@@ -386,7 +393,6 @@ export default function RootAuthLayout({
             `${ecnf.apiUrl}/chats/${data.chatRoomId}/messages`,
             (current: AllMessageResponse | undefined) => {
               if (!current) return current;
-
               const readerSet = new Set(data.readBy);
 
               const newData: AllMessageResponse = {

@@ -24,7 +24,7 @@ export default function MessageInput({
   return (
     <div
       className="px-0 flex flex-col justify-center items-stretch 
-      border-gray-400 relative "
+      border-gray-400 relative border "
     >
       {replyingTo && (
         <ReplyPreview

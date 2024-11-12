@@ -19,7 +19,7 @@ export default function MessageMenu({
   const currentUser = useAuth().user
 
   return (
-    <>
+    <div>
       {!message.isDeleted && (
         <button
           onClick={() => setShowMenu(!showMenu)}
@@ -68,6 +68,6 @@ export default function MessageMenu({
           )}
         </div>
       )}
-    </>
+    </div>
   );
 }

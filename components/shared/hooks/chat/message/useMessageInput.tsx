@@ -17,12 +17,6 @@ export const useMessageInput = (fileInputRef: any) => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: any) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      console.log("File selected:", file);
-    }
-  };
 
   const toggleRecording = () => {
     setIsRecording(!isRecording);
@@ -62,7 +56,6 @@ export const useMessageInput = (fileInputRef: any) => {
     isRecording,
     setIsRecording,
     toggleRecording,
-    handleFileChange,
     handleFileClick,
   };
 };

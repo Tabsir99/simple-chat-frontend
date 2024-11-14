@@ -1,5 +1,5 @@
 
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { FaGoogle } from "react-icons/fa";
 
 

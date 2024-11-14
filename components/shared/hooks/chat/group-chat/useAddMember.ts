@@ -4,7 +4,7 @@ import { useCommunication } from "@/components/shared/contexts/communication/com
 import { ChatRoomMember, MinifiedMessage } from "@/types/chatTypes";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { IUserMiniProfile } from "@/types/userTypes";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { buildSystemMessage } from "@/utils/utils";
 
 import { useParams } from "next/navigation";

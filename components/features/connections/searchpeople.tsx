@@ -5,12 +5,12 @@ import { useState, useRef } from "react";
 import { MiniProfileSkeleton } from "../../shared/ui/atoms/skeleton";
 import { useAuth } from "../../shared/contexts/auth/authcontext";
 import Image from "next/image";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import SearchComp from "../../shared/ui/atoms/searchComponent/searchComponent";
 import SearchResultMessage from "./searchResultMessage";
 
 export default function SearchPeopleComp() {
-  const [people, setPeople] = useState<IUserMiniProfile[]>([]);
+  const [people, setPeople] = useState<(IUserMiniProfile&{bio: string})[]>([]);
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const abortController = useRef<AbortController | null>(null); // Store abort controller
@@ -60,7 +60,7 @@ export default function SearchPeopleComp() {
       );
 
       if (result.ok) {
-        const data: { data: IUserMiniProfile[] } = await result.json();
+        const data: { data: (IUserMiniProfile&{bio: string})[] } = await result.json();
         setPeople(data.data);
         if (data.data.length === 0) {
           queryRef.current = query;

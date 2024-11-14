@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import { Friends, IUserProfile } from "@/types/userTypes";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { mutate as gMutate } from "swr";
 import { ApiResponse } from "@/types/responseType";
 import { IChatHead } from "@/types/chatTypes";

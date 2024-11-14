@@ -19,9 +19,14 @@ import {
   ReactionButton,
   ReactionDisplay,
 } from "@/components/features/chat/reactions/reactionDisplay";
+import MessageMenu from "@/components/features/chat/messaging/messageMenu";
+import { IMenu } from "@/types/chatTypes";
+import useMenu from "@/components/shared/hooks/chat/useMenu";
+import MessageEditModal from "@/components/features/chat/messaging/MessageEdit";
 
 export default function ChatRoom() {
   const currentUser = useAuth().user;
+  const divRef = useRef<HTMLDivElement>(null);
 
   const {
     selectedActiveChat,
@@ -30,30 +35,22 @@ export default function ChatRoom() {
     messages,
     readReceipts,
     mutate,
+    handleReply,
+    replyingTo,
   } = useChatRoom();
 
   const { handleFriendshipAction } = useFriendshipActions();
 
+  const { sendMessage, editMessage, deleteMessage, toggleReaction } =
+    useMessages(mutate, divRef, replyingTo);
+
   const {
-    sendMessage,
-    editMessage,
-    deleteMessage,
-    toggleReaction,
-
-    replyingTo,
-    setReplyingTo,
-
-    divRef,
-  } = useMessages(mutate);
-
-  const [emojiPickerMessageId, setEmojiPickerMessageId] = useState<
-    string | null
-  >(null);
-
-  const [emojiPickerState, setEmojiPickerState] = useState<{
-    messageId: string | null;
-    position: { top: number; left: number } | null;
-  }>({ messageId: null, position: null });
+    menu,
+    closeMenu,
+    handleEmojiPickerToggle,
+    isEditing,
+    toggleMessageEdit,
+  } = useMenu(divRef);
 
   return (
     <section
@@ -72,30 +69,26 @@ export default function ChatRoom() {
           <ChatHeader selectedActiveChat={selectedActiveChat} />
 
           {/* Main Chat */}
-          <div className="flex flex-col overflow-hidden">
+          <div className="flex flex-col overflow-hidden ">
             <div
               ref={divRef}
-              className="  py-4 px-2 flex flex-col-reverse gap-3 scroll-smooth overflow-x-hidden overflow-y-auto  
+              className=" py-4 px-2 flex select-none h-full flex-col-reverse gap-0 scroll-smooth overflow-x-hidden overflow-y-auto  
                 "
             >
               {selectedActiveChat.isTyping &&
                 selectedActiveChat.isTyping.length > 0 && (
                   <TypingIndicator typingUsers={selectedActiveChat.isTyping} />
                 )}
-              {messages.map((message) => {
+              {messages.map((message, index) => {
                 if (message.type === "system") {
                   return (
                     <div
                       key={message.messageId}
                       className="flex justify-center my-2 px-4"
                     >
-                      <div className="inline-flex items-center gap-2 max-w-md w-full px-3 py-2 rounded-md bg-transparent border border-gray-700">
-                        <span className="flex-grow text-sm text-gray-300">
+                      <div className="inline-flex justify-center text-center pb-4 items-center gap-2 max-w-md w-full px-3 py-2 rounded-md bg-transparent">
+                        <span className="flex-grow text-sm text-gray-400">
                           {message.content}
-                        </span>
-
-                        <span className="text-xs text-gray-400">
-                          {formatDate(message.createdAt)}
                         </span>
                       </div>
                     </div>
@@ -107,8 +100,8 @@ export default function ChatRoom() {
 
                 return (
                   <div
-                    className={`flex flex-col relative rounded-lg w-full ${
-                      message.MessageReaction.length > 0 ? "gap-5" : "gap-1.5"
+                    className={`flex flex-col relative justify-center  w-full ${
+                      message.MessageReaction.length > 0 ? "gap-8" : "gap-0" 
                     }  ${isCurrentUserSender ? "items-end" : "items-start"}`}
                     key={message.messageId}
                   >
@@ -122,31 +115,12 @@ export default function ChatRoom() {
                     <MessageContainer
                       attachment={attachmentsMap.get(message.messageId)}
                       message={message}
-                      toggleReaction={toggleReaction}
-                      onDelete={deleteMessage}
-                      onEdit={editMessage}
-                      setReplyingTo={setReplyingTo}
                       isCurrentUserSender={isCurrentUserSender}
-                      emojiPickerMessageId={emojiPickerState?.messageId}
+                      selectedMessageId={menu.message?.messageId}
+                      toggleReaction={toggleReaction}
+                      isGroup={selectedActiveChat.isGroup}
                     />
-                    {!message.isDeleted && (
-                      <ReactionButton
-                        message={message}
-                        toggleReaction={toggleReaction}
-                        handleEmojiPickerToggle={() => {
-                          setEmojiPickerMessageId((prev) =>
-                            prev ? null : message.messageId
-                          );
-                        }}
-                      />
-                    )}
 
-                    {message.MessageReaction.length > 0 && (
-                      <ReactionDisplay
-                        message={message}
-                        toggleReaction={toggleReaction}
-                      />
-                    )}
                     <MessageRecipt
                       allReadRecipts={readReceipts}
                       messageId={message.messageId}
@@ -156,9 +130,7 @@ export default function ChatRoom() {
                           : message.status
                       }
                       isPrivateChat={!selectedActiveChat.isGroup}
-                      isCurrentUserSender={
-                        message.sender?.userId === currentUser?.userId
-                      }
+                      isCurrentUserSender={isCurrentUserSender}
                     />
                   </div>
                 );
@@ -171,6 +143,17 @@ export default function ChatRoom() {
                   className=" bg-transparent"
                   height="fit-content"
                   loadingPhrases={null}
+                />
+              )}
+
+              {menu.message?.isDeleted || (
+                <ReactionButton
+                  toggleReaction={(msgId, emoji) => {
+                    toggleReaction(msgId, emoji);
+                    closeMenu();
+                  }}
+                  handleEmojiPickerToggle={handleEmojiPickerToggle}
+                  menu={menu}
                 />
               )}
             </div>
@@ -199,24 +182,48 @@ export default function ChatRoom() {
         <MessageInput
           sendMessage={sendMessage}
           replyingTo={replyingTo}
-          onCancelReply={() => setReplyingTo(null)}
+          onCancelReply={() => handleReply(null)}
           selectedActiveChat={selectedActiveChat}
           attachmentsMap={attachmentsMap}
         />
       )}
 
-      {emojiPickerMessageId && (
-        <EmojiPicker
-          onClose={() => {
-            setEmojiPickerMessageId(null);
+      <EmojiPicker
+        id="emojiPicker"
+        onClose={handleEmojiPickerToggle}
+        onEmojiSelect={(emoji) => {
+          if (menu.message) toggleReaction(menu.message.messageId, emoji);
+          closeMenu();
+        }}
+        className={`absolute w-full bottom-0 z-[60] border-2 border-gray-700 bg-gray-900 rounded-md py-0
+           ${
+             menu.showEmojiPicker ? "translate-y-0" : "translate-y-full"
+           } transition duration-200
+            `}
+      />
+
+      {menu.message?.isDeleted || (
+        <MessageMenu
+          onDelete={deleteMessage}
+          toggleMessageEdit={(initMsg: string) => toggleMessageEdit(initMsg)}
+          setReplyingTo={handleReply}
+          handleToggleMenu={() => {
+            closeMenu();
           }}
-          onEmojiSelect={(emoji) => {
-            toggleReaction(emojiPickerMessageId, emoji);
-            setEmojiPickerMessageId(null);
+          menu={menu}
+        />
+      )}
+
+      {isEditing && (
+        <MessageEditModal
+          initialMessage={isEditing}
+          handleEdit={(editedContent) => {
+            if (menu.message && isEditing.trim() !== editedContent.trim())
+              editMessage(menu.message.messageId, editedContent);
+
+            closeMenu();
           }}
-          className={
-            "absolute w-80 bottom-16 border-2 border-gray-700 bg-gray-900 z-50 rounded-md py-0 "
-          }
+          onClose={() => toggleMessageEdit("")}
         />
       )}
     </section>

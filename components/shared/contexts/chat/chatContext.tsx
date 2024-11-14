@@ -11,7 +11,7 @@ import {
 } from "react";
 import { AttachmentViewModel, IChatHead, IMessage } from "@/types/chatTypes";
 import useCustomSWR from "../../hooks/common/customSwr";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { useAuth } from "../auth/authcontext";
 import { useParams } from "next/navigation";
 

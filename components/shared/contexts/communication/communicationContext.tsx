@@ -13,7 +13,7 @@ import { v4 as uuid4 } from "uuid";
 import { useRTC } from "../../hooks/communication/useRTC";
 import { useAuth } from "../auth/authcontext";
 import { Socket, io } from "socket.io-client";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { NotificationProps, useNotification } from "../../hooks/common/useNotification";
 import { useSocketConnection } from "../../hooks/communication/useSocket";
 

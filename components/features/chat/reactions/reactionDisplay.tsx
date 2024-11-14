@@ -1,5 +1,5 @@
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";
-import { IMessage } from "@/types/chatTypes";
+import { IMenu, IMessage } from "@/types/chatTypes";
 import { Plus } from "lucide-react";
 
 interface ReactionComponentProps {
@@ -7,14 +7,16 @@ interface ReactionComponentProps {
   toggleReaction: (messageId: string, emoji: string) => void;
 }
 
-interface ReactionButtonProps extends ReactionComponentProps {
+interface ReactionButtonProps {
   handleEmojiPickerToggle: () => void;
+  menu: IMenu;
+  toggleReaction: (messageId: string, emoji: string) => void;
 }
 
 export const ReactionButton = ({
-  message,
   toggleReaction,
   handleEmojiPickerToggle,
+  menu,
 }: ReactionButtonProps) => {
   const REACTION_EMOJIS = [
     { emoji: "👍", id: "thumbs_up" },
@@ -30,31 +32,36 @@ export const ReactionButton = ({
   return (
     <>
       <div
-        className={
-          "reactionButton opacity-0 pointer-events-none transition-opacity duration-200 absolute -bottom-0 max-lg:bg-gray-50 " +
-          (message.sender?.userId !== currentUser?.userId
-            ? "left-0"
-            : " right-0 ")
-        }
+        id="reactionButton"
+        style={{ top: menu?.position?.top, left: menu.position?.left }}
+        className={`transition-[top,opacity,left] ease-linear fixed top-0 w-[340px]
+        ${menu.message?.messageId ? "" : "opacity-0 pointer-events-none duration-200"}`}
       >
         <div
           className={`inline-flex items-end bg-gray-800/95 backdrop-blur-sm border border-gray-600/50
             rounded-full p-1.5 shadow-lg transform transition-transform duration-200
-        ${
-          message.sender?.userId !== currentUser?.userId
-            ? ""
-            : "flex-row-reverse"
-        }
       `}
         >
-          {REACTION_EMOJIS.map((emoji) => (
+          {REACTION_EMOJIS.map((emoji, index) => (
             <button
               key={emoji.id}
-              onClick={() => toggleReaction(message.messageId, emoji.emoji)}
-              className=" relative w-9 flex justify-center items-center h-9 rounded-full bg-none border-none cursor-pointer transition hover:duration-150 duration-75 ease-linear active:scale-90 hover:-translate-y-1 hover:bg-gray-600"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!menu.message?.messageId) return;
+                toggleReaction(menu.message.messageId, emoji.emoji);
+              }}
+              className={` relative w-8 flex justify-center items-center h-8 rounded-full bg-none border-none
+               cursor-pointer hover:bg-gray-600  hover:-translate-y-1 active:scale-90
+               ${
+                 menu.message?.messageId
+                   ? "  animate-popup transition "
+                   : " scale-0"
+               }
+               `}
+              style={{ animationDelay: `${70 * index}ms`}}
               title={emoji.id}
             >
-              <span className="text-xl">{emoji.emoji}</span>
+              <span className="text-[22px]">{emoji.emoji}</span>
             </button>
           ))}
 
@@ -89,18 +96,13 @@ export const ReactionDisplay = ({
   const currentUser = useAuth().user;
   return (
     <>
-      <div
-        className={`flex flex-wrap items-end gap-0.5 px-1 absolute bottom-4 justify-end ${
-        ""  // isCurrentUserSender ? "  justify-end" : " justify-start "
-        }`}
-      >
-        {message.MessageReaction.map((reaction, index) => (
-          <button
-            key={`${reaction.emoji}-${index}`}
-            onClick={() => {
-              toggleReaction(message.messageId, reaction.emoji);
-            }}
-            className={`
+      {message.MessageReaction.map((reaction, index) => (
+        <button
+          key={`${reaction.emoji}-${index}`}
+          onClick={() => {
+            toggleReaction(message.messageId, reaction.emoji);
+          }}
+          className={`
             flex items-center justify-center gap-1 border border-gray-600 bg-[#313740] w-7 h-7 rounded-full
             hover:bg-gray-700 transition active:scale-90
             animate-[scaleIn_0.2s_ease-out]
@@ -110,16 +112,15 @@ export const ReactionDisplay = ({
                 : ""
             }
           `}
-          >
-            <span className="text-[16px]">{reaction.emoji} </span>
-            {reaction.users.length > 1 && (
-              <span className="text-[12px] text-gray-400">
-                {reaction.users.length}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+        >
+          <span className="text-[16px]">{reaction.emoji} </span>
+          {reaction.users.length > 1 && (
+            <span className="text-[12px] text-gray-400">
+              {reaction.users.length}
+            </span>
+          )}
+        </button>
+      ))}
     </>
   );
 };

@@ -7,7 +7,7 @@ import {
   MinifiedMessage,
 } from "@/types/chatTypes";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { buildSystemMessage } from "@/utils/utils";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";

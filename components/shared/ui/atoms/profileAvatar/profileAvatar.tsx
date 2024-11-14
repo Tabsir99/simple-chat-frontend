@@ -4,14 +4,16 @@ import Link from "next/link";
 const Avatar = ({
   avatarName,
   profilePicture,
-  href = "#",
+  className = "w-10 h-10 text-[18px] font-bold",
+  href,
 }: {
   avatarName: string;
   profilePicture: string | null;
+  className?: string;
   href?: string;
 }) => {
-  return (
-    <Link href={href} className="w-10 h-10 flex justify-center items-center">
+  const avatarContent = (
+    <>
       {profilePicture ? (
         <div className="w-full h-full">
           <Image
@@ -23,11 +25,24 @@ const Avatar = ({
           />
         </div>
       ) : (
-        <span className=" flex justify-center items-center w-full h-full text-[18px] font-bold rounded-full bg-gray-700 uppercase">
+        <span className="flex justify-center items-center w-full h-full  rounded-full bg-gray-700 uppercase">
           {avatarName[0]}
         </span>
       )}
+    </>
+  );
+
+  return href ? (
+    <Link
+      href={href}
+      className={`flex justify-center items-center ${className}`}
+    >
+      {avatarContent}
     </Link>
+  ) : (
+    <div className={`flex justify-center items-center ${className}`}>
+      {avatarContent}
+    </div>
   );
 };
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { XCircle, Image, Link, File } from 'lucide-react';
 import useCustomSWR from '@/components/shared/hooks/common/customSwr';
-import { ecnf } from '@/utils/env';
+import { ecnf } from '@/utils/constants/env';
 
 interface TabButtonProps {
   active: boolean;

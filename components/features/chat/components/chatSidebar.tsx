@@ -3,7 +3,7 @@
 import { LogOut, HelpCircle, Menu } from "lucide-react";
 import SideBarNav from "./sidebarnav";
 import Link from "next/link";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { useAuth } from "../../../shared/contexts/auth/authcontext";
 import Image from "next/image";
 import { useRef, useEffect } from "react";

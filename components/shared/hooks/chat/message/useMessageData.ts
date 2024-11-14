@@ -6,7 +6,7 @@ import {
 import { AllMessageResponse } from "@/types/responseType";
 import { useEffect, useState } from "react";
 import useCustomSWR from "../../common/customSwr";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { useParams } from "next/navigation";
 
 export default function useMessageData(chatId?: string) {
@@ -15,6 +15,9 @@ export default function useMessageData(chatId?: string) {
   const [attachmentsMap, setAttachmentsMap] = useState<
     Map<string, AttachmentViewModel>
   >(new Map());
+
+  const [replyingTo, setReplyingTo] = useState<IMessage | null>(null);
+
   const [fetchMore, setFetchMore] = useState({
     isLoading: false,
     hasMore: true,
@@ -27,6 +30,10 @@ export default function useMessageData(chatId?: string) {
     }
   );
 
+  const handleReply = (messageId: string | null) => {
+    const targetMsg = messages.find((msg) => msg.messageId === messageId);
+    setReplyingTo(targetMsg || null);
+  };
   useEffect(() => {
     if (!data) {
       return;
@@ -56,6 +63,8 @@ export default function useMessageData(chatId?: string) {
     attachmentsMap,
     fetchMore,
     setFetchMore,
-    mutate
+    mutate,
+    handleReply,
+    replyingTo,
   };
 }

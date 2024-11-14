@@ -38,20 +38,18 @@ const MessageRecipt = ({
   
     // useEffect(() => {
     //   console.log(allReadRecipts)
-    // },[])
+    // },[allReadRecipts])
     return (
       <div
         className={` flex items-center justify-end text-xs text-gray-400
-          ${
-            readersToShow.length !== 0 && !isPrivateChat ? "py-2  mt-3 h-6" : ""
-          } self-end
+           self-end 
         `}
       >
         {currentUserR &&
           isCurrentUserSender &&
           readersToShow.length === 0 &&
           messageStatus}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 mt-1">
           {readersToShow.length > 0 &&
             readersToShow.map((reader, index) => (
               <Fragment key={reader.reader.userId}>
@@ -66,6 +64,7 @@ const MessageRecipt = ({
                   <Avatar
                     avatarName={reader.reader.username}
                     profilePicture={reader.reader.profilePicture}
+                    className=" w-6 h-6 text-[14px] "
                   />
                 )}
               </Fragment>

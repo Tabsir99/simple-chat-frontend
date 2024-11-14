@@ -7,7 +7,7 @@ import {
 } from "react";
 import { useAuth } from "../../contexts/auth/authcontext";
 import { useLocalStorage } from "../storage/useLocalStorage";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { useParams, useRouter } from "next/navigation";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { IChatHead } from "@/types/chatTypes";
@@ -31,6 +31,8 @@ export default function useChatRoom() {
     setFetchMore,
     readReceipts,
     mutate,
+    handleReply,
+    replyingTo,
   } = useMessageData(selectedActiveChat?.chatRoomId);
 
   const router = useRouter();
@@ -183,5 +185,6 @@ export default function useChatRoom() {
     readReceipts,
     messages,
     mutate,
+    handleReply,replyingTo
   };
 }

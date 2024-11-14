@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { mutate as globalMutate } from "swr";
 import useFriendshipActions from "../userProfile/useFriendshipActions";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { useAuth } from "../../contexts/auth/authcontext";
 import { useCommunication } from "../../contexts/communication/communicationContext";
 import { AllMessageResponse } from "@/types/responseType";

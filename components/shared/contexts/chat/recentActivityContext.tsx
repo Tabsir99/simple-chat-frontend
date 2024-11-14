@@ -1,8 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useAuth } from "../auth/authcontext";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { usePathname } from "next/navigation";
 
 interface Activities {
@@ -15,12 +21,20 @@ type UpdateAction = "increment" | "decrement" | "set";
 
 interface RecentActivityContextType {
   activities: Activities;
-  updateActivity: (type: keyof Activities, action: UpdateAction, value?: number) => void;
+  updateActivity: (
+    type: keyof Activities,
+    action: UpdateAction,
+    value?: number
+  ) => void;
 }
 
-const RecentActivityContext = createContext<RecentActivityContextType | null>(null);
+const RecentActivityContext = createContext<RecentActivityContextType | null>(
+  null
+);
 
-export const RecentActivitiesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const RecentActivitiesProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
   const [activities, setActivities] = useState<Activities>({
     friendRequests: 0,
     unseenChats: 0,
@@ -28,11 +42,11 @@ export const RecentActivitiesProvider: React.FC<{ children: React.ReactNode }> =
   });
 
   const { checkAndRefreshToken, loading } = useAuth();
-  const pathname = usePathname()
-  const currentPathRef = useRef(pathname)
+  const pathname = usePathname();
+  const currentPathRef = useRef(pathname);
   useEffect(() => {
-    currentPathRef.current = pathname
-  },[pathname])
+    currentPathRef.current = pathname;
+  }, [pathname]);
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -55,15 +69,21 @@ export const RecentActivitiesProvider: React.FC<{ children: React.ReactNode }> =
       }
     };
 
-    if (!loading) {
-      fetchActivities();
-    }
-  }, [loading, checkAndRefreshToken]);
+    fetchActivities();
+  }, [checkAndRefreshToken]);
 
-  const updateActivity = (type: keyof Activities, action: UpdateAction, value?: number) => {
-
-    if(type === "unseenChats" && action === "increment" && currentPathRef.current.includes("/chats")) return
-    setActivities(prev => {
+  const updateActivity = (
+    type: keyof Activities,
+    action: UpdateAction,
+    value?: number
+  ) => {
+    if (
+      type === "unseenChats" &&
+      action === "increment" &&
+      currentPathRef.current.includes("/chats")
+    )
+      return;
+    setActivities((prev) => {
       const currentValue = prev[type];
       let newValue: number;
 
@@ -100,7 +120,9 @@ export const RecentActivitiesProvider: React.FC<{ children: React.ReactNode }> =
 export const useRecentActivities = (): RecentActivityContextType => {
   const context = useContext(RecentActivityContext);
   if (!context) {
-    throw new Error("useRecentActivities must be used within a RecentActivitiesProvider");
+    throw new Error(
+      "useRecentActivities must be used within a RecentActivitiesProvider"
+    );
   }
   return context;
 };

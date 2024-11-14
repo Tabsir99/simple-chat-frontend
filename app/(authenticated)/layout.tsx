@@ -8,7 +8,7 @@ import {
 import { useCallback, useEffect, useRef } from "react";
 import { useRecentActivities } from "@/components/shared/contexts/chat/recentActivityContext";
 import { mutate } from "swr";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import {
   AttachmentViewModel,
   IChatHead,
@@ -95,11 +95,31 @@ type ReactionEvent = {
     isDeleting: boolean;
   };
 };
+
+type EditEvent = {
+  event: "message:edit";
+  data: {
+    chatRoomId: string;
+    messageId: string;
+    editedMessage: string;
+  };
+};
+
+type DeleteEvent = {
+  event: "message:delete";
+  data: {
+    chatRoomId: string;
+    messageId: string;
+  };
+};
+
 type MessageEvents =
   | TypingEvent
   | NewMessageEvent
   | MessageReadEvent
-  | ReactionEvent;
+  | ReactionEvent
+  | EditEvent
+  | DeleteEvent;
 
 type MemberRoleUpdate = {
   event: "role:update";
@@ -221,7 +241,7 @@ export default function RootAuthLayout({
             );
           }
           break;
-          
+
         case "friend:request":
           updateActivity("friendRequests", "increment");
           mutate(`${ecnf.apiUrl}/friendships`);
@@ -477,6 +497,53 @@ export default function RootAuthLayout({
               });
             });
           }
+          break;
+
+        case "message:edit":
+          mutate(
+            `${ecnf.apiUrl}/chats/${data.chatRoomId}/messages`,
+            (current: AllMessageResponse | undefined) => {
+              if (!current) return current;
+
+              return {
+                allReceipts: current.allReceipts,
+                attachments: current.attachments,
+                messages: current.messages.map((msg) => {
+                  if (msg.messageId !== data.messageId) return msg;
+                  return {
+                    ...msg,
+                    content: data.editedMessage,
+                  };
+                }),
+              };
+            },
+            false
+          );
+          break;
+
+        case "message:delete":
+          mutate(
+            `${ecnf.apiUrl}/chats/${data.chatRoomId}/messages`,
+            (current: AllMessageResponse | undefined) => {
+              if (!current) return current;
+
+              return {
+                allReceipts: current.allReceipts,
+                attachments: current.attachments.filter((atch) => {
+                  return atch.messageId !== data.messageId;
+                }),
+                messages: current.messages.map((msg) => {
+                  if (msg.messageId !== data.messageId) return msg;
+                  return {
+                    ...msg,
+                    content: "",
+                    isDeleted: true,
+                  };
+                }),
+              };
+            },
+            false
+          );
           break;
         default:
           break;

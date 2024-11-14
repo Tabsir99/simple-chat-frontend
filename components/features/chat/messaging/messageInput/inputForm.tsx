@@ -20,7 +20,7 @@ const MessageInputForm = ({
   attachment,
   clearAttachments,
   fileInputRef,
-  handleFileSelect
+  handleFileSelect,
 }: MessageInputFormProps) => {
   const {
     handleFileClick,
@@ -45,19 +45,17 @@ const MessageInputForm = ({
     } else {
       toggleRecording();
     }
+    if (inputRef.current) inputRef.current.style.height = "auto";
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault(); // Prevent default behavior
       formRef.current?.requestSubmit();
-      if (inputRef.current) {
-        inputRef.current.style.height = "auto";
-      }
     }
   };
   return (
-    <div className="relative border h-full w-full pl-4 flex max-sm:pl-0 max-sm:pr-1 gap-1 pr-2">
+    <div className="relative h-full w-full pl-4 flex max-sm:pl-0 max-sm:pr-1 gap-1 pr-2">
       {/* Main Input Container */}
       <form
         ref={formRef}
@@ -95,8 +93,8 @@ const MessageInputForm = ({
             placeholder="Type a message..."
             ref={inputRef}
             className=" text-white rounded-md pl-[4.5rem] max-sm:pl-16 pr-4 py-3 text-[18px] focus:outline-none w-full 
-          [letter-spacing:0.01rem] max-h-[250px] bg-gray-800 overflow-hidden resize-none absolute translate-y-1
-           bottom-0 border border-gray-700 focus:border-gray-500"
+          [letter-spacing:0.01rem] max-h-[250px] bg-gray-700 bg-opacity-40 overflow-hidden resize-none absolute translate-y-1
+           bottom-0 border-2 border-transparent focus:border-gray-700"
             rows={1}
           />
         </div>
@@ -113,8 +111,8 @@ const MessageInputForm = ({
         type="file"
         ref={fileInputRef}
         onChange={(e) => {
-          if(!e.target.files) return
-          handleFileSelect(e.target.files[0])
+          if (!e.target.files) return;
+          handleFileSelect(e.target.files[0]);
         }}
         className="hidden"
         accept="image/*,video/*,audio/*"

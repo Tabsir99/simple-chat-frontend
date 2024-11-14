@@ -3,7 +3,7 @@ import { MoreVertical } from "lucide-react";
 import MediaModal from "./mediaModal";
 import GroupModal from "./group-chat/GroupModal";
 import { IChatHead, ChatRoomMember } from "@/types/chatTypes";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 
 import useCustomSWR from "@/components/shared/hooks/common/customSwr";
 import ConfirmationModal from "@/components/shared/ui/organisms/modal/confirmationModal";

@@ -25,7 +25,7 @@ function RootLayout({
 }>) {
   return (
     <html lang="en" style={{ margin: 0, padding: 0 }}>
-      <body style={{ margin: 0, padding: 0 }} >
+      <body style={{ margin: 0, padding: 0 }}>
         <main
           className=" overflow-hidden flex"
           style={{
@@ -38,11 +38,9 @@ function RootLayout({
 
           <AuthProvider>
             <CommunicationProvider>
-                <ChatProvider>
-                  <RecentActivitiesProvider>
-                    {children}
-                  </RecentActivitiesProvider>
-                </ChatProvider>
+              <ChatProvider>
+                <RecentActivitiesProvider>{children}</RecentActivitiesProvider>
+              </ChatProvider>
             </CommunicationProvider>
           </AuthProvider>
         </main>

@@ -13,7 +13,7 @@ import { IUserMiniProfile } from "@/types/userTypes";
 import FullPageLoader from "../../ui/organisms/fullpageloader";
 import { useRouter } from "next/navigation";
 import { ApiResponse } from "@/types/responseType";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 
 interface AuthContextType {
   accessToken: string | null;
@@ -41,7 +41,14 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("token")
+    } catch (error) {
+      return null
+    }
+  });
+
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<Omit<IUserMiniProfile, "bio"> | null>(null);
   const refreshRef = useRef(false);
@@ -49,6 +56,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const clearAuthState = useCallback(() => {
     setAccessToken(null);
     setUser(null);
+    localStorage.removeItem("token")
   }, []);
 
   const refreshAccessToken = useCallback(async (): Promise<string | null> => {
@@ -77,6 +85,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (response.ok) {
         const { accessToken: newAccessToken } = await response.json();
         setAccessToken(newAccessToken);
+        localStorage.setItem("token",newAccessToken)
         
         return newAccessToken;
       } else if (response.status === 401) {

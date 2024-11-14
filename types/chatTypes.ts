@@ -38,7 +38,7 @@ export interface IChatHead {
   oppositeUsername: string | null;
   oppositeUserStatus: string | null;
   oppositeProfilePicture: string | null;
-  unreadCount: number | 0
+  unreadCount: number | 0;
   removedAt: string | null;
   chatClearedAt: string | null;
   isTyping?: { profilePicture: string; username: string; userId: string }[];
@@ -66,8 +66,6 @@ export type Reactions = {
   emoji: string;
   users: string[];
 };
-
-
 
 export interface IMessage extends Message {
   MessageReaction: Reactions[];
@@ -110,14 +108,13 @@ type FileType =
   | "application/x-rar-compressed"
   | "application/octet-stream";
 
-
 export interface AttachmentViewModel {
   fileType: FileType;
   fileName: string;
   fileSize: number;
   fileUrl: string;
   messageId?: string;
-  file?: File
+  file?: File;
 }
 
 interface User {
@@ -143,8 +140,6 @@ export interface IMessageReceipt {
   };
 }
 
-
-
 export type MenuAction =
   | { type: "NAVIGATE"; path: string }
   | { type: "TOGGLE_MEDIA" }
@@ -155,7 +150,7 @@ export type MenuAction =
   | { type: "CREATE_GROUP" }
   | { type: "CLOSE" }
   | { type: "UNBLOCK" }
-  | { type: "DELETE_CHAT"};
+  | { type: "DELETE_CHAT" };
 
 // Define menu item interface
 export interface MenuItem {
@@ -164,10 +159,20 @@ export interface MenuItem {
   action: MenuAction;
 }
 
-export type MemberAction = "remove" | "admin" | "nickname" | "message"
+export type MemberAction = "remove" | "admin" | "nickname" | "message";
 
-export interface MinifiedMessage{
+export interface MinifiedMessage {
   messageId: string;
   content: string;
   createdAt: string;
+}
+
+export interface IMenu {
+  message: {
+    messageId: string;
+    isDeleted: boolean;
+    isCurrentUserSender: boolean;
+  } | null;
+  position: { top: number; left: number } | null;
+  showEmojiPicker: boolean;
 }

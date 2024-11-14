@@ -4,7 +4,7 @@ import SocialTexts from "@/components/features/auth/socialTexts";
 import { FormEvent, useEffect, useState } from "react";
 import FormContent from "@/components/features/auth/formContent";
 import { PublicRoute } from "@/components/shared/contexts/auth/authcontext";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import AuthSuccess from "@/components/features/auth/AuthSuccess";
 
 export default function AuthComponent() {

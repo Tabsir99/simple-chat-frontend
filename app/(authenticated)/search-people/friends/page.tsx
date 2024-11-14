@@ -7,7 +7,7 @@ import { FriendItem } from "@/components/features/connections/friendItem";
 import { CustomButton } from "@/components/shared/ui/atoms/Button/customButton";
 import { useRecentActivities } from "@/components/shared/contexts/chat/recentActivityContext";
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 
 import { Friends } from "@/types/userTypes";
 import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";

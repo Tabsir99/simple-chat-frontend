@@ -1,92 +1,89 @@
-import { AttachmentViewModel, IMessage } from "@/types/chatTypes";
-import {
-  Dispatch,
-  MutableRefObject,
-  SetStateAction,
-  memo,
-  useEffect,
-  useState,
-} from "react";
-import { ReactionButton, ReactionDisplay } from "../reactions/reactionDisplay";
-import { IUserMiniProfile } from "@/types/userTypes";
+import { AttachmentViewModel, IMenu, IMessage } from "@/types/chatTypes";
+import { memo, useState } from "react";
+import { ReactionDisplay } from "../reactions/reactionDisplay";
 import Avatar from "@/components/shared/ui/atoms/profileAvatar/profileAvatar";
 import Attachments from "@/components/features/chat/attachments/attachmentDisplay";
 import { formatDate } from "@/utils/utils";
-import MessageEdit from "@/components/features/chat/messaging/MessageEdit";
 import { BanIcon } from "lucide-react";
-import MessageMenu from "@/components/features/chat/messaging/messageMenu";
-import EmojiPicker from "../reactions/emojiPicker";
 
 export function MessageContainer({
   message,
-  toggleReaction,
-  onDelete,
-  onEdit,
-  setReplyingTo,
   attachment,
   isCurrentUserSender,
-  emojiPickerMessageId,
+  selectedMessageId,
+  toggleReaction,
+  isGroup
 }: MessageContainerProps) {
-  const [isEditing, setIsEditing] = useState(false);
-
-  const handleEdit = (editedContent: string) => {
-    onEdit(message.messageId, editedContent.trim());
-    setIsEditing(false);
-  };
-
   return (
     <>
+      {message.isEdited && (
+        <span
+          className={`text-[14px] text-gray-300 w-full border ${
+            isCurrentUserSender ? "text-right" : "pl-16"
+          }`}
+        >
+          Edited
+        </span>
+      )}
       <div
         className={
-          "messageContainer flex max-w-[30rem] relative text-pretty group items-start gap-4 break-all hyphens-auto "
+          `${(!isGroup && !isCurrentUserSender)?"pl-3":"gap-2" } flex max-w-[30rem] relative text-pretty group items-start  break-all hyphens-auto `
         }
       >
-        {isCurrentUserSender || (
+        {(isGroup && !isCurrentUserSender) && (
           <Avatar
             avatarName={message.sender?.username as string}
             profilePicture={message.sender?.profilePicture || null}
+            className="w-8 h-8 text-[14px]"
           />
         )}
 
-        <MessageMenu
-          message={message}
-          onDelete={onDelete}
-          setIsEditing={setIsEditing}
-          setReplyingTo={setReplyingTo}
-        />
+        {message.MessageReaction.length > 0 && (
+          <div
+            className={`flex flex-wrap items-end z-20 gap-0.5 px-1 h-7 absolute  w-full justify-end 
+              ${attachment ? "-bottom-3" : "-bottom-5"}`}
+          >
+            <ReactionDisplay
+              message={message}
+              toggleReaction={toggleReaction}
+            />
+          </div>
+        )}
+
         <div>
           <div
             id={message.messageId}
-            className={`relative pl-4 pr-7 py-3 transition-colors duration-1000 delay-200 text-white rounded-lg
+            className={`relative messageContent px-3 py-2 transition-colors duration-1000 delay-200 text-white rounded-2xl
                 ${
-                  message.content
-                    ? isCurrentUserSender
-                      ? "bg-blue-600 bg-opacity-80 "
-                      : " bg-[#2a313e]"
-                    : "bg-transparent pr-0"
+                  isCurrentUserSender
+                    ? "bg-blue-600 bg-opacity-80 "
+                    : " bg-[#2a313e]"
                 }
+                ${message.isDeleted || (!message.content && "bg-transparent")}
                 ${message.isDeleted ? "opacity-60 cursor-not-allowed" : ""}
                 ${
-                  emojiPickerMessageId === message.messageId
+                  selectedMessageId === message.messageId && !message.isDeleted
                     ? isCurrentUserSender
                       ? " border-b-[3px] duration-0 border-blue-400"
                       : " border-b-[3px] duration-0 border-gray-500"
                     : ""
                 }
               `}
+            {...(isCurrentUserSender ? { "data-sender": "true" } : {})}
+            {...(message.isDeleted ? { "data-is-deleted": "true" } : {})}
           >
             {/* START-------MESSAGE POINTER------START */}
-            {(!message.isDeleted && isCurrentUserSender) || (
+            {isCurrentUserSender || (
               <div
                 id={`pointer-${message.messageId}`}
                 className={
-                  "absolute w-[30px] h-[40px] transition-colors duration-1000 delay-200 " +
-                  " bg-[#2a313e] rotate-[110deg] left-1 top-5"
+                  "absolute w-[25px] h-[25px] transition-colors duration-1000 delay-200 " +
+                  " bg-[#2a313e] rotate-[125deg] -left-1 top-3"
                 }
                 style={{
                   borderRadius: "0 0 100% 100% / 0 0 50% 50%",
                   transformOrigin: "top",
-                  clipPath: "polygon(0 0, 100% 0, 50% 100%)",
+                  clipPath: "polygon(0 0, 70% 0, 50% 100%)",
                 }}
               />
             )}
@@ -94,39 +91,21 @@ export function MessageContainer({
 
             {/* Message Content */}
 
-            {message.isDeleted ? (
-              <p className="italic flex gap-2 items-center text-gray-400">
-                <BanIcon /> This message was deleted{" "}
-              </p>
-            ) : isEditing ? (
-              <MessageEdit
-                handleEdit={handleEdit}
-                setIsEditing={setIsEditing}
-                initmsg={message.content || ""}
-              />
-            ) : (
-              <div className="flex flex-col gap-2">
-                <p className="text-[18px] max-md:text-[16px]">
-                  {message.content.trim()}
-                </p>
-
-                <div className="flex justify-between items-end">
-                  {message.isEdited && (
-                    <span className="text-[12px] text-gray-400">(edited)</span>
-                  )}
-
-                  <span className="text-[14px] text-gray-300">
-                    {" "}
-                    {formatDate(message.createdAt)}{" "}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Attachments */}
             {!message.isDeleted && attachment && (
               <Attachments attachments={attachment} />
             )}
+
+            {message.isDeleted ? (
+              <p className="italic flex gap-2 items-center leading-tight text-gray-400">
+                <BanIcon /> This message was deleted{" "}
+              </p>
+            ) : (
+              <p className="text-[18px] leading-tight max-md:text-[16px]">
+                {message.content.trim()}
+              </p>
+            )}
+
+            {/* Attachments */}
           </div>
         </div>
       </div>
@@ -138,6 +117,7 @@ export default memo(MessageContainer, (prev, next) => {
   const shouldRerender =
     prev.message.MessageReaction !== next.message.MessageReaction ||
     prev.attachment !== next.attachment ||
+    prev.selectedMessageId !== next.selectedMessageId ||
     prev.message.content !== next.message.content;
 
   return !shouldRerender;
@@ -145,11 +125,9 @@ export default memo(MessageContainer, (prev, next) => {
 
 interface MessageContainerProps {
   message: IMessage;
-  toggleReaction: (messageId: string, emoji: string) => void;
-  onDelete: (messageId: string) => void;
-  onEdit: (messageId: string, newContent: string) => void;
-  setReplyingTo: Dispatch<SetStateAction<IMessage | null>>;
   attachment?: AttachmentViewModel;
   isCurrentUserSender: boolean;
-  emojiPickerMessageId: string | null;
+  selectedMessageId?: string;
+  toggleReaction: (messageId: string, emoji: string) => void;
+  isGroup: boolean
 }

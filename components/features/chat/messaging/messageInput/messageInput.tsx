@@ -8,7 +8,6 @@ export default function MessageInput({
   sendMessage,
   replyingTo = null,
   onCancelReply = () => {},
-  selectedActiveChat,
   attachmentsMap,
 }: {
   sendMessage: (attachments: any, newMessage: string) => void;
@@ -24,7 +23,7 @@ export default function MessageInput({
   return (
     <div
       className="px-0 flex flex-col justify-center items-stretch 
-      border-gray-400 relative border "
+       relative  "
     >
       {replyingTo && (
         <ReplyPreview
@@ -41,7 +40,10 @@ export default function MessageInput({
       )}
 
       <MessageInputForm
-        sendMessage={sendMessage}
+        sendMessage={(a,n) => {
+          sendMessage(a,n)
+          onCancelReply()
+        }}
         attachment={attachment}
         clearAttachments={clearAttachments}
         fileInputRef={fileInputRef}

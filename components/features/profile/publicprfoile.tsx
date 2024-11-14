@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import AddFriendBtn from "../connections/friendshipControls";
 import UserStats from "./userstats";
 import FullPageLoader from "../../shared/ui/organisms/fullpageloader";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { CustomButton } from "../../shared/ui/atoms/Button/customButton";
 import BlockMessage from "./profileBlocked";
 

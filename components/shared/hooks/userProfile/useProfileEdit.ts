@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { IIsEditing, IUserProfile } from "@/types/userTypes";
 import useCustomSWR from "../common/customSwr";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 
 const defaultProfile: Omit<IUserProfile, "isCurrentUserSender" | "status"> = {
   email: "",

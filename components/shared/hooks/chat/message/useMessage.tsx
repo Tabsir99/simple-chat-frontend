@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
+import { RefObject, useRef, useState } from "react";
 import { IMessage, AttachmentViewModel } from "@/types/chatTypes";
 import { IUserMiniProfile } from "@/types/userTypes";
-import { ecnf } from "@/utils/env";
+import { ecnf } from "@/utils/constants/env";
 import { useChatContext } from "../../../contexts/chat/chatContext";
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useAuth } from "../../../contexts/auth/authcontext";
@@ -12,12 +12,13 @@ import useMessageSocket from "./useMessageSocket";
 import { v4 } from "uuid";
 import { KeyedMutator } from "swr";
 
-export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
+export function useMessages(
+  mutate: KeyedMutator<AllMessageResponse>,
+  divRef: RefObject<HTMLDivElement>,
+  replyingTo: IMessage | null
+) {
   const chatId = useParams().chatId;
-  const [replyingTo, setReplyingTo] = useState<IMessage | null>(null);
   const currentUser = useAuth().user;
-
-  const divRef = useRef<HTMLDivElement>(null);
 
   const { showNotification, socket } = useCommunication();
   const { updateLastActivity } = useChatContext();
@@ -150,15 +151,15 @@ export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
         allReceipts: current.allReceipts,
         attachments: current.attachments,
         messages: current.messages.map((msg) => {
-          if(msg.parentMessage?.messageId === messageId){
+          if (msg.parentMessage?.messageId === messageId) {
             return {
               ...msg,
               parentMessage: {
                 content: newContent,
                 messageId: msg.parentMessage.messageId,
-                sender: msg.parentMessage.sender
-              }
-            }
+                sender: msg.parentMessage.sender,
+              },
+            };
           }
           if (msg.messageId !== messageId) return msg;
           return {
@@ -169,6 +170,12 @@ export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
         }),
       };
     }, false);
+
+    socket?.emit("message:edit", {
+      chatRoomId: chatId,
+      editedMessage: newContent,
+      messageId: messageId,
+    });
   };
 
   const deleteMessage = (messageId: string) => {
@@ -178,15 +185,15 @@ export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
         allReceipts: current.allReceipts,
         attachments: current.attachments,
         messages: current.messages.map((msg) => {
-          if(msg.parentMessage?.messageId === messageId){
+          if (msg.parentMessage?.messageId === messageId) {
             return {
               ...msg,
               parentMessage: {
                 content: "This message was deleted",
                 messageId: msg.parentMessage.messageId,
-                sender: msg.parentMessage.sender
-              }
-            }
+                sender: msg.parentMessage.sender,
+              },
+            };
           }
           if (msg.messageId !== messageId) return msg;
           return {
@@ -196,7 +203,9 @@ export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
           };
         }),
       };
-    },false);
+    }, false);
+
+    socket?.emit("message:delete", { messageId, chatRoomId: chatId });
   };
 
   const scrollToBottom = () => {
@@ -234,18 +243,13 @@ export function useMessages(mutate: KeyedMutator<AllMessageResponse>) {
     };
 
     addMessage(newMsg, currentUser, attachment || undefined);
-    setReplyingTo(null);
     scrollToBottom();
   };
+
   return {
     sendMessage,
     toggleReaction,
     editMessage,
     deleteMessage,
-
-    replyingTo,
-    setReplyingTo,
-
-    divRef,
   };
 }

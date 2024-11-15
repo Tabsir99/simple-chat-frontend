@@ -1,3 +1,4 @@
+import Avatar from "@/components/shared/ui/atoms/profileAvatar/profileAvatar";
 import { Image, Link, Users, X } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 
@@ -7,12 +8,14 @@ const GroupModalHead = ({
   activeTab,
   setActiveTab,
   totalMembers=2,
+  roomImage,
 }: {
   roomName: string;
   onClose: () => void;
   activeTab: string;
   setActiveTab: Dispatch<SetStateAction<string>>;
   totalMembers: number
+  roomImage: string | null
 }) => {
   const tabs = [
     { id: "members", label: "Members", icon: <Users size={18} /> },
@@ -22,13 +25,11 @@ const GroupModalHead = ({
   return (
     <>
       <div className="flex justify-between items-center p-4 border-b border-gray-700">
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
-            {roomName.charAt(0)}
-          </div>
-          <div>
-            <h2 className="text-xl capitalize text-white">{roomName}</h2>
-            <p className="text-sm text-gray-400">
+        <div className="flex items-center gap-3">
+          <Avatar avatarName={roomName} profilePicture={roomImage} />
+          <div className="flex flex-col gap-0 leading-none">
+            <h2 className="text-xl capitalize text-white max-sm:text-[18px] ">{roomName}</h2>
+            <p className="text-sm text-gray-400 max-sm:text-[14px] ">
               {totalMembers} members
             </p>
           </div>

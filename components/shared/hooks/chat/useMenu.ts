@@ -12,20 +12,15 @@ export default function useMenu(divRef: RefObject<HTMLDivElement>) {
   const LONG_PRESS_DURATION = 700;
   const REACTION_BUTTON_WIDTH = 340;
 
-  const calculateMenuPosition = (
-    e: PointerEvent | MouseEvent,
-    target: HTMLElement
-  ) => {
-    // Get viewport dimensions
+  const calculateMenuPosition = (e: PointerEvent | MouseEvent) => {
     const viewportWidth = window.innerWidth;
 
     let left = e.clientX;
     let top = e.clientY - 60;
 
-    // Check right edge
     if (viewportWidth < 560) {
       left = (viewportWidth - REACTION_BUTTON_WIDTH) / 2;
-      top = top - 40
+      top = top - 40;
     } else if (left + REACTION_BUTTON_WIDTH > viewportWidth) {
       left = viewportWidth - REACTION_BUTTON_WIDTH - 80;
     }
@@ -49,7 +44,7 @@ export default function useMenu(divRef: RefObject<HTMLDivElement>) {
   };
 
   const openMenu = (e: PointerEvent | MouseEvent, msgNode: HTMLElement) => {
-    const position = calculateMenuPosition(e, msgNode);
+    const position = calculateMenuPosition(e);
 
     setMenu({
       message: {

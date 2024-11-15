@@ -1,6 +1,5 @@
 "use client";
 
-import { Search } from "lucide-react";
 import Link from "next/link";
 import { MiniProfileSkeleton } from "@/components/shared/ui/atoms/skeleton";
 import { BsChatFill } from "react-icons/bs";
@@ -23,22 +22,26 @@ export default function MainLayout({
   const filteredChats = useMemo(() => {
     return activeChats?.filter((chat) => {
       return (
-        !(chat.chatClearedAt && chat.chatClearedAt > chat.lastActivity) &&
-        (chat.oppositeUsername?.includes(searchTerm) ||
-          chat.roomName?.includes(searchTerm))
+        chat.oppositeUsername?.includes(searchTerm) ||
+        chat.roomName?.includes(searchTerm)
       );
     });
   }, [activeChats, searchTerm]);
+
   useEffect(() => {
     updateActivity("unseenChats", "set", 0);
   }, []);
 
-  const params = useParams().chatId
+  const params = useParams().chatId;
 
   return (
     <>
       <div className="h-full overflow-hidden bg-[#1b1b1b] w-screen text-gray-100 flex">
-        <div className={`chat-list flex flex-col max-lg2:min-w-full max-lg:w-80 bg-[#1a222d] gap-4 ${params && "max-lg2:hidden"}`}>
+        <div
+          className={`chat-list flex flex-col max-lg2:min-w-full max-lg:w-80 bg-[#1a222d] gap-4 ${
+            params && "max-lg2:hidden"
+          }`}
+        >
           <SearchComp
             title="chats"
             placeHolder="Search chats..."
@@ -48,7 +51,9 @@ export default function MainLayout({
             className="ml-4 w-[calc(100%-2rem)]"
           />
 
-          <div className={`flex flex-col gap-1 w-full px-4 max-sm:px-0 pb-4 overflow-y-auto h-full`}>
+          <div
+            className={`flex flex-col gap-1 w-full px-4 max-sm:px-0 pb-4 overflow-y-auto h-full`}
+          >
             {isLoading ? (
               <>
                 <MiniProfileSkeleton />
@@ -58,9 +63,15 @@ export default function MainLayout({
                 <MiniProfileSkeleton />
               </>
             ) : filteredChats?.length && filteredChats.length > 0 ? (
-              filteredChats.map((chat) => (
-                <ActiveChats data={chat} key={chat.chatRoomId} />
-              ))
+              filteredChats.map((chat) => {
+                if (
+                  !searchTerm &&
+                  chat.chatClearedAt &&
+                  chat.chatClearedAt > chat.lastActivity
+                )
+                  return null;
+                return <ActiveChats data={chat} key={chat.chatRoomId} />;
+              })
             ) : (
               <div className="w-80 max-md:w-full h-64 flex flex-col items-center justify-center bg-gray-800 bg-opacity-70 shadow-lg rounded-lg p-6 text-center">
                 <BsChatFill className="text-5xl mb-4 text-gray-500" />

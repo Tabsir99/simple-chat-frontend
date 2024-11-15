@@ -50,46 +50,34 @@ export default function ChatHeader({
     "
     >
       <div className="flex items-center gap-2 max-xs:gap-0.5">
-        {!selectedActiveChat ? (
-          <>
-            <div className="w-10 h-10 rounded-full bg-gray-700 animate-shimmer bg-200% bg-shimmer" />
-            <div>
-              <div className="h-[22px] w-32 bg-gray-700 rounded animate-shimmer bg-200% bg-shimmer" />
-              <div className="h-[18px] w-16 bg-gray-700 rounded mt-1 animate-shimmer bg-200% bg-shimmer" />
-            </div>
-          </>
-        ) : (
-          <>
-            <BackButton />
-            <Avatar
-              avatarName={selectedActiveChat.oppositeUsername || "GC"}
-              profilePicture={
-                selectedActiveChat.oppositeProfilePicture ||
-                selectedActiveChat.roomImage
-              }
-              href={
-                selectedActiveChat.isGroup
-                  ? "#"
-                  : `${ecnf.frontendUrl}/search-people/${selectedActiveChat.oppositeUserId}`
-              }
-            />
+        <BackButton />
+        <Avatar
+          avatarName={selectedActiveChat.oppositeUsername || "GC"}
+          profilePicture={
+            selectedActiveChat.oppositeProfilePicture ||
+            selectedActiveChat.roomImage
+          }
+          href={
+            selectedActiveChat.isGroup
+              ? "#"
+              : `${ecnf.frontendUrl}/search-people/${selectedActiveChat.oppositeUserId}`
+          }
+        />
 
-            <div className="capitalize text-[14px] max-xs:text-[12px] max-xs:ml-1 ">
-              <h2 className="text-white text-[18px] max-xs:text-[16px] ">
-                {selectedActiveChat.isGroup
-                  ? selectedActiveChat.roomName
-                  : selectedActiveChat.oppositeUsername}
-              </h2>
-              {selectedActiveChat.isGroup ? (
-                <p className=" text-green-400"> online </p>
-              ) : selectedActiveChat?.oppositeUserStatus === "online" ? (
-                <p className=" text-green-400"> online </p>
-              ) : (
-                <p className=" text-gray-400"> offline </p>
-              )}
-            </div>
-          </>
-        )}
+        <div className="capitalize text-[14px] max-xs:text-[12px] max-xs:ml-1 ">
+          <h2 className="text-white text-[18px] max-xs:text-[16px] ">
+            {selectedActiveChat.isGroup
+              ? selectedActiveChat.roomName
+              : selectedActiveChat.oppositeUsername}
+          </h2>
+          {selectedActiveChat.isGroup ? (
+            <p className=" text-green-400"> online </p>
+          ) : selectedActiveChat?.oppositeUserStatus === "online" ? (
+            <p className=" text-green-400"> online </p>
+          ) : (
+            <p className=" text-gray-400"> offline </p>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-3 max-xs:gap-0 justify-center relative">
@@ -143,12 +131,12 @@ export default function ChatHeader({
       {isGroupModalOpen && (
         <GroupModal
           roomName={selectedActiveChat.roomName as string}
-          chatRoomId={selectedActiveChat.chatRoomId}
           onClose={() => {
             closeGroupModal();
           }}
           members={data || []}
           mutate={mutate}
+          roomImage={selectedActiveChat.roomImage}
         />
       )}
 

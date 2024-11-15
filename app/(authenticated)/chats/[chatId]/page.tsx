@@ -1,7 +1,7 @@
 "use client";
 import ChatHeader from "@/components/features/chat/IndividualChatHead";
 import MessageInput from "@/components/features/chat/messaging/messageInput/messageInput";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import MessageContainer from "@/components/features/chat/messaging/MessageContainer";
 import MessageRecipt from "@/components/features/chat/messaging/MessageRecipt";
 import TypingIndicator from "@/components/features/chat/messaging/typeIndicator";
@@ -11,16 +11,12 @@ import FullPageLoader from "@/components/shared/ui/organisms/fullpageloader";
 import BlockedChatUI from "@/components/features/chat/components/blockedChat";
 import useFriendshipActions from "@/components/shared/hooks/userProfile/useFriendshipActions";
 import useChatRoom from "@/components/shared/hooks/chat/useChatroom";
-import { formatDate } from "@/utils/utils";
 import ParentMessage from "@/components/features/chat/messaging/ParentMessage";
-import Attachments from "@/components/features/chat/attachments/attachmentDisplay";
 import EmojiPicker from "@/components/features/chat/reactions/emojiPicker";
 import {
   ReactionButton,
-  ReactionDisplay,
 } from "@/components/features/chat/reactions/reactionDisplay";
 import MessageMenu from "@/components/features/chat/messaging/messageMenu";
-import { IMenu } from "@/types/chatTypes";
 import useMenu from "@/components/shared/hooks/chat/useMenu";
 import MessageEditModal from "@/components/features/chat/messaging/MessageEdit";
 
@@ -84,13 +80,10 @@ export default function ChatRoom() {
                   return (
                     <div
                       key={message.messageId}
-                      className="flex justify-center my-2 px-4"
+                      className="flex justify-center my-0 leading-none text-center items-center gap-2 
+                      w-full p-3 rounded-md bg-transparent text-[16px] text-gray-400 "
                     >
-                      <div className="inline-flex justify-center text-center pb-4 items-center gap-2 max-w-md w-full px-3 py-2 rounded-md bg-transparent">
-                        <span className="flex-grow text-sm text-gray-400">
-                          {message.content}
-                        </span>
-                      </div>
+                      {message.content}
                     </div>
                   );
                 }
@@ -101,7 +94,7 @@ export default function ChatRoom() {
                 return (
                   <div
                     className={`flex flex-col relative justify-center  w-full ${
-                      message.MessageReaction.length > 0 ? "gap-8" : "gap-0" 
+                      message.MessageReaction.length > 0 ? "gap-6" : "gap-0"
                     }  ${isCurrentUserSender ? "items-end" : "items-start"}`}
                     key={message.messageId}
                   >

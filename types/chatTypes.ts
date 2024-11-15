@@ -1,27 +1,5 @@
 import { ReactNode } from "react";
 
-// export interface IChatHead {
-//   chatRoomId: string;
-//   isGroup: boolean;
-//   roomName: string;
-//   roomImage: string | null;
-//   roomStatus: "online" | "offline";
-//   privateChatMemberId: string | false;
-//   unreadCount: number;
-//   lastMessage: {
-//     content?: string;
-//     attachmentType?: FileType;
-//     sender: {
-//       userId?: string;
-//       username?: string;
-//     };
-//   };
-//   lastActivity: string;
-//   blockedUserId: string | null;
-//   removedAt: string | null
-//   isTyping?: { profilePicture: string; username: string; userId: string }[];
-// }
-
 export interface IChatHead {
   chatRoomId: string;
   isGroup: boolean;
@@ -144,8 +122,6 @@ export type MenuAction =
   | { type: "NAVIGATE"; path: string }
   | { type: "TOGGLE_MEDIA" }
   | { type: "TOGGLE_GROUP_MODAL" }
-  | { type: "MUTE" }
-  | { type: "LEAVE" }
   | { type: "BLOCK" }
   | { type: "CREATE_GROUP" }
   | { type: "CLOSE" }

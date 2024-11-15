@@ -56,7 +56,7 @@ export default function useAddMember(onClose: () => void) {
     try {
       const token = await checkAndRefreshToken();
       const result = await fetch(
-        `${ecnf.apiUrl}/users?query=${encodeURIComponent(searchTerm)}`,
+        `${ecnf.apiUrl}/users?query=${encodeURIComponent(searchTerm)}&chatRoomId=${chatRoomId}`,
         {
           signal: abortController.current.signal,
           method: "get",

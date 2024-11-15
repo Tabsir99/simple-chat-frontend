@@ -16,7 +16,6 @@ import { useCommunication } from "../../contexts/communication/communicationCont
 import useMessageData from "./message/useMessageData";
 
 export default function useChatRoom() {
-  // console.log(messagesRef.current.length, "from ref")
 
   const { checkAndRefreshToken } = useAuth();
 
@@ -80,8 +79,10 @@ export default function useChatRoom() {
             }
           }
 
-          if (attachmentsMap.get(el.target.id)?.fileUrl) return;
+          const attachmentExist = attachmentsMap.get(el.target.id);
+          if (!attachmentExist || attachmentExist.fileUrl) return;
 
+          console.log("does this shit runs");
           const url = await getFileUrl(`${chatRoomId}-${el.target.id}`);
           if (url) {
             mutate((current: AllMessageResponse | undefined) => {
@@ -148,6 +149,8 @@ export default function useChatRoom() {
     );
 
     for (const [key] of attachmentsMap) {
+      if (key === messages[messages.length - 1].messageId) continue;
+
       const msgToObserve = document.getElementById(key);
       if (msgToObserve) observer.observe(msgToObserve);
     }
@@ -185,6 +188,7 @@ export default function useChatRoom() {
     readReceipts,
     messages,
     mutate,
-    handleReply,replyingTo
+    handleReply,
+    replyingTo,
   };
 }

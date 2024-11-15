@@ -42,7 +42,7 @@ export default function useChatroomHead({selectedActiveChat}: {selectedActiveCha
     setIsConfirmModalOpen(false);
   };
 
-  const onConfirm = () => async () => {
+  const onConfirm = async () => {
     const token = await checkAndRefreshToken();
     const res = await fetch(
       `${ecnf.apiUrl}/chats/${selectedActiveChat.chatRoomId}`,
@@ -52,7 +52,7 @@ export default function useChatroomHead({selectedActiveChat}: {selectedActiveCha
           authorization: `Bearer ${token}`,
         },
       }
-    );
+    ); 
     if (res.ok) {
       globalMutate(
         `${ecnf.apiUrl}/chats/${selectedActiveChat.chatRoomId}/messages`,
@@ -139,6 +139,7 @@ export default function useChatroomHead({selectedActiveChat}: {selectedActiveCha
 
       case "DELETE_CHAT":
         setIsConfirmModalOpen(true);
+
       default:
         break;
     }

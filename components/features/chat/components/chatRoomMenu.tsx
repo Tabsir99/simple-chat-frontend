@@ -50,12 +50,6 @@ const createMenuConfig = (
               icon: <Info size={18} />,
               action: { type: "TOGGLE_GROUP_MODAL" } as const,
             },
-
-            {
-              item: "Leave Group",
-              icon: <LogOut size={18} />,
-              action: { type: "LEAVE" } as const,
-            },
           ]
         : []),
       {
@@ -85,27 +79,23 @@ const ChatRoomMenu = ({
 }) => {
   const options = roomInfo.isGroup
     ? createMenuConfig(roomInfo.oppositeUserId, roomInfo.removedAt, null).group
-    : createMenuConfig(
-        roomInfo.oppositeUserId,
-        null,
-        roomInfo.blockedUserId
-      ).regular;
+    : createMenuConfig(roomInfo.oppositeUserId, null, roomInfo.blockedUserId)
+        .regular;
 
-      
   return (
     <div
       ref={dropdownRef}
       className={
-        "absolute top-full z-50 origin-top right-0 mt-2 w-fit border-2 border-gray-700 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5 divide-y divide-gray-700 " +
+        "absolute top-full z-50 origin-top py-0 right-0 mt-2 w-max overflow-hidden rounded-md shadow-lg bg-gray-800 " +
         (isDropdownOpen ? "transition-transform duration-200" : "scale-y-0")
       }
     >
-      <div className="py-1">
+      <div className="">
         {options.map(({ item, icon, action }) => (
           <button
             onClick={() => handleOptionClick(action)}
             key={item}
-            className="group flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:bg-gray-700 focus:text-white"
+            className="group flex items-center w-full transition-colors ease-linear px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:bg-gray-700 focus:text-white"
           >
             <span className="mr-3 text-gray-400 group-hover:text-white">
               {icon}

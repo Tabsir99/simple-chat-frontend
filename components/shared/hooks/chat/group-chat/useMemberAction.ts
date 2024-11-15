@@ -9,8 +9,8 @@ import {
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { ecnf } from "@/utils/constants/env";
 import { buildSystemMessage } from "@/utils/utils";
-import { useParams } from "next/navigation";
-import { Dispatch, SetStateAction } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { KeyedMutator, mutate as gMutate } from "swr";
 
 export default function useMemberAction({
@@ -28,12 +28,27 @@ export default function useMemberAction({
 }) {
   const { checkAndRefreshToken } = useAuth();
   const { showNotification } = useCommunication();
-  const { updateLastActivity } = useChatContext();
+  const { updateLastActivity, activeChats } = useChatContext();
   const chatRoomId = useParams().chatId as string;
+  const router = useRouter();
 
   const handleMemberAction = async (action: MemberAction) => {
     switch (action) {
       case "message":
+        if (!activeChats) return;
+        const existingChatRoom = activeChats.find(
+          (chat) =>
+            chat.oppositeUserId === selectedMember?.userId && !chat.isGroup
+        );
+        if (!existingChatRoom) {
+          showNotification(
+            "You dont have a active chat with the user, please add them first",
+            "warning"
+          );
+          return router.push(`/search-people/${selectedMember?.userId}`);
+        }
+
+        router.push(`/chats/${existingChatRoom.chatRoomId}`);
         break;
 
       case "admin":
@@ -138,7 +153,7 @@ export default function useMemberAction({
     }
   };
 
-  const handleNicknameChange = () => async (e: any) => {
+  const handleNicknameChange = async (e: any) => {
     setIsEditing(false);
     e.currentTarget.disabled = true;
 

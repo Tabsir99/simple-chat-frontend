@@ -15,7 +15,7 @@ export default function ParentMessage({ parentMessage,isCurrentUserSender }: Par
     if (messageEl) {
       messageEl.scrollIntoView({
         behavior: "smooth",
-        block: "center",
+        block: "nearest",
       });
 
       messageEl.style.backgroundColor = "#3c485e";

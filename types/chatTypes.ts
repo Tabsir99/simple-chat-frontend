@@ -152,3 +152,14 @@ export interface IMenu {
   position: { top: number; left: number } | null;
   showEmojiPicker: boolean;
 }
+
+
+export interface SearchMessageResult {
+  message: {
+    messageId: string,
+    content: string,
+    createdAt: string // ISO date,
+    senderName: string
+    senderAvatar: string
+  }
+}

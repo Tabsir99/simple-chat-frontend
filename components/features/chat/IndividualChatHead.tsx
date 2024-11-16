@@ -2,7 +2,7 @@
 import { MoreVertical } from "lucide-react";
 import MediaModal from "./mediaModal";
 import GroupModal from "./group-chat/GroupModal";
-import { IChatHead, ChatRoomMember } from "@/types/chatTypes";
+import { IChatHead, ChatRoomMember, IMessage } from "@/types/chatTypes";
 import { ecnf } from "@/utils/constants/env";
 
 import useCustomSWR from "@/components/shared/hooks/common/customSwr";
@@ -14,12 +14,15 @@ import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import Avatar from "@/components/shared/ui/atoms/profileAvatar/profileAvatar";
 import BackButton from "@/components/features/chat/components/Button/BackButton";
 import ChatroomSearch from "@/components/features/chat/components/ChatroomSearch";
+import { useState } from "react";
 
 // Create menu configurations
 export default function ChatHeader({
   selectedActiveChat,
+  fetchedMessages
 }: {
   selectedActiveChat: IChatHead;
+  fetchedMessages: IMessage[]
 }) {
   const { data, mutate } = useCustomSWR<ChatRoomMember[]>(
     `${ecnf.apiUrl}/chats/${selectedActiveChat.chatRoomId}/members`,
@@ -42,6 +45,8 @@ export default function ChatHeader({
     isMediaModalOpen,
     dropdownRef,
   } = useChatroomHead({ selectedActiveChat });
+
+  const [showSearch, setShowSearch] = useState(false);
 
   return (
     <div
@@ -97,7 +102,11 @@ export default function ChatHeader({
           />
         )}
 
-        <ChatroomSearch />
+        <ChatroomSearch
+          showSearch={showSearch}
+          toggleSearch={() => setShowSearch(prev => !prev)}
+          fetchedMessages={fetchedMessages}
+        />
 
         <button
           className="text-gray-400 p-2 rounded-full hover:text-white transition-colors duration-200 focus:outline-none"
@@ -116,6 +125,10 @@ export default function ChatHeader({
               isGroup: selectedActiveChat.isGroup,
               oppositeUserId: selectedActiveChat.oppositeUserId,
               removedAt: selectedActiveChat.removedAt,
+            }}
+            toggleShowSearch={() => {
+              setShowSearch(!showSearch);
+              toggleDropdown();
             }}
           />
         )}

@@ -7,7 +7,6 @@ import { AllMessageResponse } from "@/types/responseType";
 import { useEffect, useState } from "react";
 import useCustomSWR from "../../common/customSwr";
 import { ecnf } from "@/utils/constants/env";
-import { useParams } from "next/navigation";
 
 export default function useMessageData(chatId?: string) {
   const [messages, setMessages] = useState<IMessage[]>([]);

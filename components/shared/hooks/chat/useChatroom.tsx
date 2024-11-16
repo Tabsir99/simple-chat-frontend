@@ -82,7 +82,6 @@ export default function useChatRoom() {
           const attachmentExist = attachmentsMap.get(el.target.id);
           if (!attachmentExist || attachmentExist.fileUrl) return;
 
-          console.log("does this shit runs");
           const url = await getFileUrl(`${chatRoomId}-${el.target.id}`);
           if (url) {
             mutate((current: AllMessageResponse | undefined) => {

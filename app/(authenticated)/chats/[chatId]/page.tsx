@@ -62,10 +62,10 @@ export default function ChatRoom() {
         />
       ) : (
         <>
-          <ChatHeader selectedActiveChat={selectedActiveChat} />
+          <ChatHeader selectedActiveChat={selectedActiveChat} fetchedMessages={messages} />
 
           {/* Main Chat */}
-          <div className="flex flex-col overflow-hidden ">
+          <div className="flex flex-col overflow-hidden pt-3 ">
             <div
               ref={divRef}
               className=" py-4 px-2 flex select-none h-full flex-col-reverse gap-0 scroll-smooth overflow-x-hidden overflow-y-auto  

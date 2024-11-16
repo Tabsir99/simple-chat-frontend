@@ -1,5 +1,5 @@
 import { MenuAction, MenuItem } from "@/types/chatTypes";
-import { Ban, ImageIcon, Info, LogOut, Trash, User, Users } from "lucide-react";
+import { Ban, ImageIcon, Info, LogOut, Search, Trash, User, Users } from "lucide-react";
 import { RefObject } from "react";
 
 const createMenuConfig = (
@@ -65,11 +65,13 @@ const ChatRoomMenu = ({
   dropdownRef,
   isDropdownOpen,
   handleOptionClick,
+  toggleShowSearch,
   roomInfo,
 }: {
   dropdownRef: RefObject<HTMLDivElement>;
   isDropdownOpen: boolean;
   handleOptionClick: (action: MenuAction) => void;
+  toggleShowSearch: () => void
   roomInfo: {
     blockedUserId: string | null;
     oppositeUserId: string | null;
@@ -103,6 +105,16 @@ const ChatRoomMenu = ({
             <span className="flex-grow text-left">{item}</span>
           </button>
         ))}
+        
+        <button
+            onClick={toggleShowSearch}
+            className="group flex items-center xl:hidden w-full transition-colors ease-linear px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:bg-gray-700 focus:text-white"
+          >
+            <span className="mr-3 text-gray-400 group-hover:text-white">
+              <Search size={18} />
+            </span>
+            <span className="flex-grow text-left">Search Message</span>
+          </button>
       </div>
     </div>
   );

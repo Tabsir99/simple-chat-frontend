@@ -1,4 +1,5 @@
 import useAddMember from "@/components/shared/hooks/chat/group-chat/useAddMember";
+import QuerySpinner from "@/components/shared/ui/atoms/Spinner/QuerySpinner";
 import { Search, UserPlus, X, Check, AlertCircle } from "lucide-react";
 
 interface AddMemberModalProps {
@@ -80,10 +81,7 @@ const AddMemberModal = ({ onClose }: AddMemberModalProps) => {
             {/* Search Results */}
             <div className="flex items-start gap-4 ">
               {isLoading ? (
-                <div className="text-center text-gray-400 py-8">
-                  <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2" />
-                  Searching...
-                </div>
+                <QuerySpinner />
               ) : searchResults.length > 0 ? (
                 searchResults.map((user) => (
                   <div

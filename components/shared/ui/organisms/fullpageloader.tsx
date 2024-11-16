@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import CustomSpinner from "../atoms/spinner";
+import CustomSpinner from "../atoms/Spinner/spinner";
 
 const defaultPhrases = [
   "Connecting to chat servers...",

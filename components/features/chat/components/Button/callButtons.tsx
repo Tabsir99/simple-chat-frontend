@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Phone, Video, LucideIcon } from "lucide-react";
 import { v4 as uuid4 } from "uuid";
 import {
@@ -7,6 +7,7 @@ import {
   useCommunication,
 } from "@/components/shared/contexts/communication/communicationContext";
 import { useParams } from "next/navigation";
+import CallCountdown from "../../callUI/CallCountDown";
 
 interface CallButtonProps {
   icon: LucideIcon;
@@ -29,8 +30,7 @@ const CallButton: React.FC<CallButtonProps> = ({
   const baseStyles =
     "relative group flex items-center justify-center p-3 max-xs:p-2 rounded-full transition-all duration-300";
   const variantStyles = {
-    default:
-      " hover:bg-gray-700 xs:border-gray-700 xs:border ",
+    default: " hover:bg-gray-700 xs:border-gray-700 xs:border ",
     accept:
       "bg-green-600/90 hover:bg-green-500 border border-green-500/50 hover:border-green-400",
     decline:
@@ -60,37 +60,54 @@ const CallControls: React.FC<CallControlsProps> = ({
 }) => {
   const { initiateCall } = useCommunication();
 
-const chatRoomId = useParams().chatId
+  const chatRoomId = useParams().chatId;
+  const [showCallCountDown, setShowCallCountDown] = useState(false);
+  const [isVideoCall, setIsVideoCall] = useState(false);
 
   const handleCall = (isVideo: boolean) => {
+    setIsVideoCall(isVideo);
+    setShowCallCountDown(true);
+  };
+
+  const startCallSession = () => {
     const callSession: CallSession = {
       callId: uuid4(),
       caller: localUser,
-      recipient: recipient,
-      isVideoCall: isVideo,
-      status: "initiating" as const,
-      chatRoomId: chatRoomId as string,
-      startTime: new Date(),
+      recipients: [recipient],
+      isVideoCall: isVideoCall,
+      status: "ringing" as const,
+      chatRoomId: chatRoomId as string,      
     };
 
     initiateCall(callSession);
+    setShowCallCountDown(false);
   };
 
   return (
-    <div className="flex items-center gap-2 p-2 max-xs:gap-0 max-xs:p-0">
-      <CallButton
-        icon={Phone}
-        label="Voice Call"
-        onClick={() => handleCall(false)}
-        variant="default"
-      />
-      <CallButton
-        icon={Video}
-        label="Video Call"
-        onClick={() => handleCall(true)}
-        variant="default"
-      />
-    </div>
+    <>
+      {showCallCountDown && (
+        <CallCountdown
+          isVideoCall={isVideoCall}
+          onCancel={() => setShowCallCountDown(false)}
+          onCountdownComplete={startCallSession}
+          remoteUser={recipient}
+        />
+      )}
+      <div className="flex items-center gap-2 p-2 max-xs:gap-0 max-xs:p-0">
+        <CallButton
+          icon={Phone}
+          label="Voice Call"
+          onClick={() => handleCall(false)}
+          variant="default"
+        />
+        <CallButton
+          icon={Video}
+          label="Video Call"
+          onClick={() => handleCall(true)}
+          variant="default"
+        />
+      </div>
+    </>
   );
 };
 

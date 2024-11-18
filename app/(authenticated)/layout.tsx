@@ -155,11 +155,27 @@ type MemberRemoveEvent = {
   };
 };
 
+type ChatRoomCreateEvent = {
+  event: "chatRoom:create";
+  data: null;
+};
+
+type ChatRoomUpdateEvent = {
+  event: "chatRoom:update";
+  data: {
+    chatRoomId: string;
+    roomName: string;
+    roomImage: string;
+  };
+};
+
 type ChatEvents =
   | MemberRoleUpdate
   | MemberNicknameUpdate
+  | ChatRoomUpdateEvent
   | MemberAddEvent
-  | MemberRemoveEvent;
+  | MemberRemoveEvent
+  | ChatRoomCreateEvent;
 export default function RootAuthLayout({
   children,
 }: {
@@ -351,6 +367,24 @@ export default function RootAuthLayout({
             });
           });
           router.push("/chats");
+          break;
+        case "chatRoom:create":
+          mutate(`${ecnf.apiUrl}/chats`);
+          break;
+
+        case "chatRoom:update":
+          setActiveChats((prev) => {
+            if (!prev) return prev;
+            return prev.map((chat) => {
+              if (chat.chatRoomId !== data.chatRoomId) return chat;
+              return {
+                ...chat,
+                roomImage: data.roomImage ? data.roomImage : chat.roomImage,
+                roomName: data.roomName ? data.roomName : chat.roomName,
+              };
+            });
+          });
+          break;
 
         default:
           break;

@@ -28,7 +28,7 @@ export default function SearchComp({
       >
         <Search className="absolute left-3" />
         <input
-          type="text"
+          type="search"
           placeholder={placeHolder}
           onChange={onChange}
           className="w-full focus:border-gray-600 border-transparent py-3 bg-transparent text-[18px] border-2 pl-10 pr-4 rounded-md text-gray-300 placeholder-gray-400 outline-none"

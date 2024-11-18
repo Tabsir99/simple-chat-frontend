@@ -1,16 +1,8 @@
 // hooks/useNotification.ts
+import { NotificationProps, NotificationType } from "@/types/ChatTypes/CallTypes";
 import { useState, useCallback } from "react";
 import { v4 as uuid4 } from "uuid";
 
-export type NotificationType = "success" | "error" | "warning" | "info";
-
-export interface NotificationProps {
-  notificationId: string;
-  message?: string;
-  type?: NotificationType;
-  time?: number;
-  onClose?: (nid: string) => void;
-}
 
 export const useNotification = () => {
   const [notifications, setNotifications] = useState<NotificationProps[]>([]);

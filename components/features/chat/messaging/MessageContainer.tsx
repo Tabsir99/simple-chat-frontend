@@ -27,7 +27,7 @@ export function MessageContainer({
       )}
       <div
         className={
-          `${(!isGroup && !isCurrentUserSender)?"pl-3":"gap-2" } flex max-w-[30rem] relative text-pretty group items-start  break-all hyphens-auto `
+          `${(!isGroup && !isCurrentUserSender)?"pl-3":"gap-2" } flex max-w-[30rem] max-sm:max-w-[300px] relative text-pretty group items-start  break-all hyphens-auto `
         }
       >
         {(isGroup && !isCurrentUserSender) && (

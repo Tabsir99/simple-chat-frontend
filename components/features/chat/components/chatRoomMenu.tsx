@@ -1,6 +1,16 @@
 import { MenuAction, MenuItem } from "@/types/chatTypes";
-import { Ban, ImageIcon, Info, LogOut, Search, Trash, User, Users } from "lucide-react";
-import { RefObject } from "react";
+import {
+  Ban,
+  ImageIcon,
+  Info,
+  LogOut,
+  Search,
+  Trash,
+  User,
+  Users,
+} from "lucide-react";
+import { RefObject, useState } from "react";
+import CreateGroupModal from "../CreateGroupModal";
 
 const createMenuConfig = (
   userId: string | null,
@@ -34,7 +44,7 @@ const createMenuConfig = (
       {
         item: "Create Group",
         icon: <Users size={18} />,
-        action: { type: "CREATE_GROUP" },
+        action: { type: "CREATE_GROUP", name: "" },
       },
       {
         item: "Delete Chat",
@@ -71,7 +81,7 @@ const ChatRoomMenu = ({
   dropdownRef: RefObject<HTMLDivElement>;
   isDropdownOpen: boolean;
   handleOptionClick: (action: MenuAction) => void;
-  toggleShowSearch: () => void
+  toggleShowSearch: () => void;
   roomInfo: {
     blockedUserId: string | null;
     oppositeUserId: string | null;
@@ -84,6 +94,7 @@ const ChatRoomMenu = ({
     : createMenuConfig(roomInfo.oppositeUserId, null, roomInfo.blockedUserId)
         .regular;
 
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   return (
     <div
       ref={dropdownRef}
@@ -92,10 +103,25 @@ const ChatRoomMenu = ({
         (isDropdownOpen ? "transition-transform duration-200" : "scale-y-0")
       }
     >
+      {showCreateGroupModal && (
+        <CreateGroupModal
+          isOpen={showCreateGroupModal}
+          onClose={() => setShowCreateGroupModal(false)}
+          onSubmit={(name: string) =>
+            handleOptionClick({ type: "CREATE_GROUP", name })
+          }
+        />
+      )}
       <div className="">
         {options.map(({ item, icon, action }) => (
           <button
-            onClick={() => handleOptionClick(action)}
+            onClick={() => {
+              if (action.type === "CREATE_GROUP") {
+                setShowCreateGroupModal(true);
+                return;
+              }
+              handleOptionClick(action);
+            }}
             key={item}
             className="group flex items-center w-full transition-colors ease-linear px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:bg-gray-700 focus:text-white"
           >
@@ -105,16 +131,16 @@ const ChatRoomMenu = ({
             <span className="flex-grow text-left">{item}</span>
           </button>
         ))}
-        
+
         <button
-            onClick={toggleShowSearch}
-            className="group flex items-center xl:hidden w-full transition-colors ease-linear px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:bg-gray-700 focus:text-white"
-          >
-            <span className="mr-3 text-gray-400 group-hover:text-white">
-              <Search size={18} />
-            </span>
-            <span className="flex-grow text-left">Search Message</span>
-          </button>
+          onClick={toggleShowSearch}
+          className="group flex items-center xl:hidden w-full transition-colors ease-linear px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white focus:outline-none focus:bg-gray-700 focus:text-white"
+        >
+          <span className="mr-3 text-gray-400 group-hover:text-white">
+            <Search size={18} />
+          </span>
+          <span className="flex-grow text-left">Search Message</span>
+        </button>
       </div>
     </div>
   );

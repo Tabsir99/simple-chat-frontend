@@ -2,9 +2,9 @@
 const nextConfig = {
     images: {
         remotePatterns: [{
-            hostname: 'example.com',
+            hostname: 'storage.googleapis.com',
             protocol: "https",
-            pathname: "/**"
+            pathname: "/simple-chat-cg.appspot.com/**"
         }]
     },
     reactStrictMode: true,

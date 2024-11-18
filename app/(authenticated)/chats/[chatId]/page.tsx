@@ -19,6 +19,7 @@ import {
 import MessageMenu from "@/components/features/chat/messaging/messageMenu";
 import useMenu from "@/components/shared/hooks/chat/useMenu";
 import MessageEditModal from "@/components/features/chat/messaging/MessageEdit";
+import CallMessage from "@/components/features/chat/messaging/messageInput/CallMessage";
 
 export default function ChatRoom() {
   const currentUser = useAuth().user;
@@ -90,6 +91,10 @@ export default function ChatRoom() {
 
                 const isCurrentUserSender =
                   message.sender?.userId === currentUser?.userId;
+
+                if(message.type === "call"){
+                  return <CallMessage callInfo={message.callInformation} />
+                }
 
                 return (
                   <div

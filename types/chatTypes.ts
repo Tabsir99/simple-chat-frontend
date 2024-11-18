@@ -49,6 +49,7 @@ export interface IMessage extends Message {
   MessageReaction: Reactions[];
   sender: User | null;
   parentMessage: ParentMessage | null;
+  callInformation: CallInformation | null
 }
 
 type Message = {
@@ -58,7 +59,7 @@ type Message = {
   isEdited?: boolean;
   isDeleted?: boolean;
   status: "sent" | "delivered" | "seen" | "failed" | "sending";
-  type: "user" | "system";
+  type: "user" | "system" | "call";
 };
 
 // Resulting type
@@ -123,7 +124,7 @@ export type MenuAction =
   | { type: "TOGGLE_MEDIA" }
   | { type: "TOGGLE_GROUP_MODAL" }
   | { type: "BLOCK" }
-  | { type: "CREATE_GROUP" }
+  | { type: "CREATE_GROUP", name: string }
   | { type: "CLOSE" }
   | { type: "UNBLOCK" }
   | { type: "DELETE_CHAT" };
@@ -162,4 +163,12 @@ export interface SearchMessageResult {
     senderName: string
     senderAvatar: string
   }
+}
+
+export type CallInformation = {
+  callerId: string
+  isVideoCall: boolean
+  startTime: string | null
+  endTime: string | null
+  status: "missing" | "connected" | "ended"
 }

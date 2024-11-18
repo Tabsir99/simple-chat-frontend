@@ -4,6 +4,7 @@ import { formatDate } from "@/utils/utils";
 import { IChatHead } from "@/types/chatTypes";
 import { useParams } from "next/navigation";
 import { useChatContext } from "../../../shared/contexts/chat/chatContext";
+import Avatar from "@/components/shared/ui/atoms/profileAvatar/profileAvatar";
 
 const ActiveChats = memo(({ data }: { data: IChatHead }) => {
   const params = useParams();
@@ -32,25 +33,20 @@ const ActiveChats = memo(({ data }: { data: IChatHead }) => {
       )}
 
       <div className="relative w-12 h-12 mr-4">
-        <div className="w-full h-full border border-gray-600 bg-[#222b35] rounded-full flex justify-center items-center">
-          {data.isGroup ? (
-            <span className="uppercase text-base text-gray-300">GC</span>
-          ) : data.oppositeProfilePicture ? (
-            <img
-              src={data.oppositeProfilePicture}
-              alt="Profile pic"
-              className={`w-full h-full rounded-full object-cover 
-                ${isCurrentChat ? "opacity-90" : ""}
-                transition-opacity duration-150 ease-out`}
-            />
-          ) : (
-            <span className="uppercase text-base text-gray-300">
-              {data.oppositeUsername?.charAt(0)}
-            </span>
-          )}
+        <div className="w-full h-ful rounded-full flex justify-center items-center">
+          <Avatar
+            avatarName={
+              data.isGroup
+                ? (data.roomName as string)
+                : (data.oppositeUsername as string)
+            }
+            profilePicture={
+              data.isGroup ? data.roomImage : data.oppositeProfilePicture
+            }
+          />
         </div>
         <span
-          className={`absolute h-3 w-3 border-2 border-gray-700 rounded-full bottom-0.5 right-0.5 
+          className={`absolute h-3 w-3 border-2 border-gray-700 rounded-full bottom-1 right-1 
             ${
               data.isGroup || data?.oppositeUserStatus === "online"
                 ? "bg-green-500"

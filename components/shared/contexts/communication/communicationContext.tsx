@@ -14,53 +14,23 @@ import { useRTC } from "../../hooks/communication/useRTC";
 import { useAuth } from "../auth/authcontext";
 import { Socket, io } from "socket.io-client";
 import { ecnf } from "@/utils/constants/env";
-import { NotificationProps, useNotification } from "../../hooks/common/useNotification";
+import { useNotification } from "../../hooks/common/useNotification";
 import { useSocketConnection } from "../../hooks/communication/useSocket";
 
-import SingleCallUI from "../../../ui/singleCall";
+import SingleCallUI from "../../../features/chat/callUI/SingleCall";
 import MinimizedCall from "@/components/shared/ui/organisms/popup/callNotification";
+import CallEndScreen from "@/components/features/chat/callUI/CallEndScreen";
+import IncomingCallModal from "@/components/features/chat/callUI/IncomingCall";
+import {
+  CallEvents,
+  CallSession,
+  CommunicationContextType,
+} from "@/types/ChatTypes/CallTypes";
 
 const NotificationPopUp = dynamic(
   () => import("@/components/shared/ui/organisms/popup/notificationPopup"),
   { ssr: false }
 );
-export interface CallParticipant {
-  userId: string;
-  username: string;
-  profilePicture: string | null;
-}
-
-export interface CallSession {
-  callId: string;
-  caller: CallParticipant;
-  recipient: CallParticipant;
-  isVideoCall: boolean;
-  status: "initiating" | "ringing" | "connected" | "ended";
-  chatRoomId: string;
-  offer?: RTCSessionDescriptionInit;
-  startTime?: Date;
-  endTime?: Date;
-}
-
-interface CommunicationContextType {
-  showNotification: (
-    message: string,
-    type?: NotificationProps["type"],
-    time?: number
-  ) => void;
-  showIncomingCall: (callSession: CallSession) => void;
-  initiateCall: (callSession: CallSession) => void;
-  handleAcceptCall: (
-    callId: string,
-    offer: RTCSessionDescriptionInit,
-    isVideo: boolean,
-    chatRoomId: string
-  ) => void;
-  handleDeclineCall: (callId: string, to: string) => void;
-  handleEndCall: (callId: string) => void;
-
-  socket: Socket | null;
-}
 
 const CommunicationContext = createContext<
   CommunicationContextType | undefined
@@ -70,77 +40,138 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
   children,
 }) => {
   const { notifications, showNotification } = useNotification();
-  const [activeCalls, setActiveCalls] = useState<CallSession[]>([]);
-  const [isMinimized, setIsMinimized] = useState(true);
+
+  const [activeCall, setActiveCall] = useState<CallSession | null>(null);
+  const [incomingCalls, setIncomingCalls] = useState<CallSession[]>([]);
+
+  const [isMinimized, setIsMinimized] = useState(false);
   const { user: currentUser } = useAuth();
 
   const { socket } = useSocketConnection(showNotification);
   const {
-    createConnection,
     endCall,
-    getUserMedia,
     handleAnswer,
     handleIceCandidate,
     handleIncomingCall,
     makeOutgoingCalls,
+    switchCamera,
     localStream,
-    remoteStream
+    remoteStream,
   } = useRTC(socket);
 
-
-
-  const showIncomingCall = useCallback((callSession: CallSession) => {
-    setActiveCalls((prev) => [...prev, { ...callSession, isOutgoing: false }]);
-  }, []);
+  const showIncomingCall = useCallback(
+    (callSession: CallSession) => {
+      if (activeCall) {
+        console.log("Auto declining call...,", activeCall);
+        socket?.emit("decline-call", {
+          callId: callSession.callId,
+          to: callSession.chatRoomId,
+          reason: "BUSY",
+        });
+        return;
+      }
+      console.log("showing incoming calls....");
+      setIncomingCalls((prev) => [
+        ...prev,
+        { ...callSession, isOutgoing: false },
+      ]);
+    },
+    [activeCall, socket]
+  );
 
   const initiateCall = useCallback(
-    (callSession: CallSession) => {
-      setActiveCalls((prev) => [...prev, { ...callSession, isOutgoing: true }]);
-      makeOutgoingCalls(
+    async (callSession: CallSession) => {
+      if (activeCall) {
+        return showNotification(
+          "Can't make call while in another call!",
+          "warning"
+        );
+      }
+
+      console.log("Initiating a call...");
+
+      await makeOutgoingCalls(
         callSession.chatRoomId,
         callSession.isVideoCall,
         currentUser,
-        callSession.callId,
+        callSession.callId
       );
+      setActiveCall(callSession);
     },
-    [socket, currentUser]
+    [currentUser, activeCall, makeOutgoingCalls]
   );
 
   const handleAcceptCall = useCallback(
-    (
+    async (
       callId: string,
       offer: RTCSessionDescriptionInit,
       isVideo: boolean,
       chatRoomId: string
     ) => {
-      console.log("Accepting call:", callId);
-      setActiveCalls((prev) =>
-        prev.map((call) =>
-          call.callId === callId ? { ...call, status: "connected" } : call
-        )
-      );
-
-      handleIncomingCall({
-        isVideo: isVideo,
-        offer: offer,
-        chatRoomId: chatRoomId
+      incomingCalls.forEach((call) => {
+        if (call.callId !== callId) {
+          socket?.emit("decline-call", {
+            callId,
+            to: chatRoomId,
+            reason: "BUSY",
+          });
+        }
       });
 
+      setIncomingCalls([]);
+
+      const accpetedCall = incomingCalls.find(
+        (call) => call.callId === callId
+      ) as CallSession;
+
+      accpetedCall.status = "connected";
+      console.log("accepting call,", accpetedCall);
+      setActiveCall(accpetedCall);
+
+      const answer = await handleIncomingCall({
+        isVideo: isVideo,
+        offer: offer,
+        chatRoomId: chatRoomId,
+      });
+
+      socket?.emit("call-answer", {
+        answer,
+        callId,
+        to: chatRoomId,
+      });
     },
-    [socket]
+    [socket, handleIncomingCall, incomingCalls]
   );
 
-  const handleDeclineCall = useCallback(
+  const handleAbortCall = useCallback(
     (callId: string, to: string) => {
-      console.log("Declining call:", callId);
-      setActiveCalls((prev) => prev.filter((call) => call.callId !== callId));
+      console.log("Handle abort call runnning ..");
 
+      if (activeCall) {
+        setActiveCall({ ...activeCall, status: "ended" });
+      }
+
+      setIncomingCalls((prev) => prev.filter((call) => call.callId !== callId));
+      endCall();
       socket?.emit("decline-call", {
         callId,
         to,
       });
     },
-    [socket]
+    [socket, endCall, activeCall]
+  );
+
+  const handleEndCall = useCallback(
+    (callId: string, to: string) => {
+      console.log("Handle end call runnning ..");
+      if (activeCall) {
+        setActiveCall({ ...activeCall, status: "ended" });
+      }
+      endCall();
+
+      socket?.emit("end-call", { callId, to });
+    },
+    [endCall, socket, activeCall]
   );
 
   useEffect(() => {
@@ -148,7 +179,7 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
       switch (event) {
         case "call:incoming":
           showIncomingCall({
-            recipient: currentUser!,
+            recipients: [currentUser!],
             caller: data.caller,
             isVideoCall: data.isVideo,
             status: "ringing",
@@ -159,16 +190,26 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
           break;
 
         case "call:ended":
-          handleEndCall(data.callId);
+          if (activeCall) {
+            setActiveCall({ ...activeCall, status: "ended" });
+          }
+          setIncomingCalls((prev) =>
+            prev.filter((call) => call.callId !== data.callId)
+          );
+          endCall();
           break;
 
         case "call:answered":
           handleAnswer(data.answer);
+          setActiveCall((prev) => {
+            if (!prev) return prev;
+            return { ...prev, status: "connected" };
+          });
           break;
 
         case "ice-candidate":
-          handleIceCandidate(data.candidate)
-          break
+          handleIceCandidate(data.candidate);
+          break;
         default:
           break;
       }
@@ -179,15 +220,14 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
     return () => {
       socket?.off("callEvent");
     };
-  }, [localStream, socket]);
-  const handleEndCall = useCallback(
-    (callId: string) => {
-      console.log("Ending call:", callId);
-      setActiveCalls((prev) => prev.filter((call) => call.callId !== callId));
-      endCall();
-    },
-    [endCall]
-  );
+  }, [
+    socket,
+    endCall,
+    activeCall,
+    handleAnswer,
+    handleIceCandidate,
+    showIncomingCall,
+  ]);
 
   return (
     <CommunicationContext.Provider
@@ -196,8 +236,9 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
         showIncomingCall,
         initiateCall,
         handleAcceptCall,
-        handleDeclineCall,
+        handleAbortCall,
         handleEndCall,
+        switchCamera,
 
         socket,
       }}
@@ -209,33 +250,63 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
           {...notification}
         />
       ))}
-      {activeCalls.map((call) => (
-        <Fragment key={call.callId}>
-          {isMinimized ? (
-            <MinimizedCall
-              callSession={call}
-              maximizeCallScreen={() => setIsMinimized(false)}
-              isLocalUserCaller={call.caller.userId === currentUser?.userId}
-            />
-          ) : (
-            <SingleCallUI
-              remoteUser={{
-                isSpeaking: true,
-                profilePicture: call.caller.profilePicture,
-                userId: call.caller.userId,
-                username: call.caller.username,
-              }}
-              onEndCall={() => {
-                handleEndCall(call.callId);
-                setIsMinimized(true);
-              }}
-              minimizeCallScreen={() => setIsMinimized(true)}
-              localStream={localStream}
-              remoteStream={remoteStream}
-            />
-          )}
-        </Fragment>
-      ))}
+
+      {incomingCalls.length > 0 && (
+        <IncomingCallModal
+          call={incomingCalls[0]}
+          onAccept={() => {
+            handleAcceptCall(
+              incomingCalls[0].callId,
+              incomingCalls[0].offer!,
+              incomingCalls[0].isVideoCall,
+              incomingCalls[0].chatRoomId
+            );
+          }}
+          onDecline={() => {
+            handleAbortCall(
+              incomingCalls[0].callId,
+              incomingCalls[0].chatRoomId
+            );
+          }}
+        />
+      )}
+
+      {activeCall ? (
+        activeCall.status === "ended" ? (
+          <CallEndScreen
+            isVideoCall={activeCall.isVideoCall}
+            onClose={() => {
+              setActiveCall(null);
+              console.log("setting active call to null...,", activeCall);
+            }}
+            remoteParticipant={activeCall.recipients[0]}
+            callEnd={activeCall.endTime}
+            callStart={activeCall.startTime}
+          />
+        ) : (
+          <Fragment key={activeCall.callId}>
+            {isMinimized ? (
+              <MinimizedCall
+                callSession={activeCall}
+                maximizeCallScreen={() => setIsMinimized(false)}
+                isLocalUserCaller={
+                  activeCall.caller.userId === currentUser?.userId
+                }
+              />
+            ) : (
+              <SingleCallUI
+                callSession={activeCall}
+                minimizeCallScreen={() => setIsMinimized(true)}
+                localStream={localStream}
+                remoteStream={remoteStream}
+                isLocalUserCaller={
+                  activeCall.caller.userId === currentUser?.userId
+                }
+              />
+            )}
+          </Fragment>
+        )
+      ) : null}
     </CommunicationContext.Provider>
   );
 };
@@ -249,40 +320,3 @@ export const useCommunication = () => {
   }
   return context;
 };
-
-type IncomingCallEvent = {
-  event: "call:incoming";
-  data: {
-    from: RTCSessionDescriptionInit;
-    isVideo: boolean;
-    to: string;
-    caller: CallParticipant;
-    callId: string;
-  };
-};
-type CallAnsweredEvent = {
-  event: "call:answered";
-  data: {
-    answer: RTCSessionDescriptionInit;
-  };
-};
-
-type CallEndedEvent = {
-  event: "call:ended";
-  data: {
-    callId: string;
-  };
-};
-
-type ICECandidateEvent = {
-  event: "ice-candidate";
-  data: {
-    candidate: RTCIceCandidate;
-  };
-};
-
-type CallEvents =
-  | IncomingCallEvent
-  | CallAnsweredEvent
-  | CallEndedEvent
-  | ICECandidateEvent;

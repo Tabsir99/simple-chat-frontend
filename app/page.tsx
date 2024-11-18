@@ -38,25 +38,33 @@ export default function AuthComponent() {
 
     setIsLoading(true);
 
-    const response = await fetch(`${ecnf.apiUrl}/auth/send-verification-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-    if (response.ok) {
-      setIsLoading(false);
-      setShowResponse({
-        faliure: "",
-        success: true,
+    try {
+      const response = await fetch(`${ecnf.apiUrl}/auth/send-verification-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
-    } else {
-      setShowResponse({
-        faliure: "Failed to send email, Please try again",
-        success: false,
-      });
+  
+      if (response.ok) {
+        setIsLoading(false);
+        setShowResponse({
+          faliure: "",
+          success: true,
+        });
+      } else {
+        setShowResponse({
+          faliure: "Failed to send email, Please try again",
+          success: false,
+        });
+      }
+    } catch (error) {
+      console.log(error)
+      
     }
+
+
   };
 
   return (

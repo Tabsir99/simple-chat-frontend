@@ -6,10 +6,14 @@ import useFriendshipActions from "../userProfile/useFriendshipActions";
 import { ecnf } from "@/utils/constants/env";
 import { useAuth } from "../../contexts/auth/authcontext";
 import { useCommunication } from "../../contexts/communication/communicationContext";
-import { AllMessageResponse } from "@/types/responseType";
+import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useChatContext } from "../../contexts/chat/chatContext";
 
-export default function useChatroomHead({selectedActiveChat}: {selectedActiveChat: IChatHead}) {
+export default function useChatroomHead({
+  selectedActiveChat,
+}: {
+  selectedActiveChat: IChatHead;
+}) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
@@ -17,11 +21,12 @@ export default function useChatroomHead({selectedActiveChat}: {selectedActiveCha
 
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { socket } = useCommunication()
 
   const { handleFriendshipAction } = useFriendshipActions();
-  const { checkAndRefreshToken,user } = useAuth()
-  const { showNotification } = useCommunication()
-  const { setActiveChats } = useChatContext()
+  const { checkAndRefreshToken, user } = useAuth();
+  const { showNotification } = useCommunication();
+  const { setActiveChats } = useChatContext();
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
@@ -52,7 +57,7 @@ export default function useChatroomHead({selectedActiveChat}: {selectedActiveCha
           authorization: `Bearer ${token}`,
         },
       }
-    ); 
+    );
     if (res.ok) {
       globalMutate(
         `${ecnf.apiUrl}/chats/${selectedActiveChat.chatRoomId}/messages`,
@@ -69,8 +74,7 @@ export default function useChatroomHead({selectedActiveChat}: {selectedActiveCha
       setActiveChats((prev) => {
         if (!prev) return prev;
         return prev.map((chat) => {
-          if (chat.chatRoomId !== selectedActiveChat.chatRoomId)
-            return chat;
+          if (chat.chatRoomId !== selectedActiveChat.chatRoomId) return chat;
           return {
             ...chat,
             chatClearedAt: new Date().toISOString(),
@@ -82,12 +86,9 @@ export default function useChatroomHead({selectedActiveChat}: {selectedActiveCha
 
       showNotification("Chat cleared!", "success");
     } else {
-      showNotification(
-        "Something went wrong, Could not clear chat",
-        "error"
-      );
+      showNotification("Something went wrong, Could not clear chat", "error");
     }
-  }
+  };
 
   const handleOptionClick = async (action: MenuAction) => {
     switch (action.type) {
@@ -111,18 +112,31 @@ export default function useChatroomHead({selectedActiveChat}: {selectedActiveCha
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify([
-            {
-              userId: user?.userId,
-              username: user?.username,
-            },
-            {
-              userId: selectedActiveChat.oppositeUserId,
-              username: selectedActiveChat.oppositeUsername,
-            },
-          ]),
+          body: JSON.stringify({
+            members: [
+              {
+                userId: user?.userId,
+                username: user?.username,
+              },
+              {
+                userId: selectedActiveChat.oppositeUserId,
+                username: selectedActiveChat.oppositeUsername,
+              },
+            ],
+            groupName: action.name,
+          }),
         });
         if (response.ok) {
+          const data = (await response.json()) as ApiResponse<{
+            signedUrl: string;
+            chatRoom: {
+              chatRoomId: string;
+              isGroup: boolean;
+              roomName: string | null;
+              createdBy: string | null;
+              roomImage: string | null;
+            };
+          }>;
           globalMutate(`${ecnf.apiUrl}/chats`);
         } else {
           showNotification("Could not create a group", "error");
@@ -170,7 +184,6 @@ export default function useChatroomHead({selectedActiveChat}: {selectedActiveCha
     };
   }, [selectedActiveChat]);
 
-
   return {
     handleOptionClick,
     toggleDropdown,
@@ -179,6 +192,10 @@ export default function useChatroomHead({selectedActiveChat}: {selectedActiveCha
     toggleMediaModal,
     onConfirm,
 
-    isConfirmModalOpen,isDropdownOpen,isGroupModalOpen,isMediaModalOpen,dropdownRef
-  }
+    isConfirmModalOpen,
+    isDropdownOpen,
+    isGroupModalOpen,
+    isMediaModalOpen,
+    dropdownRef,
+  };
 }

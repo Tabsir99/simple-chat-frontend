@@ -22,7 +22,7 @@ interface ChatContextProps {
   updateLastActivity: (
     chatRoomId: string,
     message: IMessage,
-    attachment?: AttachmentViewModel,
+    attachment?: AttachmentViewModel
   ) => void;
   getLastMessage: (
     sender: { userId: string | null; username: string | null },
@@ -41,12 +41,13 @@ export const useChatContext = () => {
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [activeChats, setActiveChats] = useState<IChatHead[] | null>(null);
+
   const userId = useAuth().user?.userId;
 
   const { data, error, isLoading } = useCustomSWR<Array<IChatHead>>(
     userId ? `${ecnf.apiUrl}/chats` : null
   );
-  const selectedChatId = useParams().chatId
+  const selectedChatId = useParams().chatId;
 
   useEffect(() => {
     setActiveChats(data || null);
@@ -89,7 +90,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     sender: { userId: string | null; username: string | null },
     fileType: AttachmentViewModel["fileType"] | null
   ) => {
-
     if (fileType) {
       const type = getFileCategory(fileType);
       switch (type) {
@@ -120,7 +120,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     chatRoomId: string,
     message: IMessage,
     attachment?: AttachmentViewModel,
-    removedAt?:string
+    removedAt?: string
   ) => {
     setActiveChats((prevChats) => {
       if (!prevChats) return null;
@@ -131,22 +131,23 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
         newChats.unshift({
           ...chat,
-          messageContent: message.content.trim() ||
-          (getLastMessage(
-            {
-              userId: message.sender?.userId || null,
-              username: message.sender?.username || null,
-            },
-            attachment?.fileType || null
-          ) as string),
+          messageContent:
+            message.content.trim() ||
+            (getLastMessage(
+              {
+                userId: message.sender?.userId || null,
+                username: message.sender?.username || null,
+              },
+              attachment?.fileType || null
+            ) as string),
           senderUserId: message.sender?.userId || null,
           senderUsername: message.sender?.username || null,
           lastActivity: message.createdAt,
-          removedAt: removedAt?removedAt:chat.removedAt,
-          unreadCount: 
-          selectedChatId === chatRoomId
-            ? chat.unreadCount
-            : chat.unreadCount + 1,
+          removedAt: removedAt ? removedAt : chat.removedAt,
+          unreadCount:
+            selectedChatId === chatRoomId
+              ? chat.unreadCount
+              : chat.unreadCount + 1,
         });
       });
 

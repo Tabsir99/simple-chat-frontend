@@ -16,17 +16,30 @@ export const useRTC = (socket: Socket | null) => {
   const pConnection = useRef<RTCPeerConnection | null>(null);
   const pendingCandidates = useRef<RTCIceCandidate[]>([]);
 
-
-
   useEffect(() => {
-    console.log("remotestream:",remoteStream)
-  },[remoteStream])
+    console.log("remotestream:", remoteStream);
+  }, [remoteStream]);
   const getUserMedia = useCallback(async (isVideo: boolean) => {
-    console.log("is it video,",isVideo)
+    console.log("is it video,", isVideo);
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: isVideo,
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+
+          sampleRate: { ideal: 48000 },
+          sampleSize: { ideal: 16 },
+          channelCount: 1,
+        },
+        ...(isVideo && {
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30 },
+            facingMode: "user",
+          },
+        }),
       });
       setLocalStream(mediaStream);
       return mediaStream;
@@ -117,10 +130,7 @@ export const useRTC = (socket: Socket | null) => {
           }
         }
 
-        socket?.emit("call-answer", {
-          answer,
-          to: chatRoomId,
-        });
+        return answer;
       } catch (err) {
         console.error("Error handling incoming call:", err);
         throw err;
@@ -135,7 +145,7 @@ export const useRTC = (socket: Socket | null) => {
         if (pConnection.current) {
           await pConnection.current.setRemoteDescription(
             new RTCSessionDescription(answer)
-          );          
+          );
         }
       } catch (err) {
         console.error("Error handling answer:", err);
@@ -146,7 +156,7 @@ export const useRTC = (socket: Socket | null) => {
 
   const handleIceCandidate = useCallback((candidate: RTCIceCandidate) => {
     try {
-        pendingCandidates.current.push(new RTCIceCandidate(candidate));
+      pendingCandidates.current.push(new RTCIceCandidate(candidate));
     } catch (err) {
       console.error("Error handling ICE candidate:", err);
     }
@@ -159,13 +169,52 @@ export const useRTC = (socket: Socket | null) => {
     }
 
     if (localStream) {
+      console.log("call ending, local stream stopping");
       localStream.getTracks().forEach((track) => track.stop());
-
       setLocalStream(null);
     }
 
     pendingCandidates.current = [];
     setRemoteStream(null);
+  }, [localStream]);
+
+  const switchCamera = useCallback(async () => {
+    if (!localStream) return;
+
+    const currentVideoTrack = localStream.getVideoTracks()[0];
+    if (!currentVideoTrack) return;
+
+    const currentFacingMode = currentVideoTrack.getSettings().facingMode;
+    const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
+
+    console.log(currentFacingMode)
+    currentVideoTrack.stop();
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: newFacingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 },
+        },
+        audio: false,
+      });
+
+      const newVideoTrack = newStream.getVideoTracks()[0];
+
+      const sender = pConnection.current
+        ?.getSenders()
+        .find((sender) => sender.track?.kind === "video");
+      if (sender) {
+        await sender.replaceTrack(newVideoTrack);
+      }
+
+      const updatedStream = new MediaStream([newVideoTrack]);
+      setLocalStream(updatedStream);
+    } catch (error) {
+      console.log("Error switching camera:", error);
+    }
   }, [localStream]);
 
   return {
@@ -176,6 +225,7 @@ export const useRTC = (socket: Socket | null) => {
     handleIceCandidate,
     endCall,
     handleAnswer,
+    switchCamera,
     localStream,
     remoteStream,
   };

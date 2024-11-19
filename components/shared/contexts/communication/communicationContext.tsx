@@ -23,9 +23,11 @@ import CallEndScreen from "@/components/features/chat/callUI/CallEndScreen";
 import IncomingCallModal from "@/components/features/chat/callUI/IncomingCall";
 import {
   CallEvents,
+  CallParticipant,
   CallSession,
   CommunicationContextType,
 } from "@/types/ChatTypes/CallTypes";
+import { useParams } from "next/navigation";
 
 const NotificationPopUp = dynamic(
   () => import("@/components/shared/ui/organisms/popup/notificationPopup"),
@@ -47,6 +49,7 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
   const [isMinimized, setIsMinimized] = useState(false);
   const { user: currentUser } = useAuth();
 
+  const chatRoomId = useParams().chatId as string;
   const { socket } = useSocketConnection(showNotification);
   const {
     endCall,
@@ -80,7 +83,7 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
   );
 
   const initiateCall = useCallback(
-    async (callSession: CallSession) => {
+    async (isVideoCall: boolean, recipient: CallParticipant) => {
       if (activeCall) {
         return showNotification(
           "Can't make call while in another call!",
@@ -88,14 +91,18 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
         );
       }
 
+      const callSession: CallSession = {
+        callId: uuid4(),
+        status: "ringing",
+        caller: currentUser!,
+        chatRoomId: chatRoomId,
+        isVideoCall: isVideoCall,
+        recipients: [recipient],
+      };
+
       console.log("Initiating a call...");
 
-      await makeOutgoingCalls(
-        callSession.chatRoomId,
-        callSession.isVideoCall,
-        currentUser,
-        callSession.callId
-      );
+      await makeOutgoingCalls(callSession);
       setActiveCall(callSession);
     },
     [currentUser, activeCall, makeOutgoingCalls]
@@ -175,13 +182,13 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
   );
 
   useEffect(() => {
-    const callEventHandler = ({ event, data }: CallEvents) => {
+    const callEventHandler = async ({ event, data }: CallEvents) => {
       switch (event) {
         case "call:incoming":
           showIncomingCall({
             recipients: [currentUser!],
             caller: data.caller,
-            isVideoCall: data.isVideo,
+            isVideoCall: data.isVideoCall,
             status: "ringing",
             callId: data.callId,
             chatRoomId: data.to,
@@ -200,11 +207,19 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
           break;
 
         case "call:answered":
-          handleAnswer(data.answer);
-          setActiveCall((prev) => {
-            if (!prev) return prev;
-            return { ...prev, status: "connected" };
-          });
+          try {
+            await handleAnswer(data.answer);
+            setActiveCall((prev) => {
+              if (!prev) return prev;
+              return { ...prev, status: "connected" };
+            });
+            socket?.emit("call-connected");
+          } catch (error) {
+            console.log(error);
+            socket?.emit("call-failed", {
+              callId: data.callId,
+            });
+          }
           break;
 
         case "ice-candidate":

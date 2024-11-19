@@ -12,6 +12,8 @@ export interface IChatHead {
   senderUserId: string | null;
   senderUsername: string | null;
   fileType: FileType | null;
+  callerId: string | null;
+  callStatus: "missed" | "ended";
   oppositeUserId: string | null;
   oppositeUsername: string | null;
   oppositeUserStatus: string | null;
@@ -49,7 +51,7 @@ export interface IMessage extends Message {
   MessageReaction: Reactions[];
   sender: User | null;
   parentMessage: ParentMessage | null;
-  callInformation: CallInformation | null
+  callInformation: CallInformation | null;
 }
 
 type Message = {
@@ -124,7 +126,7 @@ export type MenuAction =
   | { type: "TOGGLE_MEDIA" }
   | { type: "TOGGLE_GROUP_MODAL" }
   | { type: "BLOCK" }
-  | { type: "CREATE_GROUP", name: string }
+  | { type: "CREATE_GROUP"; name: string }
   | { type: "CLOSE" }
   | { type: "UNBLOCK" }
   | { type: "DELETE_CHAT" };
@@ -154,21 +156,20 @@ export interface IMenu {
   showEmojiPicker: boolean;
 }
 
-
 export interface SearchMessageResult {
   message: {
-    messageId: string,
-    content: string,
-    createdAt: string // ISO date,
-    senderName: string
-    senderAvatar: string
-  }
+    messageId: string;
+    content: string;
+    createdAt: string; // ISO date,
+    senderName: string;
+    senderAvatar: string;
+  };
 }
 
 export type CallInformation = {
-  callerId: string
-  isVideoCall: boolean
-  startTime: string | null
-  endTime: string | null
-  status: "missing" | "connected" | "ended"
-}
+  callerId: string;
+  isVideoCall: boolean;
+  startTime: string | null;
+  endTime: string | null;
+  status: "missed" | "ongoing" | "ended";
+};

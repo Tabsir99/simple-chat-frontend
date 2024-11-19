@@ -1,3 +1,4 @@
+import { CallSession } from "@/types/ChatTypes/CallTypes";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 
@@ -17,8 +18,13 @@ export const useRTC = (socket: Socket | null) => {
   const pendingCandidates = useRef<RTCIceCandidate[]>([]);
 
   useEffect(() => {
-    console.log("remotestream:", remoteStream);
-  }, [remoteStream]);
+    console.log("heello", pConnection);
+    if (pConnection.current)
+      pConnection.current.onconnectionstatechange = (e) => {
+        console.log(pConnection.current?.connectionState);
+      };
+  }, [pConnection.current]);
+
   const getUserMedia = useCallback(async (isVideo: boolean) => {
     console.log("is it video,", isVideo);
     try {
@@ -76,15 +82,16 @@ export const useRTC = (socket: Socket | null) => {
   );
 
   const makeOutgoingCalls = useCallback(
-    async (
-      chatRoomId: string,
-      isVideo: boolean,
-      currentUser: any,
-      callId: string
-    ) => {
+    async ({
+      isVideoCall,
+      chatRoomId,
+      caller,
+      callId,
+      recipients,
+    }: CallSession) => {
       // if(!socket) return
       try {
-        const stream = await getUserMedia(isVideo);
+        const stream = await getUserMedia(isVideoCall);
         const pc = await createConnection(chatRoomId, stream);
 
         const offer = await pc.createOffer();
@@ -93,9 +100,10 @@ export const useRTC = (socket: Socket | null) => {
         socket?.emit("call-offer", {
           offer,
           to: chatRoomId,
-          isVideo,
-          caller: currentUser,
+          isVideoCall,
+          caller,
           callId,
+          recipientId: recipients[0].userId,
         });
       } catch (error) {
         console.log("Outgoing call failed");
@@ -187,7 +195,7 @@ export const useRTC = (socket: Socket | null) => {
     const currentFacingMode = currentVideoTrack.getSettings().facingMode;
     const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
 
-    console.log(currentFacingMode)
+    console.log(currentFacingMode);
     currentVideoTrack.stop();
 
     try {

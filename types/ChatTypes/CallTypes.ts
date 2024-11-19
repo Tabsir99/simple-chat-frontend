@@ -25,7 +25,7 @@ export interface CommunicationContextType {
     time?: number
   ) => void;
   showIncomingCall: (callSession: CallSession) => void;
-  initiateCall: (callSession: CallSession) => void;
+  initiateCall: (isVideoCall: boolean, recipients: CallParticipant) => void;
   handleAcceptCall: (
     callId: string,
     offer: RTCSessionDescriptionInit,
@@ -43,7 +43,7 @@ export type IncomingCallEvent = {
   event: "call:incoming";
   data: {
     from: RTCSessionDescriptionInit;
-    isVideo: boolean;
+    isVideoCall: boolean;
     to: string;
     caller: CallParticipant;
     callId: string;

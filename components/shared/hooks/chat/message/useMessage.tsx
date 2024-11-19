@@ -81,7 +81,6 @@ export function useMessages(
         return;
       }
     }
-    // Update the active chat heads to render newMessage content and time
     updateLastActivity(chatId as string, newMessage, attachment);
 
     const messageToSend: Partial<IMessage> = {
@@ -240,6 +239,8 @@ export function useMessages(
         content: replyingTo?.content,
         sender: { username: replyingTo.sender?.username as string },
       },
+
+      callInformation: null,
     };
 
     addMessage(newMsg, currentUser, attachment || undefined);

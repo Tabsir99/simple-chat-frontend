@@ -13,13 +13,12 @@ import useFriendshipActions from "@/components/shared/hooks/userProfile/useFrien
 import useChatRoom from "@/components/shared/hooks/chat/useChatroom";
 import ParentMessage from "@/components/features/chat/messaging/ParentMessage";
 import EmojiPicker from "@/components/features/chat/reactions/emojiPicker";
-import {
-  ReactionButton,
-} from "@/components/features/chat/reactions/reactionDisplay";
+import { ReactionButton } from "@/components/features/chat/reactions/reactionDisplay";
 import MessageMenu from "@/components/features/chat/messaging/messageMenu";
 import useMenu from "@/components/shared/hooks/chat/useMenu";
 import MessageEditModal from "@/components/features/chat/messaging/MessageEdit";
 import CallMessage from "@/components/features/chat/messaging/messageInput/CallMessage";
+import { CallInformation } from "@/types/chatTypes";
 
 export default function ChatRoom() {
   const currentUser = useAuth().user;
@@ -63,7 +62,10 @@ export default function ChatRoom() {
         />
       ) : (
         <>
-          <ChatHeader selectedActiveChat={selectedActiveChat} fetchedMessages={messages} />
+          <ChatHeader
+            selectedActiveChat={selectedActiveChat}
+            fetchedMessages={messages}
+          />
 
           {/* Main Chat */}
           <div className="flex flex-col overflow-hidden pt-3 ">
@@ -92,10 +94,6 @@ export default function ChatRoom() {
                 const isCurrentUserSender =
                   message.sender?.userId === currentUser?.userId;
 
-                if(message.type === "call"){
-                  return <CallMessage callInfo={message.callInformation} />
-                }
-
                 return (
                   <div
                     className={`flex flex-col relative justify-center  w-full ${
@@ -110,14 +108,29 @@ export default function ChatRoom() {
                       />
                     )}
 
-                    <MessageContainer
-                      attachment={attachmentsMap.get(message.messageId)}
-                      message={message}
-                      isCurrentUserSender={isCurrentUserSender}
-                      selectedMessageId={menu.message?.messageId}
-                      toggleReaction={toggleReaction}
-                      isGroup={selectedActiveChat.isGroup}
-                    />
+                    {message.type === "call" ? (
+                      <CallMessage
+                        callInfo={message.callInformation as CallInformation}
+                        messageTime={message.createdAt}
+                        recipient={{
+                          profilePicture:
+                            selectedActiveChat.oppositeProfilePicture as string,
+                          userId: selectedActiveChat.oppositeUserId as string,
+                          username:
+                            selectedActiveChat.oppositeUsername as string,
+                        }}
+                        messageId={message.messageId}
+                      />
+                    ) : (
+                      <MessageContainer
+                        attachment={attachmentsMap.get(message.messageId)}
+                        message={message}
+                        isCurrentUserSender={isCurrentUserSender}
+                        selectedMessageId={menu.message?.messageId}
+                        toggleReaction={toggleReaction}
+                        isGroup={selectedActiveChat.isGroup}
+                      />
+                    )}
 
                     <MessageRecipt
                       allReadRecipts={readReceipts}

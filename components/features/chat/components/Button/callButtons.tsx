@@ -1,13 +1,10 @@
 import React, { useState } from "react";
 import { Phone, Video, LucideIcon } from "lucide-react";
 import { v4 as uuid4 } from "uuid";
-import {
-  CallParticipant,
-  CallSession,
-  useCommunication,
-} from "@/components/shared/contexts/communication/communicationContext";
+import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 import { useParams } from "next/navigation";
 import CallCountdown from "../../callUI/CallCountDown";
+import { CallParticipant } from "@/types/ChatTypes/CallTypes";
 
 interface CallButtonProps {
   icon: LucideIcon;
@@ -60,7 +57,6 @@ const CallControls: React.FC<CallControlsProps> = ({
 }) => {
   const { initiateCall } = useCommunication();
 
-  const chatRoomId = useParams().chatId;
   const [showCallCountDown, setShowCallCountDown] = useState(false);
   const [isVideoCall, setIsVideoCall] = useState(false);
 
@@ -70,16 +66,7 @@ const CallControls: React.FC<CallControlsProps> = ({
   };
 
   const startCallSession = () => {
-    const callSession: CallSession = {
-      callId: uuid4(),
-      caller: localUser,
-      recipients: [recipient],
-      isVideoCall: isVideoCall,
-      status: "ringing" as const,
-      chatRoomId: chatRoomId as string,      
-    };
-
-    initiateCall(callSession);
+    initiateCall(isVideoCall, recipient);
     setShowCallCountDown(false);
   };
 

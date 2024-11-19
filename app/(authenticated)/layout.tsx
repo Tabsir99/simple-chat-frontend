@@ -11,6 +11,7 @@ import { mutate } from "swr";
 import { ecnf } from "@/utils/constants/env";
 import {
   AttachmentViewModel,
+  CallInformation,
   IChatHead,
   IMessage,
   TypingEventData,
@@ -18,10 +19,7 @@ import {
 import { AllMessageResponse, ApiResponse } from "@/types/responseType";
 import { useParams, useRouter } from "next/navigation";
 import { ChatRoomMember } from "@/types/chatTypes";
-import {
-  CallParticipant,
-  useCommunication,
-} from "@/components/shared/contexts/communication/communicationContext";
+import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 import { v4 } from "uuid";
 import ChatSidebar from "@/components/features/chat/components/chatSidebar";
 
@@ -67,6 +65,7 @@ type NewMessageEvent = {
       createdAt: string;
       sender?: IMessage["sender"];
       type?: IMessage["type"];
+      callInformation?: CallInformation;
     };
     readBy: string[];
     attachment?: AttachmentViewModel;
@@ -321,8 +320,6 @@ export default function RootAuthLayout({
           break;
 
         case "member:add":
-          console.log("Whats up sucker", data);
-
           mutate(`${ecnf.apiUrl}/chats/${data.chatRoomId}/members`);
 
           setActiveChats((prev) => {
@@ -426,6 +423,8 @@ export default function RootAuthLayout({
           break;
 
         case "message:new":
+
+
           const newMessage: IMessage = {
             content: data.message.content || "",
             createdAt: data.message.createdAt,
@@ -437,7 +436,9 @@ export default function RootAuthLayout({
             isEdited: false,
             parentMessage: data.message.parentMessage || null,
             MessageReaction: [],
+            callInformation: data.message.callInformation || null,
           };
+
 
           updateLastActivity(data.chatRoomId, newMessage, data.attachment);
           if (!currentChatRef.current) {

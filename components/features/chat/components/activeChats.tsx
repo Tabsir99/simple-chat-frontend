@@ -5,10 +5,12 @@ import { IChatHead } from "@/types/chatTypes";
 import { useParams } from "next/navigation";
 import { useChatContext } from "../../../shared/contexts/chat/chatContext";
 import Avatar from "@/components/shared/ui/atoms/profileAvatar/profileAvatar";
+import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 
 const ActiveChats = memo(({ data }: { data: IChatHead }) => {
   const params = useParams();
-  const { getLastMessage } = useChatContext();
+  const { getLastMessage, getLastMessageCall } = useChatContext();
+  const { user } = useAuth();
 
   // Check if this chat is currently active
   const isCurrentChat = params.chatId === data.chatRoomId;
@@ -95,7 +97,7 @@ const ActiveChats = memo(({ data }: { data: IChatHead }) => {
           </div>
         ) : (
           <p
-            className={`text-[16px] truncate pr-6 
+            className={`text-[16px] truncate pr-6
               ${
                 data.unreadCount > 0 && !data.removedAt
                   ? "text-white font-bold"
@@ -103,7 +105,15 @@ const ActiveChats = memo(({ data }: { data: IChatHead }) => {
               }
               transition-colors duration-150 ease-out`}
           >
-            {data.messageContent
+            {data.callerId
+              ? getLastMessageCall(
+                  data.callerId,
+                  data.callStatus,
+                  data.callerId === user?.userId
+                    ? user.username
+                    : (data.oppositeUsername as string)
+                )
+              : data.messageContent
               ? data.messageContent
               : getLastMessage(
                   {

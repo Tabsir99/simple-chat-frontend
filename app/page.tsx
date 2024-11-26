@@ -6,12 +6,14 @@ import FormContent from "@/components/features/auth/formContent";
 import { PublicRoute } from "@/components/shared/contexts/auth/authcontext";
 import { ecnf } from "@/utils/constants/env";
 import AuthSuccess from "@/components/features/auth/AuthSuccess";
+import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
 
 export default function AuthComponent() {
   const [showResponse, setShowResponse] = useState({
     success: false,
     faliure: "",
   });
+  const { showNotification } = useCommunication();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,14 +41,17 @@ export default function AuthComponent() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${ecnf.apiUrl}/auth/send-verification-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-  
+      const response = await fetch(
+        `${ecnf.apiUrl}/auth/send-verification-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
       if (response.ok) {
         setIsLoading(false);
         setShowResponse({
@@ -60,11 +65,8 @@ export default function AuthComponent() {
         });
       }
     } catch (error) {
-      console.log(error)
-      
+      showNotification("An error occured","error")
     }
-
-
   };
 
   return (

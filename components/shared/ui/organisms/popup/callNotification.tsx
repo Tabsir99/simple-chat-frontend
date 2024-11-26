@@ -4,6 +4,7 @@ import {
   useCommunication,
 } from "../../../contexts/communication/communicationContext";
 import { CallSession } from "@/types/ChatTypes/CallTypes";
+import Image from "next/image";
 
 interface MinimizedCallProps {
   callSession: CallSession;
@@ -40,7 +41,7 @@ const MinimizedCall: React.FC<MinimizedCallProps> = ({
         <div className="flex items-center gap-3 md:gap-4">
           {/* Profile Picture */}
           {remoteParticipant.profilePicture ? (
-            <img
+            <Image
               src={remoteParticipant.profilePicture}
               alt={remoteParticipant.username}
               className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover ring-2 ring-gray-700 ring-offset-2 ring-offset-gray-800"

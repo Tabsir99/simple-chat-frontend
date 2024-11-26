@@ -51,7 +51,6 @@ export function useLocalStorage(): FileStorage {
           chatRoomId,
           messageId,
         };
-        console.log("saving file in localstorage, blob:",file)
         await db.put(STORE_NAME, fileObject);
 
         return key;
@@ -69,11 +68,9 @@ export function useLocalStorage(): FileStorage {
         const db = await getDb();
         const file: StoredFile = await db.get(STORE_NAME, key);
 
-        console.log("does file exists?",file)
         if (!file) return null;
 
         const url = URL.createObjectURL(file.blob);
-        console.log("From getfile url,",file.blob, url)
 
         return url;
       } catch (error) {

@@ -53,7 +53,7 @@ const GroupModal = ({
 
   const isCurrentUserAdmin = useMemo(
     () => members.some((mem) => mem.userId === user?.userId && mem.isAdmin),
-    [members]
+    [members, user]
   );
 
   useEffect(() => {
@@ -71,7 +71,6 @@ const GroupModal = ({
       <div className="fixed w-screen h-[100dvh] z-50 bg-black bg-opacity-60 left-0 top-0">
         <div
           onClick={() => {
-            console.log("runs");
             setShowMemberMenu(false);
             setSelectedMember(null);
           }}

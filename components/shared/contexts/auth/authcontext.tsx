@@ -20,6 +20,7 @@ interface AuthContextType {
   loading: boolean;
   checkAndRefreshToken: () => Promise<string | null>;
   user: Omit<IUserMiniProfile, "bio"> | null;
+  clearAuthState: () => void;
 }
 
 interface DecodedToken {
@@ -43,9 +44,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [accessToken, setAccessToken] = useState<string | null>(() => {
     try {
-      return localStorage.getItem("token")
+      return localStorage.getItem("token");
     } catch (error) {
-      return null
+      return null;
     }
   });
 
@@ -56,7 +57,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const clearAuthState = useCallback(() => {
     setAccessToken(null);
     setUser(null);
-    localStorage.removeItem("token")
+    localStorage.removeItem("token");
   }, []);
 
   const refreshAccessToken = useCallback(async (): Promise<string | null> => {
@@ -73,20 +74,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
     refreshRef.current = true;
     try {
-      const response = await fetch(
-        `${ecnf.apiUrl}/auth/verify-refresh`,
-        {
-          method: "POST",
-          credentials: "include",
-          cache: "no-cache",
-        }
-      );
+      const response = await fetch(`${ecnf.apiUrl}/auth/verify-refresh`, {
+        method: "POST",
+        credentials: "include",
+        cache: "no-cache",
+      });
 
       if (response.ok) {
         const { accessToken: newAccessToken } = await response.json();
         setAccessToken(newAccessToken);
-        localStorage.setItem("token",newAccessToken)
-        
+        localStorage.setItem("token", newAccessToken);
+
         return newAccessToken;
       } else if (response.status === 401) {
         throw new Error(AuthError.INVALID_TOKEN);
@@ -142,19 +140,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         );
 
         if (response.ok) {
-          const data: ApiResponse<Omit<{userInfo: IUserMiniProfile, isOwner: boolean}, "bio"> | null> =
-            await response.json();
+          const data: ApiResponse<Omit<
+            { userInfo: IUserMiniProfile; isOwner: boolean },
+            "bio"
+          > | null> = await response.json();
           if (data.data) {
             setUser(data.data.userInfo);
           }
-          
         } else if (response.status === 401) {
           throw new Error(AuthError.INVALID_TOKEN);
         } else {
           throw new Error(AuthError.SERVER_ERROR);
         }
       } catch (error) {
-       
         if (
           error instanceof Error &&
           error.message === AuthError.INVALID_TOKEN
@@ -181,6 +179,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     loading: loading && !user,
     checkAndRefreshToken,
     user,
+    clearAuthState,
   };
 
   return (
@@ -195,9 +194,6 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
-
-
-
 
 export const ProtectedRoute: React.FC<{ children: ReactNode }> = ({
   children,

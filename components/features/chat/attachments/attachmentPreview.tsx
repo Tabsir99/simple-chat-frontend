@@ -1,6 +1,7 @@
 import React from "react";
 import { Video, AudioLines, FileText, X, Play } from "lucide-react";
 import { AttachmentViewModel } from "@/types/chatTypes";
+import Image from "next/image";
 
 const FilePreview = ({
   attachment,
@@ -16,12 +17,10 @@ const FilePreview = ({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  console.log("does renders");
-
   const renderPreview = () => {
     if (attachment.fileType.startsWith("image")) {
       return (
-        <img
+        <Image
           src={attachment.fileUrl}
           alt={attachment.fileName}
           className="w-full h-20 object-cover rounded"

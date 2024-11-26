@@ -28,9 +28,7 @@ const FullPageLoader = ({
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
-    console.log("It ran");
     const initialDelay = setTimeout(() => {
-      console.log("TImer run");
       setShowText(true);
     }, 1000);
     return () => clearTimeout(initialDelay);

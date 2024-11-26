@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { GrAttachment } from "react-icons/gr";
 import { formatDate } from "@/utils/utils";
 import { AttachmentViewModel, IMessage } from "@/types/chatTypes";
+import Image from "next/image";
 
 interface ReplyPreviewProps {
   replyingTo: IMessage;
@@ -13,7 +14,7 @@ const ReplyPreview = ({ replyingTo, onCancelReply, attachmentsMap }: ReplyPrevie
   return (
     <div className="flex items-center absolute -top-16 left-0 border-2 border-gray-700 z-30 gap-3 px-4 py-3 bg-gray-800 rounded-lg shadow-lg max-w-[90%] transition-all duration-500">
       {replyingTo.sender?.profilePicture ? (
-        <img
+        <Image
           src={replyingTo.sender.profilePicture}
           alt={replyingTo.sender.username}
           className="w-10 h-10 rounded-full flex-shrink-0"

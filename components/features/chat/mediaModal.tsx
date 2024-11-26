@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import {
   XCircle,
-  Image,
+  Image as ImageIcon,
   FileAudio,
   FileVideo,
   File,
@@ -12,6 +12,7 @@ import useCustomSWR from "@/components/shared/hooks/common/customSwr";
 import { ecnf } from "@/utils/constants/env";
 import { AttachmentViewModel } from "@/types/chatTypes";
 import { useChatContext } from "@/components/shared/contexts/chat/chatContext";
+import Image from "next/image";
 
 interface MediaItemProps {
   type: "image" | "audio" | "video" | "document";
@@ -29,7 +30,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
   const getIcon = () => {
     switch (type) {
       case "image":
-        return <Image size={48} className="text-blue-400" />;
+        return <ImageIcon size={48} className="text-blue-400" />;
       case "audio":
         return <FileAudio size={48} className="text-green-400" />;
       case "video":
@@ -91,7 +92,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
       </button>
       <div className="max-w-4xl max-h-[90vh] w-full overflow-hidden">
         {fileCategory === "image" && (
-          <img
+          <Image
             src={item.fileUrl}
             alt={item.fileName}
             className="max-w-full max-h-[90vh] object-contain"

@@ -18,10 +18,10 @@ import { useState } from "react";
 
 export default function ChatHeader({
   selectedActiveChat,
-  fetchedMessages
+  fetchedMessages,
 }: {
   selectedActiveChat: IChatHead;
-  fetchedMessages: IMessage[]
+  fetchedMessages: IMessage[];
 }) {
   const { data, mutate } = useCustomSWR<ChatRoomMember[]>(
     `${ecnf.apiUrl}/chats/${selectedActiveChat.chatRoomId}/members`,
@@ -103,7 +103,7 @@ export default function ChatHeader({
 
         <ChatroomSearch
           showSearch={showSearch}
-          toggleSearch={() => setShowSearch(prev => !prev)}
+          toggleSearch={() => setShowSearch((prev) => !prev)}
           fetchedMessages={fetchedMessages}
         />
 
@@ -158,8 +158,10 @@ export default function ChatHeader({
         onConfirm={onConfirm}
         confirmBtnText="Delete chat"
         title="Are you sure, You want to clear the chat?"
-        children="Deleting a chat would mean, you lose all the messages and files shared upto this point."
-      />
+      >
+        Deleting a chat would mean, you lose all the messages and files shared
+        upto this point.
+      </ConfirmationModal>
     </div>
   );
 }

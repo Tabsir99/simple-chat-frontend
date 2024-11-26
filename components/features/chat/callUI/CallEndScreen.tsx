@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Phone, PhoneOff, Clock, Video } from "lucide-react";
-import { CallParticipant } from "@/components/shared/contexts/communication/communicationContext";
+
 import { formatDuration } from "@/utils/utils";
+import Image from "next/image";
+import { CallParticipant } from "@/types/ChatTypes/CallTypes";
 
 interface CallEndScreenProps {
   remoteParticipant: CallParticipant;
@@ -52,7 +54,7 @@ const CallEndScreen = ({
         <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 bg-gray-700 rounded-full overflow-hidden">
             {remoteParticipant.profilePicture ? (
-              <img
+              <Image
                 src={remoteParticipant.profilePicture}
                 alt={remoteParticipant.username}
                 className="w-full h-full object-cover"

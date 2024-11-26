@@ -3,6 +3,7 @@ import { AttachmentViewModel } from "@/types/chatTypes";
 import { memo, useCallback, useRef, useState } from "react";
 import VideoPlayer from "./videoPlayer";
 import AudioPlayer from "./audioPlayer";
+import Image from "next/image";
 
 interface AttachmentsProps {
   attachments: AttachmentViewModel;
@@ -11,7 +12,6 @@ interface AttachmentsProps {
 const Attachments = memo(({ attachments }: AttachmentsProps) => {
   const [loadAttempts, setLoadAttempts] = useState(0);
 
-  
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -61,7 +61,7 @@ const Attachments = memo(({ attachments }: AttachmentsProps) => {
     <div className="mt-2 space-y-2 max-w-[360px] flex flex-col">
       <div className="rounded-lg overflow-hidden border-gray-200 dark:border-gray-700">
         {fileCategory === "image" && (
-          <img
+          <Image
             src={attachments.fileUrl}
             onError={(e) => {}}
             alt={attachments.fileName || "Image attachment"}
@@ -119,4 +119,5 @@ const Attachments = memo(({ attachments }: AttachmentsProps) => {
   );
 });
 
+Attachments.displayName = "Attachments";
 export default Attachments;

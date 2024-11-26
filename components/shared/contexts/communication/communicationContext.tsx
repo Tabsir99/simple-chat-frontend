@@ -99,7 +99,6 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
         recipients: [recipient],
       };
 
-      console.log("Initiating a call...");
 
       await makeOutgoingCalls(callSession);
       setActiveCall(callSession);
@@ -209,7 +208,6 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
               return { ...prev, status: "connected" };
             });
           } catch (error) {
-            console.log(error);
             socket?.emit("call-failed", {
               callId: data.callId,
             });
@@ -236,30 +234,32 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
     handleAnswer,
     handleIceCandidate,
     showIncomingCall,
+    currentUser,
   ]);
 
   useEffect(() => {
+    const peerConnection = pConnection.current;
     const handleConnectionChange = () => {
-      if (pConnection.current?.connectionState === "connected") {
+      if (peerConnection?.connectionState === "connected") {
         socket?.emit("call-connected", {
           callId: activeCall?.callId,
           to: activeCall?.chatRoomId,
         });
       }
     };
-    if (pConnection.current)
-      pConnection.current.addEventListener(
+    if (peerConnection)
+      peerConnection.addEventListener(
         "connectionstatechange",
         handleConnectionChange
       );
 
     return () => {
-      pConnection.current?.removeEventListener(
+      peerConnection?.removeEventListener(
         "connectionstatechange",
         handleConnectionChange
       );
     };
-  }, [pConnection.current, socket]);
+  }, [socket, activeCall]);
 
   return (
     <CommunicationContext.Provider
@@ -309,7 +309,6 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
             isVideoCall={activeCall.isVideoCall}
             onClose={() => {
               setActiveCall(null);
-              console.log("setting active call to null...,", activeCall);
             }}
             remoteParticipant={activeCall.recipients[0]}
             callEnd={activeCall.endTime}

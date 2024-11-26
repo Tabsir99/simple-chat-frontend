@@ -15,7 +15,6 @@ const formatDuration = (startTime: string | null, endTime: string | null) => {
   const minutes = Math.floor(diff / 60);
   const seconds = diff % 60;
 
-  console.log("time formated", minutes, seconds);
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
 

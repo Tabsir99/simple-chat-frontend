@@ -118,10 +118,7 @@ export default function useChatRoom() {
             setTimeout(async () => {
               const res = await fetch(data.data as string);
               const file = await res.blob();
-              console.log(
-                "Fetching file as url doesnt exist in localstorage. blob:",
-                file
-              );
+              
               await saveFile(file, chatRoomId as string, el.target.id);
             }, 2000);
 

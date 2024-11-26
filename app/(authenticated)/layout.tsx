@@ -423,8 +423,6 @@ export default function RootAuthLayout({
           break;
 
         case "message:new":
-
-
           const newMessage: IMessage = {
             content: data.message.content || "",
             createdAt: data.message.createdAt,
@@ -438,7 +436,6 @@ export default function RootAuthLayout({
             MessageReaction: [],
             callInformation: data.message.callInformation || null,
           };
-
 
           updateLastActivity(data.chatRoomId, newMessage, data.attachment);
           if (!currentChatRef.current) {
@@ -595,7 +592,7 @@ export default function RootAuthLayout({
       socket.off("chatEvent");
       socket.off("messageEvent");
     };
-  }, [socket]);
+  }, [socket, updateLastActivity, user]);
 
   return (
     <>

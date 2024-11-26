@@ -144,7 +144,6 @@ const GroupModalHead = ({
       });
       showNotification("Room image updated successfully", "success");
     } catch (error) {
-      console.error("Error updating room image:", error);
       showNotification("Failed to update room image", "error");
     }
   };

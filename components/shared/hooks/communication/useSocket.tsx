@@ -36,7 +36,6 @@ export const useSocketConnection = (
       }
 
       socketInstance.on("connect", () => {
-        console.log("Connected to socketio server");
         setSocket(socketInstance);
       });
 

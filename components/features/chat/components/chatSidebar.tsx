@@ -10,9 +10,9 @@ import { useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 export default function ChatSidebar() {
-  const { user } = useAuth();
+  const { user, clearAuthState } = useAuth();
   const sidebarRef = useRef<HTMLElement | null>(null);
-  const pathName = usePathname()
+  const pathName = usePathname();
 
   // Close sidebar when clicking outside
   useEffect(() => {
@@ -37,25 +37,30 @@ export default function ChatSidebar() {
 
       if (res.ok) {
         sessionStorage.clear();
+        clearAuthState();
         window.location.href = ecnf.frontendUrl || "";
       }
     } catch (error) {
-      console.error("Logout failed:", error);
+      
     }
   };
 
   return (
     <>
       {/* Mobile Toggle Button */}
-      {<button
-        onClick={() => {
-          sidebarRef.current?.classList.toggle("max-lg:-translate-x-full");
-        }}
-        className={`p-2 ${pathName.startsWith("/chats/") && "max-lg2:hidden"} rounded-lg z-10 fixed top-4 left-4 lg:hidden bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:ring-gray-600 text-gray-100 transition-all duration-200`}
-        aria-label="Toggle Sidebar"
-      >
-        <Menu className="w-6 h-6" />
-      </button>}
+      {
+        <button
+          onClick={() => {
+            sidebarRef.current?.classList.toggle("max-lg:-translate-x-full");
+          }}
+          className={`p-2 ${
+            pathName.startsWith("/chats/") && "max-lg2:hidden"
+          } rounded-lg z-10 fixed top-4 left-4 lg:hidden bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:ring-gray-600 text-gray-100 transition-all duration-200`}
+          aria-label="Toggle Sidebar"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+      }
 
       {/* Sidebar */}
       <aside
@@ -65,7 +70,10 @@ export default function ChatSidebar() {
          duration-300 ease-in-out fixed lg:relative max-lg:w-[250px] max-lg:-translate-x-full max-lg:z-40"
       >
         {/* Profile Section */}
-        <Link href="/profile" className="mb-4 group relative gap-2 flex flex-col items-center">
+        <Link
+          href="/profile"
+          className="mb-4 group relative gap-2 flex flex-col items-center"
+        >
           <div className="w-10 h-10 max-lg:w-12 max-lg:h-12 rounded-full bg-gray-700 flex justify-center items-center text-xl font-bold text-gray-300 overflow-hidden transition-all duration-200 hover:ring-2 hover:ring-gray-500">
             {user && user.profilePicture ? (
               <Image
@@ -79,9 +87,7 @@ export default function ChatSidebar() {
               user?.username.charAt(0)
             )}
           </div>
-          <span className="lg:hidden capitalize">
-            {user?.username}
-          </span>
+          <span className="lg:hidden capitalize">{user?.username}</span>
         </Link>
 
         {/* Navigation */}
@@ -96,12 +102,6 @@ export default function ChatSidebar() {
             >
               <span className="lg:hidden">Log Out</span>
               <LogOut className="text-inherit" size={20} />
-            </button>
-
-            {/* Help Button */}
-            <button className="flex justify-center items-center gap-3 p-3 rounded-xl transition-all duration-200 text-gray-400 hover:bg-gray-700 hover:text-white group">
-              <span className="lg:hidden">Help & Support</span>
-              <HelpCircle className="text-inherit" size={20} />
             </button>
           </div>
         </nav>

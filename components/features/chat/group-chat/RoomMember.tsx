@@ -64,7 +64,6 @@ const RoomMembers = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  console.log("What the fuck", selectedMember);
                   handleNicknameChange(e);
                   setShowMenu(false);
                 }}

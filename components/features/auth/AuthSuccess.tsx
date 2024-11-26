@@ -28,7 +28,7 @@ const AuthSuccess = () => {
           <div className="text-gray-300">
             <div className="space-y-4">
               <p className="text-lg">
-                You've been successfully authenticated.
+                You&apos;ve been successfully authenticated.
               </p>
               <p className="text-sm text-gray-400">
                 You can safely close this tab and return to the original

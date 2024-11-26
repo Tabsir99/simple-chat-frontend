@@ -55,7 +55,6 @@ export default function MessageMenu({
           }
         } catch (error) {
           setShowMsg({ content: "Failed to copy message", hasFailed: true });
-          console.log(error);
         } finally {
           handleToggleMenu();
         }

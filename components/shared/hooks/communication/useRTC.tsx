@@ -97,8 +97,6 @@ export const useRTC = (socket: Socket | null) => {
           recipientId: recipients[0].userId,
         });
       } catch (error) {
-        console.log("Outgoing call failed");
-        console.log(error);
       }
     },
     [getUserMedia, createConnection, socket]
@@ -168,7 +166,6 @@ export const useRTC = (socket: Socket | null) => {
     }
 
     if (localStream) {
-      console.log("call ending, local stream stopping");
       localStream.getTracks().forEach((track) => track.stop());
       setLocalStream(null);
     }
@@ -186,7 +183,6 @@ export const useRTC = (socket: Socket | null) => {
     const currentFacingMode = currentVideoTrack.getSettings().facingMode;
     const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
 
-    console.log(currentFacingMode);
     currentVideoTrack.stop();
 
     try {
@@ -212,7 +208,6 @@ export const useRTC = (socket: Socket | null) => {
       const updatedStream = new MediaStream([newVideoTrack]);
       setLocalStream(updatedStream);
     } catch (error) {
-      console.log("Error switching camera:", error);
     }
   }, [localStream]);
 

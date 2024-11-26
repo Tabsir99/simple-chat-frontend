@@ -12,7 +12,7 @@ const BlockMessage = () => (
           Access Restricted
         </h2>
         <p className="text-gray-300 text-center">
-          You've been blocked by this user. Unable to view their profile or
+          You&apos;ve been blocked by this user. Unable to view their profile or
           interact at this time.
         </p>
       </div>

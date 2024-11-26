@@ -1,5 +1,6 @@
-import { CallParticipant } from "@/components/shared/contexts/communication/communicationContext";
+import { CallParticipant } from "@/types/ChatTypes/CallTypes";
 import { Phone, Video } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 interface CallCountdownProps {
@@ -25,7 +26,7 @@ const CallCountdown = ({
     } else {
       onCountdownComplete();
     }
-    
+
     return () => {
       if (timer) clearTimeout(timer);
     };
@@ -57,7 +58,7 @@ const CallCountdown = ({
       <div className="mt-6 flex flex-col items-center">
         <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-700">
           {remoteUser?.profilePicture ? (
-            <img
+            <Image
               src={remoteUser.profilePicture}
               alt={remoteUser.username}
               className="w-full h-full object-cover"

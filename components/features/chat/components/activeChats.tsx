@@ -12,7 +12,6 @@ const ActiveChats = memo(({ data }: { data: IChatHead }) => {
   const { getLastMessage, getLastMessageCall } = useChatContext();
   const { user } = useAuth();
 
-  // Check if this chat is currently active
   const isCurrentChat = params.chatId === data.chatRoomId;
 
   return (

@@ -66,7 +66,6 @@ export default function useReaction({ mutate,socket,chatId,currentUser }: UseRea
         return reaction;
       })
 
-        // Handle reaction updates and maintain type safety
         .filter((reaction): reaction is Reactions => reaction !== null)
 
         /**

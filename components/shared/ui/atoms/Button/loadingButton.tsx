@@ -1,8 +1,8 @@
 interface LoadingButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading: boolean;
-  children: React.ReactNode; // Changed to React.ReactNode
-  className?: string; // Made className optional
+  children: React.ReactNode; 
+  className?: string; 
 }
 
 export const LoadingButton: React.FC<LoadingButtonProps> = ({

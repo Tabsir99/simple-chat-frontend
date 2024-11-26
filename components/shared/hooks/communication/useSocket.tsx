@@ -1,9 +1,8 @@
-// hooks/useSocketConnection.ts
 import { useState, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 import { ecnf } from "@/utils/constants/env";
 import { useAuth } from "../../contexts/auth/authcontext";
-import { NotificationType } from "../common/useNotification";
+import { NotificationType } from "@/types/ChatTypes/CallTypes";
 
 export const useSocketConnection = (
   showNotification: (

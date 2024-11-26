@@ -1,4 +1,3 @@
-// hooks/useNotification.ts
 import { NotificationProps, NotificationType } from "@/types/ChatTypes/CallTypes";
 import { useState, useCallback } from "react";
 import { v4 as uuid4 } from "uuid";

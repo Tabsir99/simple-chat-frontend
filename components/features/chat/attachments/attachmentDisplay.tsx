@@ -97,7 +97,7 @@ const Attachments = memo(({ attachments }: AttachmentsProps) => {
                   const url = URL.createObjectURL(blob);
                   const link = document.createElement("a");
                   link.href = url;
-                  link.download = attachments.fileName; // Set your filename
+                  link.download = attachments.fileName;
                   link.click();
                 });
             }}

@@ -1,10 +1,10 @@
 import { BanIcon, BlocksIcon, LockIcon, UnlockIcon, UserMinusIcon } from "lucide-react";
 
 type BlockedChatUIProps = {
-  blockedUserId?: string;    // For private chats
-  currentUserId: string;     // Current user's ID
-  removedAt?: Date;         // For group chats
-  onUnblock?: () => void;   // Callback for unblock action
+  blockedUserId?: string;    
+  currentUserId: string;     
+  removedAt?: Date;         
+  onUnblock?: () => void;  
 };
 
 const BlockedChatUI = ({ 

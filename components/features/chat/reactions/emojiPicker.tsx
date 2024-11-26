@@ -9,7 +9,6 @@ import React, {
 import { X } from "lucide-react";
 import { emojiCollection } from "@/utils/constants/emojiArray";
 
-// Types
 type EmojiCategory =
   | "Smileys"
   | "Gestures"
@@ -31,7 +30,6 @@ interface EmojiPickerProps extends HTMLAttributes<HTMLDivElement> {
 
 type FilteredEmojisType = [string, string[]][];
 
-// Emoji collection with type safety
 
 const EmojiPicker: React.FC<EmojiPickerProps> = ({
   onEmojiSelect,

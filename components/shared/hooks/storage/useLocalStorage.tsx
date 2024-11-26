@@ -26,10 +26,8 @@ interface FileStorage {
 async function getDb(): Promise<IDBPDatabase> {
   return openDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
-      // Create store if it doesn't exist
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: "key" });
-        // Create indexes
         store.createIndex("chatRoomId", "chatRoomId");
       }
     },
@@ -37,7 +35,6 @@ async function getDb(): Promise<IDBPDatabase> {
 }
 
 export function useLocalStorage(): FileStorage {
-  // Save file and return its key
   const saveFile = useCallback(
     async (
       file: Blob,
@@ -66,7 +63,6 @@ export function useLocalStorage(): FileStorage {
     []
   );
 
-  // Get file as object URL
   const getFileUrl = useCallback(
     async (key: string): Promise<string | null> => {
       try {
@@ -88,7 +84,6 @@ export function useLocalStorage(): FileStorage {
     []
   );
 
-  // Get all files for a chat room
   const getFileUrlsByChat = useCallback(
     async (chatRoomId: string): Promise<StoredFile[]> => {
       try {
@@ -106,7 +101,6 @@ export function useLocalStorage(): FileStorage {
     []
   );
 
-  // Delete file
   const deleteFile = useCallback(async (key: string): Promise<void> => {
     try {
       const db = await getDb();

@@ -74,7 +74,6 @@ export default function AudioPlayer({
             min="0"
             max="100"
             step="1"
-            // value="0"
             className=" w-full absolute top-1/2 -translate-y-1/2 h-3 opacity-0 cursor-pointer "
             onChange={(e) => {
               if (!audioRef.current || !progressRef.current) return;

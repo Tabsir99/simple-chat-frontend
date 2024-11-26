@@ -81,7 +81,6 @@ export const useRTC = (socket: Socket | null) => {
       callId,
       recipients,
     }: CallSession) => {
-      // if(!socket) return
       try {
         const stream = await getUserMedia(isVideoCall);
         const pc = await createConnection(chatRoomId, stream);

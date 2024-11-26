@@ -16,7 +16,6 @@ import BackButton from "@/components/features/chat/components/Button/BackButton"
 import ChatroomSearch from "@/components/features/chat/components/ChatroomSearch";
 import { useState } from "react";
 
-// Create menu configurations
 export default function ChatHeader({
   selectedActiveChat,
   fetchedMessages

@@ -24,7 +24,6 @@ const ConfirmationModal = ({
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
-      // Wait for next frame to start enter animation
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setIsVisible(true);
@@ -32,10 +31,9 @@ const ConfirmationModal = ({
       });
     } else {
       setIsVisible(false);
-      // Wait for animation to finish before unmounting
       const timer = setTimeout(() => {
         setShouldRender(false);
-      }, 300); // Match this with your transition duration
+      }, 300); 
       return () => clearTimeout(timer);
     }
   }, [isOpen]);

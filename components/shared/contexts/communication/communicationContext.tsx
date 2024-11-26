@@ -60,12 +60,12 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
     switchCamera,
     localStream,
     remoteStream,
+    pConnection,
   } = useRTC(socket);
 
   const showIncomingCall = useCallback(
     (callSession: CallSession) => {
       if (activeCall) {
-        console.log("Auto declining call...,", activeCall);
         socket?.emit("decline-call", {
           callId: callSession.callId,
           to: callSession.chatRoomId,
@@ -73,7 +73,6 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
         });
         return;
       }
-      console.log("showing incoming calls....");
       setIncomingCalls((prev) => [
         ...prev,
         { ...callSession, isOutgoing: false },
@@ -132,7 +131,6 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
       ) as CallSession;
 
       accpetedCall.status = "connected";
-      console.log("accepting call,", accpetedCall);
       setActiveCall(accpetedCall);
 
       const answer = await handleIncomingCall({
@@ -152,8 +150,6 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
 
   const handleAbortCall = useCallback(
     (callId: string, to: string) => {
-      console.log("Handle abort call runnning ..");
-
       if (activeCall) {
         setActiveCall({ ...activeCall, status: "ended" });
       }
@@ -170,7 +166,6 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
 
   const handleEndCall = useCallback(
     (callId: string, to: string) => {
-      console.log("Handle end call runnning ..");
       if (activeCall) {
         setActiveCall({ ...activeCall, status: "ended" });
       }
@@ -213,7 +208,6 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
               if (!prev) return prev;
               return { ...prev, status: "connected" };
             });
-            socket?.emit("call-connected");
           } catch (error) {
             console.log(error);
             socket?.emit("call-failed", {
@@ -243,6 +237,29 @@ export const CommunicationProvider: React.FC<React.PropsWithChildren> = ({
     handleIceCandidate,
     showIncomingCall,
   ]);
+
+  useEffect(() => {
+    const handleConnectionChange = () => {
+      if (pConnection.current?.connectionState === "connected") {
+        socket?.emit("call-connected", {
+          callId: activeCall?.callId,
+          to: activeCall?.chatRoomId,
+        });
+      }
+    };
+    if (pConnection.current)
+      pConnection.current.addEventListener(
+        "connectionstatechange",
+        handleConnectionChange
+      );
+
+    return () => {
+      pConnection.current?.removeEventListener(
+        "connectionstatechange",
+        handleConnectionChange
+      );
+    };
+  }, [pConnection.current, socket]);
 
   return (
     <CommunicationContext.Provider

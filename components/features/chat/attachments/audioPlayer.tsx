@@ -11,7 +11,7 @@ export default function AudioPlayer({
   handleMediaError,
   audioRef,
 }: {
-  src: string;
+  src?: string;
   handleMediaError: (isVideo: boolean) => void;
   audioRef: MutableRefObject<HTMLAudioElement | null>;
 }) {
@@ -42,7 +42,9 @@ export default function AudioPlayer({
         ref={audioRef}
         src={src}
         onError={() => handleMediaError(false)}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+        onLoadedMetadata={(e) => {
+          setDuration(e.currentTarget.duration);
+        }}
         onTimeUpdate={(e) => {
           setCurrentTime(e.currentTarget.currentTime);
         }}

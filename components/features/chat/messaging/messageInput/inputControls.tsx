@@ -1,4 +1,4 @@
-import { Smile, Paperclip, Send, Mic, Square } from "lucide-react";
+import { Smile, Paperclip } from "lucide-react";
 
 interface InputControlsProps {
   showEmojis: boolean;
@@ -31,53 +31,5 @@ export const InputControls = ({
         </button>
       </div>
     </>
-  );
-};
-
-interface InputSubmitControlsProps {
-  shouldShowSend: boolean;
-  isRecording: boolean;
-}
-export const InputSubmitControls = ({
-  isRecording,
-  shouldShowSend,
-}: InputSubmitControlsProps) => {
-  return (
-    <button
-      type="submit"
-      className={`p-2 self-center rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 ${
-        shouldShowSend
-          ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
-          : isRecording
-          ? "bg-red-500/20 text-red-500 animate-pulse"
-          : "hover:bg-gray-700 text-gray-400 hover:text-gray-300"
-      }`}
-    >
-      <div className="relative w-5 h-5">
-        <div
-          className={`absolute inset-0 transition-all duration-200 transform ${
-            shouldShowSend ? "opacity-100 scale-100" : "opacity-0 scale-50"
-          }`}
-        >
-          <Send className="w-5 h-5" />
-        </div>
-        <div
-          className={`absolute inset-0 transition-all duration-200 transform ${
-            !shouldShowSend && !isRecording
-              ? "opacity-100 scale-100"
-              : "opacity-0 scale-50"
-          }`}
-        >
-          <Mic className="w-5 h-5" />
-        </div>
-        <div
-          className={`absolute inset-0 transition-all duration-200 transform ${
-            isRecording ? "opacity-100 scale-100" : "opacity-0 scale-50"
-          }`}
-        >
-          <Square className="w-5 h-5" />
-        </div>
-      </div>
-    </button>
   );
 };

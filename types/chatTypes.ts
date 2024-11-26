@@ -83,6 +83,7 @@ type FileType =
   | "audio/mpeg"
   | "audio/wav"
   | "audio/m4a"
+  | "audio/webm"
   | "video/mp4"
   | "video/webm"
   | "application/zip"

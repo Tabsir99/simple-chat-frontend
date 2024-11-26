@@ -1,18 +1,19 @@
-import {
-  InputControls,
-  InputSubmitControls,
-} from "@/components/features/chat/messaging/messageInput/inputControls";
+import { InputControls } from "@/components/features/chat/messaging/messageInput/inputControls";
 import { useMessageInput } from "@/components/shared/hooks/chat/message/useMessageInput";
 import { AttachmentViewModel } from "@/types/chatTypes";
 import { FormEvent, KeyboardEvent, RefObject, useRef, useState } from "react";
 import EmojiPicker from "../../reactions/emojiPicker";
+import { Send } from "lucide-react";
 
 interface MessageInputFormProps {
   attachment: AttachmentViewModel | null;
   fileInputRef: RefObject<HTMLInputElement>;
   handleFileSelect: (files: File) => void;
   clearAttachments: () => void;
-  sendMessage: (attachments: any, newMessage: string) => void;
+  sendMessage: (
+    attachments: AttachmentViewModel | null,
+    newMessage: string
+  ) => void;
 }
 
 const MessageInputForm = ({
@@ -22,14 +23,8 @@ const MessageInputForm = ({
   fileInputRef,
   handleFileSelect,
 }: MessageInputFormProps) => {
-  const {
-    handleFileClick,
-    isRecording,
-    newMessage,
-    setIsRecording,
-    setNewMessage,
-    toggleRecording,
-  } = useMessageInput(fileInputRef);
+  const { handleFileClick, newMessage, setNewMessage } =
+    useMessageInput(fileInputRef);
 
   const shouldShowSend = newMessage.trim() || attachment ? true : false;
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -38,22 +33,21 @@ const MessageInputForm = ({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (shouldShowSend) {
-      sendMessage(attachment, newMessage);
-      setNewMessage("");
-      clearAttachments();
-    } else {
-      toggleRecording();
-    }
+    sendMessage(attachment, newMessage);
+    setNewMessage("");
+    clearAttachments();
+
     if (inputRef.current) inputRef.current.style.height = "auto";
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // Prevent default behavior
+    if (e.key === "Enter" && !e.shiftKey && shouldShowSend) {
+      e.preventDefault();
       formRef.current?.requestSubmit();
+      return;
     }
   };
+
   return (
     <div className="relative h-full w-full pl-4 flex max-sm:pl-0 max-sm:pr-1 gap-1 pr-2">
       {/* Main Input Container */}
@@ -99,14 +93,30 @@ const MessageInputForm = ({
           />
         </div>
 
-        <InputSubmitControls
-          isRecording={isRecording}
-          shouldShowSend={shouldShowSend}
-        />
-        {/* Right Side Buttons */}
+        <button
+          type="submit"
+          className={`
+        inline-flex items-center justify-center
+        p-2
+        rounded-full
+        bg-blue-600 
+        text-white
+        transition-all duration-200 ease-in-out
+        shadow-lg
+        hover:bg-blue-700 hover:shadow-xl
+
+        active:scale-95
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 disabled:hover:scale-100
+      `}
+        >
+          {false ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Send className="w-5 h-5" />
+          )}
+        </button>
       </form>
 
-      {/* Hidden File Input */}
       <input
         type="file"
         ref={fileInputRef}

@@ -1,11 +1,12 @@
 "use client";
-import { LogOut, Camera,UserPlus, Save } from "lucide-react";
+import { LogOut, Camera, UserPlus, Save } from "lucide-react";
 import UserInfo from "./userInfo";
 import UserStats from "./userstats";
 import Image from "next/image";
 import FullPageLoader from "../../shared/ui/organisms/fullpageloader";
 import UserBio from "./userBio";
 import { useProfileManagement } from "../../shared/hooks/userProfile/useProfileEdit";
+import { useEffect, useRef } from "react";
 
 export default function PrivateProfile() {
   const {
@@ -13,24 +14,33 @@ export default function PrivateProfile() {
     isEditing,
     isLoading,
     isSaving,
-    
+
     handleBioChange,
     handleBioEdit,
     handleNameChange,
     handleNameEdit,
     handleSave,
+    handleImageChange,
   } = useProfileManagement();
 
+  useEffect(() => {
+    return () => {
+      URL.revokeObjectURL(userProfile.profilePicture || "");
+    };
+  }, []);
+
+  const imageRef = useRef<HTMLInputElement>(null);
   if (isLoading) {
     return <FullPageLoader className="" width="100%" height="100%" />;
   }
+
   return (
     <div className="min-h-[100dvh] w-full bg-gray-900 text-white p-4 sm:p-6 lg:p-8 overflow-y-auto">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header Section */}
         <div className="flex justify-between items-center gap-3 max-lg:pl-12 h-12">
           <h1 className="text-2xl sm:text-3xl font-bold">Profile</h1>
-          {(isEditing.bio || isEditing.username) && (
+          {(isEditing.bio || isEditing.username || isEditing.image) && (
             <button
               onClick={handleSave}
               disabled={isSaving}
@@ -62,9 +72,21 @@ export default function PrivateProfile() {
                   {userProfile?.username.slice(0, 2).toUpperCase()}
                 </div>
               )}
-              <button className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 rounded-full p-2 transition-colors">
+              <button
+                onClick={() => {
+                  imageRef.current?.click();
+                }}
+                className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 rounded-full p-2 transition-colors"
+              >
                 <Camera className="w-5 h-5" />
               </button>
+              <input
+                ref={imageRef}
+                type="file"
+                className="hidden"
+                accept="image/**"
+                onChange={handleImageChange}
+              />
             </div>
 
             {/* User Info Section - Pass full width prop */}

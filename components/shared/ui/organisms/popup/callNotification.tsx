@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Phone, Video, X, User2, Maximize2 } from "lucide-react";
 import {
-  CallSession,
   useCommunication,
 } from "../../../contexts/communication/communicationContext";
+import { CallSession } from "@/types/ChatTypes/CallTypes";
 
 interface MinimizedCallProps {
   callSession: CallSession;
@@ -20,9 +20,9 @@ const MinimizedCall: React.FC<MinimizedCallProps> = ({
   const { handleAcceptCall, handleAbortCall, handleEndCall } =
     useCommunication();
 
-  const { caller, recipient, isVideoCall, callId, chatRoomId, offer,status } =
+  const { caller, recipients, isVideoCall, callId, chatRoomId, offer,status } =
     callSession;
-  const remoteParticipant = isLocalUserCaller ? recipient : caller;
+  const remoteParticipant = isLocalUserCaller ? recipients[0] : caller;
 
   useEffect(() => {
     setIsVisible(true);

@@ -17,16 +17,8 @@ export const useRTC = (socket: Socket | null) => {
   const pConnection = useRef<RTCPeerConnection | null>(null);
   const pendingCandidates = useRef<RTCIceCandidate[]>([]);
 
-  useEffect(() => {
-    console.log("heello", pConnection);
-    if (pConnection.current)
-      pConnection.current.onconnectionstatechange = (e) => {
-        console.log(pConnection.current?.connectionState);
-      };
-  }, [pConnection.current]);
 
   const getUserMedia = useCallback(async (isVideo: boolean) => {
-    console.log("is it video,", isVideo);
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -236,5 +228,6 @@ export const useRTC = (socket: Socket | null) => {
     switchCamera,
     localStream,
     remoteStream,
+    pConnection
   };
 };

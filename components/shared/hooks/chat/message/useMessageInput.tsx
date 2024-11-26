@@ -1,13 +1,11 @@
 import { useAuth } from "@/components/shared/contexts/auth/authcontext";
 import { useCommunication } from "@/components/shared/contexts/communication/communicationContext";
-import { IChatHead } from "@/types/chatTypes";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export const useMessageInput = (fileInputRef: any) => {
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const { user } = useAuth();
   const { socket } = useCommunication();
 
@@ -15,12 +13,6 @@ export const useMessageInput = (fileInputRef: any) => {
 
   const handleFileClick = () => {
     fileInputRef.current?.click();
-  };
-
-
-  const toggleRecording = () => {
-    setIsRecording(!isRecording);
-    console.log(isRecording ? "Stopping recording" : "Starting recording");
   };
 
   useEffect(() => {
@@ -53,9 +45,6 @@ export const useMessageInput = (fileInputRef: any) => {
   return {
     newMessage,
     setNewMessage,
-    isRecording,
-    setIsRecording,
-    toggleRecording,
     handleFileClick,
   };
 };

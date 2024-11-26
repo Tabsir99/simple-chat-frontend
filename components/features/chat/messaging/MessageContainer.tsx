@@ -91,7 +91,7 @@ export function MessageContainer({
 
             {/* Message Content */}
 
-            {!message.isDeleted && attachment && (
+            {!message.isDeleted && attachment?.fileUrl && (
               <Attachments attachments={attachment} />
             )}
 

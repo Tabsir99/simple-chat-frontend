@@ -30,6 +30,7 @@ interface ChatContextProps {
     sender: { userId: string | null; username: string | null },
     fileType: AttachmentViewModel["fileType"] | null
   ) => string | undefined;
+  getFileCategory: (mimeType: AttachmentViewModel["fileType"]) => any
 
   getLastMessageCall: (
     callerId: string,
@@ -218,6 +219,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         updateLastActivity,
         getLastMessage,
         getLastMessageCall,
+        getFileCategory
       }}
     >
       {children}

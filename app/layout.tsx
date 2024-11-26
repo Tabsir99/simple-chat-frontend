@@ -1,18 +1,22 @@
+// I messed up with writing comments, Should have written as I created individual hooks and components
+// But it's too late now. Sorry for the inconvenience for if anyone watching
+
+
 import "./globals.css";
-// import { Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import { AuthProvider } from "@/components/shared/contexts/auth/authcontext";
 import { CommunicationProvider } from "@/components/shared/contexts/communication/communicationContext";
 import type { Metadata } from "next";
 import { ChatProvider } from "@/components/shared/contexts/chat/chatContext";
 import { RecentActivitiesProvider } from "@/components/shared/contexts/chat/recentActivityContext";
 
-// const interFont = Inter({
-//   weight: ["400", "700"],
-//   preload: true,
-//   subsets: ["latin"],
-//   display: "swap",
-//   fallback: ["system"],
-// });
+const interFont = Inter({
+  weight: ["400", "700"],
+  preload: true,
+  subsets: ["latin"],
+  display: "swap",
+  fallback: ["system"],
+});
 
 export const metadata: Metadata = {
   title: "Simple Chat",
@@ -27,15 +31,13 @@ function RootLayout({
     <html lang="en" style={{ margin: 0, padding: 0 }}>
       <body style={{ margin: 0, padding: 0 }}>
         <main
-          className=" overflow-hidden flex"
+          className={` overflow-hidden flex ${interFont.className}`}
           style={{
             backgroundColor: "hsl(250,24%,9%)",
             height: "100dvh",
             minWidth: "100vw",
           }}
         >
-          {/* <div className="fixed w-screen h-screen pointer-events-none bg-orange-400 bg-opacity-[0.07]"></div> */}
-
           <AuthProvider>
             <CommunicationProvider>
               <ChatProvider>

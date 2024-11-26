@@ -39,6 +39,7 @@ export function useMessages(
     if (!currentUser) return;
 
     let originalData: AllMessageResponse | undefined;
+
     mutate((currentData) => {
       if (!currentData) return currentData;
 
@@ -65,6 +66,8 @@ export function useMessages(
               }
             : r
         ),
+
+        // add new message at the start to maintain reverse chronological order
         messages: [newMessage, ...currentData.messages],
       };
 
@@ -77,12 +80,12 @@ export function useMessages(
       } catch (error) {
         error instanceof Error && showNotification(error.message, "error");
         mutate(originalData);
-        console.log(error);
         return;
       }
     }
     updateLastActivity(chatId as string, newMessage, attachment);
 
+    // Create a minimal message object for socket transmission
     const messageToSend: Partial<IMessage> = {
       ...(newMessage.content && { content: newMessage.content }),
       sender: newMessage.sender,
@@ -104,11 +107,17 @@ export function useMessages(
     });
   };
 
+
+  // Function to upload attachment with the message (if any)
   async function uploadFile(
     attachment: AttachmentViewModel,
     messageId: string
   ) {
+
+
     const token = await checkAndRefreshToken();
+
+    // Get a signedURL from the server with appropiate permissions to upload the file
     const response = await fetch(`${ecnf.apiUrl}/files`, {
       method: "POST",
       headers: {
